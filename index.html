@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AURELIA — Free PDF Tools, Private by Design</title>
+<meta name="description" content="AURELIA: 28+ free PDF tools that run 100% in your browser. Merge, split, compress, convert, sign, protect PDFs. Files never leave your device.">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◆</text></svg>">
+<script src="https://unpkg.com/pdf-lib-plus-encrypt@1.1.0/dist/pdf-lib-plus-encrypt.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
+</head>
+<body>
+<header class="glass">
+  <a class="logo" href="#" onclick="showHome();return false">AURE<span>LIA</span></a>
+  <nav><a href="#tools">Tools</a><a href="#privacy">Privacy</a><a href="#about">About</a></nav>
+  <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode">🌙 Dark</button>
+</header>
+<main class="wrap">
+  <section id="homeView">
+    <div class="hero">
+      <div class="badge glass">🔒 100% private — files never leave your browser</div>
+      <h1>Every PDF tool.<br><em>Liquid. Private. Free.</em></h1>
+      <p>Merge, split, compress, convert, edit, sign and protect PDFs — with an iOS Liquid Glass experience and zero uploads. No login. No server. No waiting.</p>
+      <div class="search glass"><input id="searchInput" type="search" placeholder="Search tools — try “merge”, “ocr”, “sign”…" aria-label="Search tools"><button class="btn" onclick="document.getElementById('tools').scrollIntoView({behavior:'smooth'})">Explore</button></div>
+      <p style="font-size:13px;margin-top:14px">31 fully working tools · Works on phone, tablet & desktop · English</p>
+    </div>
+    <div id="tools"></div>
+  </section>
+
+  <section id="toolView" class="hidden">
+    <button class="btn secondary" onclick="showHome()">← All tools</button>
+    <div class="panel glass">
+      <h2 id="toolTitle" style="margin-top:0;font-size:30px"></h2>
+      <p id="toolDesc" style="color:var(--muted)"></p>
+      <p id="toolNote" class="pill hidden"></p>
+      <div class="drop" id="dropZone">
+        <div style="font-size:38px">📂</div>
+        <p><strong>Drag & drop your file(s) here</strong><br><span style="color:var(--muted)">or</span></p>
+        <label class="btn" for="fileInput">Choose file(s)</label>
+        <input id="fileInput" type="file" class="hidden" multiple>
+        <p id="acceptHint" style="color:var(--muted);font-size:13px"></p>
+      </div>
+      <div class="filelist" id="fileList"></div>
+      <div class="opts" id="toolOpts"></div>
+      <div id="sigWrap" class="hidden"><label style="font-weight:700">Draw your signature</label><canvas id="sigpad" width="800" height="260"></canvas><button class="btn secondary" onclick="clearSig()">Clear signature</button></div>
+      <div class="progress hidden" id="progWrap"><div class="bar" id="progBar"></div></div>
+      <p id="status" style="color:var(--muted)"></p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="processBtn">Process</button><button class="btn secondary" onclick="resetTool()">Reset</button></div>
+      <div class="result" id="resultBox" style="margin-top:18px"></div>
+    </div>
+  </section>
+</main>
+<footer id="privacy">
+  <p><strong>Privacy first:</strong> AURELIA runs entirely in your browser. Your files are never uploaded, never stored, and never leave your device.</p>
+  <p id="about">AURELIA by Safwan Digital · Free forever · Some Office conversions are text-based Beta — see each tool's note for honest limits.</p>
+</footer>
+<div id="toast" class="toast glass hidden"></div>
+<script src="app.js"></script>
+</body></html>

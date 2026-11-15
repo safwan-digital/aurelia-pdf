@@ -1,0 +1,6 @@
+# QA-only — never published
+test-materials/
+tests/
+node_modules/
+*.log
+.DS_Store
