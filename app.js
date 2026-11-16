@@ -65,6 +65,11 @@ function renderTools(filter=''){
 }
 $('searchInput').addEventListener('input',e=>renderTools(e.target.value));
 $('themeBtn').addEventListener('click',()=>{const h=document.documentElement;const d=h.dataset.theme!=='dark';h.dataset.theme=d?'dark':'light';$('themeBtn').innerHTML=icon(d?'sun':'moon',16)+' '+(d?'Light':'Dark')});
+/* V3.4: Deep Teal palette option — Graphite Mono stays the default; the choice persists in localStorage ('aurelia-palette') and is applied pre-paint by the inline init in index.html. */
+const paletteBtn=$('paletteBtn');
+function syncPaletteBtn(){const teal=document.documentElement.dataset.palette==='teal';paletteBtn.setAttribute('aria-pressed',teal?'true':'false');paletteBtn.title='Colour: '+(teal?'Deep Teal':'Graphite')+' — switch to '+(teal?'Graphite':'Deep Teal');paletteBtn.innerHTML=icon('palette',16)+' '+(teal?'Graphite':'Teal')}
+syncPaletteBtn();
+paletteBtn.addEventListener('click',()=>{const h=document.documentElement;if(h.dataset.palette==='teal'){delete h.dataset.palette;try{localStorage.removeItem('aurelia-palette')}catch(e){}}else{h.dataset.palette='teal';try{localStorage.setItem('aurelia-palette','teal')}catch(e){}}syncPaletteBtn()});
 
 /* ================= Job / progress system (v3) =================
    Every run goes through startJob/endJob: the button locks with a

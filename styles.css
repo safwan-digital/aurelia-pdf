@@ -169,3 +169,22 @@ nav a{transition:color .2s}nav a:hover{color:#000}
 [data-theme=dark] .pill{color:#c9cad0;background:rgba(255,255,255,.09)}
 [data-theme=dark] .card .icchip{background:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.03))}
 [data-theme=dark] .thumb-check{color:#17181b}
+/* ===== V3.4 palette: Deep Teal (Safwan's pick "E") — selectable option, Graphite Mono stays the default ===== */
+[data-palette="teal"]{--bg:#ebf7f8;--bg2:#d7eef0;--glass:rgba(255,255,255,.62);--glass2:rgba(255,255,255,.42);--stroke:rgba(255,255,255,.65);--ink:#0a2530;--muted:#55727d;--accent:#0e7c86;--accent2:#0e9a9c;--accent3:#2ec4c6;--acc-rgb:14,124,134;--shadow:0 20px 50px rgba(10,90,100,.13)}
+[data-palette="teal"] body{background:radial-gradient(900px 500px at 15% -5%,rgba(14,124,134,.21),transparent 60%),radial-gradient(800px 500px at 90% 0%,rgba(46,196,198,.20),transparent 60%),radial-gradient(700px 600px at 50% 110%,rgba(165,229,233,.30),transparent 60%),linear-gradient(160deg,var(--bg),var(--bg2))}
+[data-palette="teal"] .btn,[data-palette="teal"] .btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 12px 28px rgba(14,124,134,.30)}
+[data-palette="teal"] .btn.secondary{background:var(--glass);color:var(--ink);box-shadow:none;border:1px solid var(--stroke)}
+[data-palette="teal"] .btn.quiet{background:transparent;color:var(--ink);box-shadow:none;border-color:transparent}
+[data-palette="teal"] .pill{color:var(--accent);background:rgba(var(--acc-rgb),.10)}
+[data-palette="teal"] nav a:hover{color:var(--accent)}
+[data-palette="teal"] ::selection{background:rgba(46,196,198,.32)}
+[data-theme="dark"][data-palette="teal"]{--bg:#04141a;--bg2:#07222b;--glass:rgba(10,34,44,.62);--glass2:rgba(10,34,44,.42);--stroke:rgba(180,240,245,.13);--ink:#edfafb;--muted:#8fb4bc;--accent:#17a2b0;--accent2:#2ec4c6;--accent3:#6fe3e0;--acc-rgb:23,162,176;--shadow:0 20px 50px rgba(0,0,0,.5)}
+[data-theme="dark"][data-palette="teal"] body{background:radial-gradient(900px 500px at 15% -5%,rgba(14,124,134,.36),transparent 60%),radial-gradient(800px 500px at 90% 0%,rgba(46,196,198,.16),transparent 60%),radial-gradient(700px 600px at 50% 110%,rgba(46,196,198,.08),transparent 60%),linear-gradient(160deg,var(--bg),var(--bg2))}
+[data-theme="dark"][data-palette="teal"] .btn,[data-theme="dark"][data-palette="teal"] .btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 12px 28px rgba(23,162,176,.4)}
+[data-theme="dark"][data-palette="teal"] .btn.secondary{background:var(--glass);color:var(--ink);box-shadow:none;border:1px solid var(--stroke)}
+[data-theme="dark"][data-palette="teal"] .btn.quiet{background:transparent;color:var(--ink);box-shadow:none;border-color:transparent}
+[data-theme="dark"][data-palette="teal"] .sigtab.sel,[data-theme="dark"][data-palette="teal"] .sigtab[aria-pressed="true"]{color:#fff}
+[data-theme="dark"][data-palette="teal"] .pill{color:#2ec4c6;background:rgba(46,196,198,.13)}
+[data-theme="dark"][data-palette="teal"] .thumb-check{color:#fff}
+[data-theme="dark"][data-palette="teal"] nav a:hover{color:#2ec4c6}
+[data-theme="dark"][data-palette="teal"] ::selection{background:rgba(46,196,198,.35)}
