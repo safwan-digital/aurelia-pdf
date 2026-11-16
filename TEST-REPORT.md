@@ -80,3 +80,80 @@ Excluded from publish: `test-materials/`, `tests/` (harness + outputs + node_mod
 1. **GitHub app route — tried first, refused.** Account verified connected as **safwan-digital**. `search_repositories` confirmed no existing `aurelia-pdf` repo. `create_repository` returned the exact error: `failed to create repository: POST https://api.github.com/user/repos: 403 Resource not accessible by integration` — the GitHub App integration cannot create repositories (access limit, per github_publish_fallback skill). Not retried, per skill.
 2. **Website route — requires the live browser.** Creating the repo + uploading files + enabling Pages must be done in the signed-in browser session (single tab, confirm account = safwan-digital, upload the 7 package files, Settings → Pages → Deploy from branch `main`, root `/`, then verify https://safwan-digital.github.io/aurelia-pdf/ loads and the repo file list matches). This step needs a browser-task agent / Safwan's browser session and could not be executed from this build worker.
 3. **Status: package is 100% publish-ready locally; only the repo-creation/upload/Pages-enable step remains**, blocked solely by the app permission above — the one step that needs the browser session.
+
+---
+
+# V2 UPDATE — Visual editors + user-friendliness (2026-11-16)
+
+**Why:** Safwan's live test of v1 found the UX was form-based, not visual: Merge felt single-file, Sign stamped at a fixed spot on the last page, and Remove/Extract/Split/Organize/Rotate/Crop/Edit/Redact made users type page numbers / coordinates with no preview. v1's tests were engine-level (Node) only — the browser UI layer was never driven. v2 fixes the UX and adds real UI-level tests.
+
+## What changed
+
+### A. Multi-file bulletproofing (Merge, Images to PDF, Compare)
+- `fileInput.value` is now cleared after **every** change event — re-picking (including the same file after removing it) always registers.
+- After files are chosen, a clear **“+ Add more files”** button reopens the picker; dropping more files appends too.
+- File chips show name, size, a **× remove** button and **↑/↓ reorder** buttons (multi-file tools). A live counter reads “N files ready”.
+
+### B. Visual Page Manager (shared, PDF.js thumbnails, lazy-rendered via IntersectionObserver)
+- **Remove Pages:** thumbnail grid; tap to mark/unmark (red overlay + ✕); Select all / Clear; the count and the typed fallback stay in sync; processing uses exactly the marked set; removing every page is blocked with a plain message.
+- **Extract Pages:** same grid, tap to select (blue ✓).
+- **Organize:** thumbnails with pointer-based drag-to-reorder (works with touch; the dragged thumb reorders live) plus ◀ ▶ buttons; the order field stays in sync.
+- **Rotate:** each thumbnail has a **⟳ button** that rotates that page only (preview rotates too), plus the previous rotate-all/typed fallback.
+- **Split:** new **“pick” mode** — tap pages and extract them together as one PDF; ranges and each-page modes unchanged.
+
+### C. Visual placement editor (large preview + overlay; positions stored as page fractions, converted to PDF points with the y-axis flip at stamp time)
+- **Sign PDF:** after drawing, the signature appears as a **draggable overlay box** on the page preview, with a **page selector (Prev/Next)** and a **size slider**; it stamps at the exact overlay position/size on the chosen page — any page, not just the last. (Fixed v1 behaviour: x=320, y=60, last page.)
+- **Edit PDF:** click on the preview places a text marker; text + size stamped there.
+- **Annotate:** drag a rectangle on the preview → highlighted note box with the note text inside.
+- **Redact:** drag rectangles on the preview → black boxes exactly there; **multiple boxes**, each removable (× on the box and in the box list).
+- **Crop:** large preview with a **draggable / corner-resizable crop rectangle**; the trim numbers stay in sync and remain editable as fine-tune.
+- Edge limit (stated honestly): placement math assumes page rotation 0; pages that already carry rotation may offset overlays.
+
+### User-friendliness changes (Safwan directive, 2026-11-16 08:23)
+- **2–3 tap flow everywhere:** Add file(s) → choose visually → one big action button → Download. Typing is never the primary path.
+- **Typed fallbacks collapsed** under “Advanced options — type instead of tapping” for Remove, Extract, Organize, Rotate, Split (ranges), and the page-number fields of Edit/Annotate/Redact.
+- **The action button says what will happen** and updates live: “Merge 3 PDFs”, “Remove 2 pages”, “Extract 3 pages as one PDF”, “Cover 2 areas & download”, “Place signature & download”, “Make PDF from 4 images”… and it **pulses** once files are ready.
+- **After choosing a file, the preview/picker scrolls into view** so the next step is obvious.
+- **Plain words:** tool descriptions rewritten (“Tap page thumbnails to choose pages to delete”), hints inside every picker, no “points/coordinates” language on the primary path.
+- **Friendly errors:** raw technical errors are replaced with “Something went wrong with that file. Please try a different PDF — or a smaller, simpler one.” Our own short, plain messages (e.g. “Tap pages in the preview above to mark them for removal”) pass through unchanged.
+- **Home screen:** new **“⭐ Most popular”** row (Merge, Compress, PDF to JPG, Images to PDF) above the categories; search unchanged.
+- **Bigger tap targets:** chips ≥34px, rotate buttons 38px, larger action button (17px).
+
+## UI-level tests (NEW in v2 — the gap that let v1's bugs ship)
+
+**Harness:** `tests/ui-test.js` — puppeteer-core driving the VM's real Chrome (`/opt/meta-chromium/chrome`, Muse Browser 157) against the real page. Environment notes: this Chrome build refuses to start without its WebGL domain-policy switches (found on disk at `/var/lib/hatch-browser/rootfs-base/usr/share/hatch/chromium/webgl-allowed-domains.txt` + its SHA-256), blocks loopback HTTP (Local Network Access), and its egress proxy rejects Chrome CONNECT tunnels — so the test loads the page via `file://` and answers the page's pinned-CDN requests with byte-identical files curl downloaded into `tests/vendor/` (same versions index.html references). Processed outputs are captured from the app's real result blob in-page (Chrome's download manager was flaky under this VM's throttled CPU; the first run additionally proved real downloads land on disk: aurelia-merged.pdf, tracemonkey-trimmed.pdf, tracemonkey-picked.pdf).
+
+**Result: 20 / 20 PASS** (full log in `tests/ui-results.json`, screenshots in `tests/v2-shots/`)
+
+| # | UI check | Evidence |
+|---|---|---|
+| 1 | Home renders 31 distinct tools | card count by tool id |
+| 2 | “Most popular” row present | 4 cards |
+| 3 | Merge: 3 PDFs added in **3 separate picks** | “3 files ready”, + Add more files visible |
+| 4 | Merge: chip × removes, re-picking the **same file** registers again | back to 3 files |
+| 5 | Action button label | “Merge 3 PDFs” |
+| 6 | Merge output | **20 pages** (14 + 5 + 1) |
+| 7 | Remove Pages: thumbnails render | 14 thumbs, canvases painted |
+| 8 | Tap pages 2 & 5 | “2 marked for removal”, fallback field synced “2,5” |
+| 9 | UX: label + collapsed Advanced | “Remove 2 pages”; pages field inside closed `<details>` |
+| 10 | Remove Pages output | **12 pages** |
+| 11 | Organize: drag-order state + ◀ ▶ move | order field becomes “2,1,3,…” |
+| 12 | Rotate: per-page ⟳ | “1 page(s) rotated” |
+| 13 | Split pick-mode | tapped pages 1 & 3 → one 2-page PDF |
+| 14 | Sign: draw → overlay appears → **drag moves it** | signPos fx .52→.34, fy .76→.60 |
+| 15 | Sign output | opens, 1 page, size 13,264 → 15,510 B (stamp present) |
+| 16 | Crop: rectangle + numeric sync | trims auto-filled (left 42pt, top 59pt from default rect) |
+| 17 | Edit: click places marker | marker set at click point |
+| 18 | Redact: drag creates removable box | boxes = 1 |
+| 19 | Mobile 390px: page manager renders | 14 thumbs |
+| 20 | No uncaught page errors across the whole run | clean console |
+
+**What the screenshots show** (`tests/v2-shots/`): `home-desktop.png` / `home-mobile.png` (glass grid + Most popular), `merge-3-files-desktop.png` (3 chips + “Merge 3 PDFs”), `remove-pages-manager-desktop.png` (pages 2 & 5 marked red ✕), `remove-pages-manager-mobile.png` (390px, Select all / Clear, tappable thumbs), `sign-editor-desktop.png` (drawn signature inside its blue dashed drag-box on the page preview, after being dragged).
+
+## Regression check (v1 engine harness re-run)
+`tests/run-tests.js`: **30 PASS, 1 blocked** — the only failure is *Compress PDF* with `Cannot find module 'canvas'`. That is a Node-harness environment problem, not app code: `canvas` is an *optional* dependency of pdfjs-dist's Node build, and reinstalling it fails in this VM (node-pre-gyp/node-gyp cannot download what it needs under Node 24). The Compress handler is **unchanged** in v2, and its exact rendering path (PDF.js page render → canvas) is exercised in the real browser by the UI tests above (thumbnails, PDF preview, sign editor all render pages through it). In a normal browser — where AURELIA actually runs — canvas is native.
+
+## Remaining limits
+- Placement/overlay math assumes unrotated pages (rotation ≠ 0 pages may offset stamps).
+- Organize drag uses pointer events; the ◀ ▶ buttons are the guaranteed path on any device.
+- All v1 known limits still apply (Office Beta text-based, Compress image-based output, OCR English/5 pages, Redact is a cover box — flatten advice shown, Translate/PDF-A not shipped).
