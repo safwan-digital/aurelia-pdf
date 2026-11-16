@@ -157,3 +157,28 @@ Excluded from publish: `test-materials/`, `tests/` (harness + outputs + node_mod
 - Placement/overlay math assumes unrotated pages (rotation ≠ 0 pages may offset stamps).
 - Organize drag uses pointer events; the ◀ ▶ buttons are the guaranteed path on any device.
 - All v1 known limits still apply (Office Beta text-based, Compress image-based output, OCR English/5 pages, Redact is a cover box — flatten advice shown, Translate/PDF-A not shipped).
+
+---
+
+# V3 — Audit fix pass (2026-11-16)
+
+Full detail: `tests/FIX-v3.md`. Inputs: the comparative audits `tests/AUDIT-v2.md` (AURELIA v2: 1/31 clean, Rotate intermittent silent failure, OCR broken, Redact cosmetic-only) and `tests/ILOVEPDF-AUDIT.md` (benchmark patterns). All audit top-15 items and benchmark adoptions A–G were addressed; the v2 visual design is unchanged.
+
+## Headline fixes
+- **Redact is real now:** boxed pages are rasterized at 200 DPI with the boxes burned in — tracemonkey p1 went from 5,118 extractable characters to **0** (other pages untouched). No boxes → friendly error; the silent default box is gone.
+- **Rotate root cause found & fixed:** a drag/state race in the editor layer (no pointer capture; async render completion rebuilt the overlay mid-gesture). All drags now use pointer capture / window-level tracking, and every tool runs in a job wrapper that surfaces friendly errors and always re-enables the button. Rotate verified **5× consecutive runs → 5 downloads**.
+- **OCR works end-to-end in a real browser:** logger-driven progress %, Cancel (worker terminate), 120 s start / 180 s per-page timeouts. Blocked-assets case now fails friendly in 4 s (was a 300 s stall); with byte-identical assets served locally, browser OCR completed with the correct text ("Mild Splendour of the various-vested Night!…").
+- **No more silent defaults:** Extract/Split-pick need a tapped page; Edit starts empty; Summarize and Unlock say honestly when there's nothing to do.
+- **Signature stamps are transparent** (ink-cropped, alpha-0 corners; 0.00% white pixels in the stamped area on a grey page) and Sign gained Type (cursive, black/blue) and Upload modes plus an optional date stamp.
+- **Benchmark adoptions:** file cards with first-page thumbnails + page counts; 3×3 position grids for Watermark/Page Numbers with the live placement sentence; result panel with tool-specific success line, output size, Compress before→after + % saved, "Continue to" chips and "↺ New task"; Organize per-page delete + Add blank page; Protect strength checklist + eye toggles; upfront "N files will be created" counts.
+- **Also fixed:** whole-dropzone click, friendly errors everywhere (including a non-empty-message guarantee), Metadata view-before-process + clear-all, ≥40 px touch targets, Organize touch scrolling (`touch-action: pan-y`), header overlap (`scroll-margin-top`) + reachable mobile nav, honest "Text-based (Beta)" descriptions, basic column splitting in PDF→Excel.
+
+## V3 test results
+- `tests/ui-test.js` (real Chrome UI regression suite): **20/20 PASS**, two consecutive runs.
+- `tests/v3-checks.js` (new targeted checks a–m + screenshots): **18/18 PASS** — redact text-gone, rotate ×5, no-selection errors, dropzone click, sign transparency, OCR fail-fast + completion, phone organize scroll + header clearance, metadata view/clear, protect checklist/encryption, unlock honesty + password path, summarize honesty, Excel columns. Screenshots: `tests/v3-shots/` (home-phone, watermark-posgrid, result-panel, sign-type); raw results: `tests/v3-results.json`.
+- `tests/run-tests.js` (Node engine harness): **30 PASS / 1 FAIL** — the only failure remains Compress with `Cannot find module 'canvas'`, the known Node-environment caveat (optional pdfjs-dist dependency cannot install in this VM); Compress's render path is native in the browser and covered there.
+
+## Remaining limits (v3)
+- Office conversions are text-based Beta (now stated plainly in each tool before processing).
+- Live-site OCR should be re-verified once after publishing (production uses the library's default CDN configuration from an https origin; the sandbox could only verify it with locally served, byte-identical assets).
+- Placement/overlay math assumes unrotated pages.

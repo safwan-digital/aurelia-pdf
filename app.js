@@ -206,7 +206,12 @@ function clearSig(){const c=$('sigpad');sigCtx&&sigCtx.clearRect(0,0,c.width,c.h
 const VISUAL_PM={'remove-pages':'remove','extract-pages':'extract','organize':'organize','rotate':'rotate'};
 const EDITOR_TOOLS=['crop','sign-pdf','edit-pdf','annotate','redact'];
 let pm=null, ed=null, visualSeq=0;
-function clearVisual(){visualSeq++;pm=null;ed=null;const w=$('visualWrap');if(w){w.innerHTML='';w.classList.add('hidden')}}
+/* clearVisual is the chokepoint where pm/ed state dies — Reset and
+   last-file removal both pass through here, and renderFileList's empty
+   branch never refreshes the label. Recompute the action label from the
+   cleared state, or state-dependent labels (Redact's "Cover N area(s)",
+   Merge's "Merge N PDFs", selection counts…) keep their stale text. */
+function clearVisual(){visualSeq++;pm=null;ed=null;const w=$('visualWrap');if(w){w.innerHTML='';w.classList.add('hidden')}updateActionLabel()}
 function onFilesChanged(){if(!current)return;const needs=VISUAL_PM[current.id]||current.id==='split'||EDITOR_TOOLS.includes(current.id);if(needs&&files.length&&/\.pdf$/i.test(files[0].name))buildVisual();else if(!files.length)clearVisual();
   if(current.id==='metadata'&&files.length)loadMetadataView();refreshToolInfo()}
 async function loadMetadataView(){const view=$('metaView');if(!view||!files.length)return;metaLoaded=false;try{const doc=await PDFDocument.load(await bytes(files[0]));const cur={title:doc.getTitle()||'',author:doc.getAuthor()||'',subject:doc.getSubject()||'',keywords:doc.getKeywords()||''};metaLoaded=true;
