@@ -37,9 +37,9 @@
       <h2 id="toolTitle" style="margin-top:0;font-size:30px"></h2>
       <p id="toolDesc" style="color:var(--muted)"></p>
       <p id="toolNote" class="pill hidden"></p>
-      <div class="drop" id="dropZone">
+      <div class="drop" id="dropZone" role="button" tabindex="0" aria-label="Choose files">
         <div style="font-size:38px">📂</div>
-        <p><strong>Drag & drop your file(s) here</strong><br><span style="color:var(--muted)">or</span></p>
+        <p><strong>Drag & drop your file(s) here — or tap anywhere in this box</strong><br><span style="color:var(--muted)">or</span></p>
         <label class="btn" for="fileInput">Choose file(s)</label>
         <input id="fileInput" type="file" class="hidden" multiple>
         <p id="acceptHint" style="color:var(--muted);font-size:13px"></p>
@@ -47,10 +47,48 @@
       <div class="filelist" id="fileList"></div>
       <div id="visualWrap" class="hidden"></div>
       <div class="opts" id="toolOpts"></div>
-      <div id="sigWrap" class="hidden"><label style="font-weight:700">Draw your signature</label><canvas id="sigpad" width="800" height="260"></canvas><button class="btn secondary" onclick="clearSig()">Clear signature</button></div>
-      <div class="progress hidden" id="progWrap"><div class="bar" id="progBar"></div></div>
+      <p id="toolInfo" class="toolinfo hidden"></p>
+      <div id="sigWrap" class="hidden">
+        <div class="sigtabs" role="tablist" aria-label="How to create your signature">
+          <button type="button" class="sigtab sel" data-sigtab="draw">✍️ Draw it</button>
+          <button type="button" class="sigtab" data-sigtab="type">⌨️ Type it</button>
+          <button type="button" class="sigtab" data-sigtab="upload">🖼️ Upload a picture</button>
+        </div>
+        <div id="sigDrawPane">
+          <label style="font-weight:700" for="sigpad">Draw your signature</label>
+          <canvas id="sigpad" width="800" height="260"></canvas>
+          <div class="sigrow">
+            <span class="pm-hint">Pen colour:</span>
+            <button type="button" class="colordot sel" data-sigcolor="#111111" style="background:#111111" aria-label="Black pen"></button>
+            <button type="button" class="colordot" data-sigcolor="#0b3d91" style="background:#0b3d91" aria-label="Blue pen"></button>
+            <button type="button" class="btn secondary" onclick="clearSig()">Clear signature</button>
+          </div>
+          <p class="pm-hint">The chequered background means your signature is transparent — no white box on your document.</p>
+        </div>
+        <div id="sigTypePane" class="hidden">
+          <div class="field" style="max-width:420px"><label for="sigName">Your name</label><input id="sigName" type="text" placeholder="Type your name" autocomplete="off"></div>
+          <div class="sigrow" style="margin-top:10px"><span class="pm-hint">Style:</span>
+            <button type="button" class="fontpick sel" data-sigfont="'Segoe Script','Brush Script MT',cursive" style="font-family:'Segoe Script','Brush Script MT',cursive">Signature</button>
+            <button type="button" class="fontpick" data-sigfont="'Snell Roundhand','Apple Chancery',cursive" style="font-family:'Snell Roundhand','Apple Chancery',cursive">Signature</button>
+            <button type="button" class="fontpick" data-sigfont="'Lucida Handwriting','Comic Sans MS',cursive" style="font-family:'Lucida Handwriting',cursive">Signature</button>
+          </div>
+          <div class="sigrow"><span class="pm-hint">Colour:</span>
+            <button type="button" class="colordot sel" data-sigtype-color="#111111" style="background:#111111" aria-label="Black"></button>
+            <button type="button" class="colordot" data-sigtype-color="#0b3d91" style="background:#0b3d91" aria-label="Blue"></button>
+          </div>
+          <div class="sigtypeprev" id="sigTypePrev">Your name</div>
+          <button type="button" class="btn" id="sigTypeUse">Use this signature</button>
+        </div>
+        <div id="sigUploadPane" class="hidden">
+          <label class="btn secondary" for="sigFile">Choose a signature image</label>
+          <input id="sigFile" type="file" accept="image/*" class="hidden">
+          <p class="pm-hint">A PNG with a transparent background works best. The image is used exactly as you upload it.</p>
+        </div>
+        <label class="sigdate"><input type="checkbox" id="sigDate"> Add today's date next to the signature</label>
+      </div>
+      <div class="progrow hidden" id="progWrap"><div class="progress"><div class="bar" id="progBar"></div></div><span id="progText" class="progtext"></span></div>
       <p id="status" style="color:var(--muted)"></p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="processBtn">Process</button><button class="btn secondary" onclick="resetTool()">Reset</button></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="processBtn">Process</button><button class="btn secondary hidden" id="cancelBtn" type="button">Cancel</button><button class="btn secondary" onclick="resetTool()">Reset</button></div>
       <div class="result" id="resultBox" style="margin-top:18px"></div>
     </div>
   </section>
