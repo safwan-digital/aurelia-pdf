@@ -182,3 +182,36 @@ Full detail: `tests/FIX-v3.md`. Inputs: the comparative audits `tests/AUDIT-v2.m
 - Office conversions are text-based Beta (now stated plainly in each tool before processing).
 - Live-site OCR should be re-verified once after publishing (production uses the library's default CDN configuration from an https origin; the sandbox could only verify it with locally served, byte-identical assets).
 - Placement/overlay math assumes unrotated pages.
+
+---
+
+# V3.2 — Lucide icons, zero emoji (2026-11-16)
+
+Safwan's call: the emoji UI (🧩 ✂️ ⬇️ ✅ ⚠️…) read as "WhatsApp", not product. He approved a preview (`tests/icon-preview/`: accent #0071e3, stroke 1.8, icons in soft tinted glass chips) and the full swap was applied to the whole app.
+
+## What changed
+- **One inline SVG sprite, no runtime dependency:** 54 Lucide symbols (`<symbol id="i-…">`, lucide-static v1.73.0, ISC) embedded in a hidden `<svg>` in index.html; app.js renders icons through a tiny `icon(name, size)` helper returning `<svg class="ic"><use href="#i-…"/></svg>`. Icons work offline, from file://, anywhere the app works.
+- **All 31 tool icons** replaced (mapping in `tests/FIX-v3.md`): cards, tool-panel header (icon chip + name), Most-popular row, and Continue-to chips all use the same sprite.
+- **Every UI glyph** replaced: flame (Most popular), moon/sun (theme toggle, swaps on click), lock (privacy badge + result privacy note), arrow-left (All tools), upload (dropzone), pencil/keyboard/image-plus (signature tabs), eye/eye-off (password visibility, swaps on toggle), check (passwords-match + thumbnail selected overlay), x (remove/close), arrow-up/arrow-down (file reorder), plus (Add more files), download (download buttons), circle-check (result success line, green), triangle-alert (error status, via a new `setErrorStatus()`), rotate-ccw (New task), rotate-cw (per-page rotate + inline in Rotate's description and hints), trash-2 + chevron-left/right (Organize thumbnails/pager), file (blank page), arrow-right (Compress before/after stat). The favicon's ◆ text glyph became an SVG path.
+- **CSS-drawn, not font glyphs:** the Protect strength list's ○/✓ markers are now a CSS ring and an SVG-mask check (`.strength li::before`).
+- The Rotate description's "Tap ⟳…" keeps its meaning: the description carries a `[[rotate-cw]]` token that renders as the inline icon (verified in the rendered card).
+- Visible wording is otherwise unchanged; the only text touch is Compress's status sentence, where "1.49 MB → 24 KB" became "1.49 MB to 24 KB" (the bold stat line shows the same sizes joined by the arrow-right icon) — a plain-text status line cannot carry an inline SVG.
+
+## Proof
+- **Emoji grep: ZERO hits** in index.html, app.js and styles.css across the pictograph / misc-symbols / dingbat / supplemental / arrows / geometric ranges plus U+FE0F (script scanned every line; the scan that found 40+ glyphs before the pass finds none after).
+- `node --check app.js` — OK.
+- `tests/ui-test.js` — **20/20 PASS** (unchanged assertions; text-based checks pass as before).
+- `tests/v3-checks.js` — **18/18 PASS**. One assertion update: checks (f-a)/(f-b) keyed on the ⚠️ glyph in `#status`; `#status` is now innerHTML carrying the icon, so they assert the `i-triangle-alert` reference instead (same behaviour verified — friendly error in 4 s, button re-enabled).
+- **Screenshots** (`tests/icon-shots/`, scripts `tests/icon-shots.js` + `tests/icon-dark-check.js`): home desktop, home phone 390 px, Merge tool panel, Merge result panel, dark-mode Organize section — icons aligned, consistently sized, accent-coloured in their chips, light and dark. A DOM audit counted 44 `<use>` refs on home and 8 in the result panel — **zero unresolved**.
+
+## V3.2 palette — Graphite Mono (Safwan's pick "D")
+
+Applied 2026-11-16, local only (not published). Source of truth: `tests/palette-preview/palette-d.html` (light) + `palette-d-dark.html` (dark), ported into the real `styles.css` variable system for both themes.
+
+- **Light:** bg `#F4F4F5`/`#E7E7E9`, ink `#17181B`, muted `#6E6E76`, accent graphite `#23252A`, accent2 `#3B3E45`, accent3 steel `#83868E`; neutral grey aurora (graphite/steel/pale-grey washes); primary button `#141518→#2E3036` with a soft graphite shadow; monochrome icon chips.
+- **Dark:** bg `#0B0B0D`/`#131316`, glass `rgba(24,24,28,.62/.42)`, stroke `rgba(255,255,255,.13)`, ink `#F4F4F5`, muted `#9C9CA5`, accent `#E8E8EA`/`#B9BBC2`/`#83868E`; faint white/steel aurora; primary button inverted to near-white `#F5F5F7→#D8D8DE` with dark text (`.sigtab.sel` likewise flips to dark text; selected-page check overlay flips too).
+- **Implementation:** new `--acc-rgb` variable per theme (35,37,42 light / 232,232,234 dark) drives every accent tint (dropzone border, chips, position-grid ring, crop rect, pulse ring, focus/selection) so both themes stay mono from one rule set. Hero wordmark + logo gradients now run through the graphite accent variables.
+- **Semantic colours kept, muted:** success `#1A9E54 → #3E8E5F`, error `#E03131 → #C04545` (incl. remove-mode outline, thumb × overlay at 45% alpha) — readable, not neon.
+- **Signature colours:** the blue ink option `#0B3D91` ("Blue"/"Blue pen") replaced with graphite `#3B3E45` ("Graphite"/"Graphite pen") for both the drawn pen and the typed signature. Favicon diamond recoloured `#0071E3 → #23252A`.
+- **Untouched on purpose (document output, not UI chrome):** all PDF drawing colours in app.js (page-number/watermark/edit text, sticky-note yellow, redaction black), the white page stage/canvas, and the on-screen sticky-note overlay that mirrors the note drawn into the PDF.
+- **Verification:** grep for `0071e3`, `5e5ce6`, `bf5af2`, `0b3d91` and the old aurora/status hexes across styles.css + app.js + index.html → zero hits. `tests/ui-test.js` **20/20 PASS**, `tests/v3-checks.js` **18/18 PASS**. Screenshots in `tests/icon-shots/`: `palette-home-light.png`, `palette-home-dark.png`, `palette-tool-panel-light.png`, `palette-result-dark.png` (script `tests/palette-shots.js`) — eyeballed: no leftover blue, monochrome chips, muted text readable on both backgrounds.

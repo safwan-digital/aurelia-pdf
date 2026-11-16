@@ -2,7 +2,7 @@
 
 **Live:** https://safwan-digital.github.io/aurelia-pdf/
 
-AURELIA is a complete PDF toolkit in the spirit of the classic online PDF suites — rebuilt with an **iOS Liquid Glass** design (frosted glass, backdrop blur, spring-like motion, light + dark mode) and one big difference:
+AURELIA is a complete PDF toolkit in the spirit of the classic online PDF suites — rebuilt with a clean, modern interface (light + dark mode) and one big difference:
 
 > 🔒 **100% client-side. Your files never leave your browser.** No uploads, no server, no login, no storage — processing happens entirely on your device.
 
