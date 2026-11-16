@@ -2,11 +2,26 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AURELIA — Free PDF Tools, Private by Design</title>
-<meta name="description" content="AURELIA: 28+ free PDF tools that run 100% in your browser. Merge, split, compress, convert, sign, protect PDFs. Files never leave your device.">
-<script>try{localStorage.removeItem('aurelia-palette');if(localStorage.getItem('aurelia-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<title>PDFStow — Free PDF Tools, Private by Design</title>
+<meta name="description" content="Free PDF tools — merge, split, compress, convert, sign and OCR PDFs right in your browser. Private by design: files never leave your device. No sign-up.">
+<meta name="theme-color" content="#0E7C86">
+<link rel="canonical" href="https://pdfstow.safwan.digital/">
+<meta property="og:title" content="PDFStow — Free PDF Tools, Private by Design">
+<meta property="og:description" content="Free PDF tools — merge, split, compress, convert, sign and OCR PDFs right in your browser. Private by design: files never leave your device. No sign-up.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pdfstow.safwan.digital/">
+<meta property="og:image" content="https://pdfstow.safwan.digital/icon-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="PDFStow — Free PDF Tools, Private by Design">
+<meta name="twitter:description" content="Free PDF tools — merge, split, compress, convert, sign and OCR PDFs right in your browser. Private by design: files never leave your device. No sign-up.">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"PDFStow","url":"https://pdfstow.safwan.digital/","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","browserRequirements":"Requires a modern web browser with JavaScript enabled","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free PDF tools that run 100% in your browser — merge, split, compress, convert, sign and OCR PDFs. Private by design: files are processed on your device and never uploaded.","featureList":"Merge PDF, Split PDF, Remove Pages, Extract Pages, Organize PDF, Rotate PDF, Crop PDF, Compress PDF, Repair PDF, OCR, Images to PDF, HTML to PDF, Word to PDF, Text to PDF, PDF to JPG, PDF to PNG, PDF to Text, PDF to Word, PDF to Excel, PDF to Markdown, Edit PDF, Annotate PDF, Page Numbers, Watermark, Sign PDF, Redact PDF, Protect PDF, Unlock PDF, Metadata Editor, Compare PDFs, Summarize PDF"}
+</script>
+<script>try{localStorage.removeItem('aurelia-palette');if(localStorage.getItem('aurelia-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('js-anim')}catch(e){}</script>
 <link rel="stylesheet" href="styles.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 6 94 50 50 94 6 50Z' fill='%230e7c86'/></svg>">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <script src="https://unpkg.com/pdf-lib-plus-encrypt@1.1.0/dist/pdf-lib-plus-encrypt.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -72,13 +87,14 @@
 <symbol id="i-arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /></symbol>
 </defs></svg>
 <header class="glass">
-  <a class="logo" href="#" onclick="showHome();return false">AURE<span>LIA</span></a>
+  <a class="logo" href="#" onclick="showHome();return false"><img class="logo-icon" src="logo-icon.webp" alt="PDFStow" width="25" height="32">PDF<span>Stow</span></a>
   <nav><a href="#tools">Tools</a><a href="#privacy">Privacy</a><a href="#about">About</a></nav>
   <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode"><svg class="ic" width="16" height="16" aria-hidden="true"><use href="#i-moon"/></svg> Dark</button>
 </header>
 <main class="wrap">
   <section id="homeView">
     <div class="hero">
+      <div class="hero-logo"><img src="logo-animated.gif" alt="PDFStow" width="880" height="362"></div>
       <div class="badge glass"><svg class="ic" width="14" height="14" aria-hidden="true"><use href="#i-lock"/></svg> 100% private — files never leave your browser</div>
       <h1>Every PDF tool.<br><em>Private. Free.</em></h1>
       <p>Merge, split, compress, convert, edit, sign and protect PDFs — with zero uploads. No login. No server. No waiting.</p>
@@ -151,8 +167,8 @@
   </section>
 </main>
 <footer id="privacy">
-  <p><strong>Privacy first:</strong> AURELIA runs entirely in your browser. Your files are never uploaded, never stored, and never leave your device.</p>
-  <p id="about">AURELIA by Safwan Digital · Free forever · Some Office conversions are text-based Beta — see each tool's note for honest limits.</p>
+  <p><strong>Privacy first:</strong> PDFStow runs entirely in your browser. Your files are never uploaded, never stored, and never leave your device.</p>
+  <p id="about">PDFStow by Safwan Digital · Free forever · Some Office conversions are text-based Beta — see each tool's note for honest limits.</p>
 </footer>
 <div id="toast" class="toast glass hidden"></div>
 <script src="app.js"></script>

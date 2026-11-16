@@ -4,7 +4,7 @@
 a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit}
 .glass{background:var(--glass);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);border:1px solid var(--stroke);box-shadow:var(--shadow)}
 header{position:sticky;top:14px;z-index:50;margin:14px auto 0;max-width:1180px;width:calc(100% - 24px);border-radius:var(--r-pill);padding:10px 14px;display:flex;align-items:center;gap:14px}
-.logo{font-weight:800;letter-spacing:.22em;font-size:var(--fs-6)}.logo span{background:linear-gradient(90deg,var(--accent),var(--accent3));-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo{font-weight:800;letter-spacing:.22em;font-size:var(--fs-6);display:inline-flex;align-items:center;gap:10px}.logo-icon{height:32px;width:auto;display:block}.logo span{background:linear-gradient(90deg,var(--accent),var(--accent3));-webkit-background-clip:text;background-clip:text;color:transparent}
 nav{display:flex;gap:16px;margin-left:auto;color:var(--muted);font-size:var(--fs-3);font-weight:600}
 .icon-btn{border:1px solid var(--stroke);background:var(--glass);border-radius:var(--r-pill);min-height:44px;padding:9px 16px;cursor:pointer;color:var(--ink);font-weight:600;font-size:var(--fs-3);justify-content:center;transition:transform .35s var(--spring)} .icon-btn:active{transform:scale(.94)}
 .wrap{max-width:1180px;margin:0 auto;padding:28px 16px 60px}
@@ -31,7 +31,7 @@ nav{display:flex;gap:16px;margin-left:auto;color:var(--muted);font-size:var(--fs
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:99;padding:13px 18px;border-radius:var(--r-pill);font-weight:700;max-width:92vw;text-align:center}
 footer{text-align:center;color:var(--muted);padding:30px 16px 50px;font-size:var(--fs-3);line-height:1.6}
 .result a{display:inline-block;margin:6px}
-@media(max-width:640px){nav{display:flex;gap:11px;overflow-x:auto;white-space:nowrap;font-size:var(--fs-2);scrollbar-width:none}nav::-webkit-scrollbar{display:none}.logo{font-size:var(--fs-4)}.icon-btn{padding:8px 12px;font-size:var(--fs-2);min-height:40px}.grid{grid-template-columns:repeat(auto-fill,minmax(155px,1fr))}header{border-radius:var(--r-lg);gap:9px;padding:9px 11px}}
+@media(max-width:640px){nav{display:flex;gap:11px;overflow-x:auto;white-space:nowrap;font-size:var(--fs-2);scrollbar-width:none}nav::-webkit-scrollbar{display:none}.logo{font-size:var(--fs-4)}.logo-icon{height:28px}.icon-btn{padding:8px 12px;font-size:var(--fs-2);min-height:40px}.grid{grid-template-columns:repeat(auto-fill,minmax(155px,1fr))}header{border-radius:var(--r-lg);gap:9px;padding:9px 11px}}
 /* ===== V2: file chips, page manager, placement editors ===== */
 .fileitem{align-items:center}
 .fileitem .fname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -81,8 +81,8 @@ footer{text-align:center;color:var(--muted);padding:30px 16px 50px;font-size:var
 .adv{margin-top:6px;border-top:1px dashed var(--stroke);padding-top:6px}
 .adv summary{cursor:pointer;font-weight:700;color:var(--muted);padding:10px 4px;font-size:var(--fs-3)}
 .adv .opts{margin:8px 0 4px}
-.btn.pulse{animation:aureliaPulse 1.7s ease-out infinite}
-@keyframes aureliaPulse{0%{box-shadow:0 0 0 0 rgba(var(--acc-rgb),.45)}70%{box-shadow:0 0 0 16px rgba(var(--acc-rgb),0)}100%{box-shadow:0 0 0 0 rgba(var(--acc-rgb),0)}}
+.btn.pulse{animation:pdfstowPulse 1.7s ease-out infinite}
+@keyframes pdfstowPulse{0%{box-shadow:0 0 0 0 rgba(var(--acc-rgb),.45)}70%{box-shadow:0 0 0 16px rgba(var(--acc-rgb),0)}100%{box-shadow:0 0 0 0 rgba(var(--acc-rgb),0)}}
 .rotbtn{width:40px;height:40px}
 #processBtn{padding:13px 26px}
 /* ===== V3: audit fixes + iLovePDF benchmark adoptions ===== */
@@ -170,3 +170,45 @@ nav a{transition:color .2s}nav a:hover{color:var(--accent)}
 [data-theme=dark] .card .icchip{background:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.03))}
 [data-theme=dark] .thumb-check{color:#fff}
 
+/* ===== V4.1: motion system — visible motion graphics, premium feel.
+   Transform/opacity only. Entrance + reveal states exist ONLY under
+   .js-anim (added pre-paint by the head init when JS runs and motion is
+   allowed), so no-JS and reduced-motion always see final-state content. */
+.hero{position:relative;isolation:isolate}
+.hero::before,.hero::after{content:'';position:absolute;border-radius:50%;filter:blur(46px);z-index:-1;pointer-events:none}
+.hero::before{width:340px;height:340px;left:4%;top:-30px;background:radial-gradient(circle,rgba(var(--acc-rgb),.20),transparent 70%);animation:pdfstowDrift1 16s ease-in-out infinite alternate}
+.hero::after{width:300px;height:300px;right:2%;top:36px;background:radial-gradient(circle,rgba(46,196,198,.17),transparent 70%);animation:pdfstowDrift2 21s ease-in-out infinite alternate}
+@keyframes pdfstowDrift1{from{transform:translate(0,0)}to{transform:translate(52px,26px)}}
+@keyframes pdfstowDrift2{from{transform:translate(0,0)}to{transform:translate(-48px,34px)}}
+.hero-logo{display:block;width:fit-content;margin:0 auto;padding:10px 14px;line-height:0}
+.hero-logo img{width:min(430px,78vw);height:auto}
+[data-theme=dark] .hero-logo{background:radial-gradient(closest-side,rgba(235,247,248,.88),rgba(235,247,248,0) 78%);border-radius:50%}
+.js-anim header{animation:pdfstowHeadIn .7s cubic-bezier(.22,1,.36,1) both}
+@keyframes pdfstowHeadIn{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+.js-anim .hero>*{animation:pdfstowRise .85s cubic-bezier(.22,1,.36,1) both}
+.js-anim .hero>*:nth-child(1){animation-delay:.02s}.js-anim .hero>*:nth-child(2){animation-delay:.10s}.js-anim .hero>*:nth-child(3){animation-delay:.18s}.js-anim .hero>*:nth-child(4){animation-delay:.26s}.js-anim .hero>*:nth-child(5){animation-delay:.34s}.js-anim .hero>*:nth-child(6){animation-delay:.42s}
+@keyframes pdfstowRise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.logo-icon{transition:transform .45s var(--spring)}
+.logo:hover .logo-icon{transform:rotate(-6deg) scale(1.07)}
+.js-anim .rv{opacity:0;transform:translateY(18px)}
+.js-anim .rv.in{opacity:1;transform:translateY(0);transition:opacity .55s ease var(--rd,0s),transform .65s cubic-bezier(.22,1,.36,1) var(--rd,0s)}
+.js-anim .rv.snap{transition:none!important}
+.card:hover{box-shadow:0 18px 42px rgba(var(--acc-rgb),.20),0 0 0 2px rgba(var(--acc-rgb),.45)}
+.card:hover .ic-in{animation:pdfstowIconBounce .55s var(--spring)}
+@keyframes pdfstowIconBounce{0%{transform:translateY(0)}35%{transform:translateY(-5px)}70%{transform:translateY(1px)}100%{transform:translateY(0)}}
+.btn{position:relative;overflow:hidden}
+.btn:not(.secondary):not(.quiet)::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 32%,rgba(255,255,255,.38) 50%,transparent 68%);transform:translateX(-130%);transition:transform .7s ease;pointer-events:none}
+.btn:not(.secondary):not(.quiet):hover::after{transform:translateX(130%)}
+.drop{animation:pdfstowDropPulse 3s ease-in-out infinite}
+@keyframes pdfstowDropPulse{0%,100%{border-color:rgba(var(--acc-rgb),.35);box-shadow:0 0 0 0 rgba(var(--acc-rgb),0)}50%{border-color:rgba(var(--acc-rgb),.6);box-shadow:0 0 0 7px rgba(var(--acc-rgb),.05)}}
+.drop.drag{animation:none;transform:scale(1.02);border-color:var(--accent);box-shadow:0 0 0 10px rgba(var(--acc-rgb),.12)}
+.js-anim #toolView:not(.hidden) .panel{animation:pdfstowPanelIn .5s cubic-bezier(.22,1,.36,1) both}
+@keyframes pdfstowPanelIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.js-anim .result:not(:empty){animation:pdfstowPop .45s var(--spring) both}
+@keyframes pdfstowPop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+html.theme-anim *,html.theme-anim *::before,html.theme-anim *::after{transition:background-color .45s ease,border-color .45s ease,color .45s ease!important}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+  .drop,.btn.pulse{animation:none!important}
+}

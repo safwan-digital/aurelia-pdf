@@ -1,8 +1,10 @@
-# AURELIA — Free PDF Tools, Private by Design
+# PDFStow — Free PDF Tools, Private by Design
 
-**Live:** https://safwan-digital.github.io/aurelia-pdf/
+**Live:** https://pdfstow.safwan.digital/
 
-AURELIA is a complete PDF toolkit in the spirit of the classic online PDF suites — rebuilt with a clean, modern interface (light + dark mode) and one big difference:
+*(Formerly AURELIA.)*
+
+PDFStow is a complete PDF toolkit in the spirit of the classic online PDF suites — rebuilt with a clean, modern interface (light + dark mode) and one big difference:
 
 > 🔒 **100% client-side. Your files never leave your browser.** No uploads, no server, no login, no storage — processing happens entirely on your device.
 
@@ -47,7 +49,7 @@ An internet connection is needed on first load for the CDN libraries and the OCR
 
 ## 🔐 Privacy
 
-Files are processed in-memory in your browser tab and discarded when you close it. AURELIA has no backend and makes no upload requests with your documents.
+Files are processed in-memory in your browser tab and discarded when you close it. PDFStow has no backend and makes no upload requests with your documents.
 
 ## 📄 License
 

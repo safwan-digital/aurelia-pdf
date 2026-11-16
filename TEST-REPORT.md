@@ -280,3 +280,63 @@ Applied 2026-11-16, local only (not published). Safwan's order: "Graphite Mono R
 - `node --check app.js` — OK. `tests/ui-test.js` — **20/20 PASS** · `tests/v3-checks.js` — **18/18 PASS** (no assertions in either suite referenced the palette button or palette behaviour, so no assertion changes were needed).
 - **Teal-only probe** (`tests/teal-shots.js`, rewritten from the v3.4 palette-option probe) — **6/6 PASS**: default light accent `#0E7C86` / acc-rgb `14,124,134` / ink `#0A2530`; body aurora + primary button computed teal with white text and no graphite gradient stop; no `#paletteBtn` in the DOM and no `data-palette` attribute; dark accent `#17A2B0` / acc-rgb `23,162,176` / ink `#EDFAFB` with button gradient `rgb(23,162,176)→rgb(46,196,198)` and white text; dark survives reload; zero page errors.
 - **Screenshots** (`tests/icon-shots/`): `final-home-light.png`, `final-home-dark.png` — eyeballed: pale-aqua light / deep-sea dark, header carries only the Dark/Light toggle, primary buttons teal in both modes, no graphite leftovers.
+
+---
+
+# V4.0 — PDFStow rebrand + pdfstow.safwan.digital launch
+
+Applied 2026-11-16, local only (not published). Safwan picked the name **PDFStow** (from the two-round global rename research: SEO + AEO/GEO scored, global-neutral, "stow" = store safely — files stowed on the user's own device, never uploaded) and the launch route: **free subdomain `pdfstow.safwan.digital`** (the `pdfstow.com` domain is not registered).
+
+## What changed
+- **Name everywhere user-visible:** header wordmark `PDF<span>Stow</span>`, `<title>` → "PDFStow — Free PDF Tools, Private by Design", footer privacy line + "PDFStow by Safwan Digital", app.js header comment, the two Unlock error messages ("files protected with PDFStow…", "PDFStow can only unlock files you own…"), and the Watermark tool's default stamp text (`'AURELIA'` → `'PDFStow'`).
+- **Download filename prefixes:** `aurelia-merged.pdf` → `pdfstow-merged.pdf`, `aurelia-images.pdf` → `pdfstow-images.pdf`, `aurelia-compare.txt` → `pdfstow-compare.txt`. (Confirmed live in the ui-test run: the merged download lands as `grab-pdfstow-merged.pdf`.)
+- **styles.css:** the pulse keyframes renamed `aureliaPulse` → `pdfstowPulse` (internal identifier, so no `aurelia` string remains in the stylesheet).
+- **localStorage keys deliberately untouched:** `aurelia-theme` (and the one-time `aurelia-palette` cleanup in the head init) stay as-is — invisible to users, and renaming the theme key would reset every returning visitor's saved dark/light preference. These are the only remaining `aurelia` hits in index.html/app.js (grep-verified, listed below).
+- **README.md:** title, description and live link rebranded to PDFStow + https://pdfstow.safwan.digital/, with one history line: "*(Formerly AURELIA.)*"
+
+## Meta / SEO / AEO pack (new in index.html `<head>`)
+Closes the deep-audit "no Open Graph / Twitter tags" gap for the new home:
+- Meta description (154 chars): "Free PDF tools — merge, split, compress, convert, sign and OCR PDFs right in your browser. Private by design: files never leave your device. No sign-up."
+- Canonical: `https://pdfstow.safwan.digital/`
+- Open Graph: og:title, og:description, og:type=website, og:url. Twitter: card=summary, twitter:title, twitter:description.
+- JSON-LD `WebApplication` schema (parse-verified): name PDFStow, url, applicationCategory BusinessApplication, offers price 0 USD, and a 31-item featureList naming every tool — for AEO/GEO entity clarity.
+- `<meta name="theme-color" content="#0E7C86">` (Deep Teal accent).
+
+## CNAME — ⚠️ publish order matters
+- `CNAME` created in the package root containing exactly `pdfstow.safwan.digital`.
+- **It must only be published AFTER the DNS CNAME record for `pdfstow.safwan.digital` exists** (pointing at `safwan-digital.github.io`). Publishing the CNAME file before the DNS record exists risks the custom domain failing to resolve / certificate provisioning stalling. Correct order: (1) create the DNS record at the safwan.digital registrar, (2) then publish the package including CNAME, (3) verify https://pdfstow.safwan.digital/ loads with a valid certificate.
+
+## Proof
+- `node --check app.js` — OK. `tests/ui-test.js` — **20/20 PASS** · `tests/v3-checks.js` — **18/18 PASS**. **No test assertions were changed** — neither suite asserted on the brand name, page title, or download filename prefixes (the "AURELIA Test Title" strings in v3-checks are fixture metadata the test writes into its own sample PDF, not brand assertions).
+- Grep `aurelia` (case-insensitive) across index.html / app.js / styles.css — remaining hits are ONLY: index.html head init (`aurelia-palette` cleanup + `aurelia-theme` read), app.js theme comment + theme toggle (`aurelia-theme`). README.md's only hit is the deliberate "Formerly AURELIA" history line.
+- JSON-LD block extracted and `JSON.parse`-verified (WebApplication / PDFStow / offers price 0).
+- **Screenshots** (`tests/icon-shots/`): `pdfstow-home-light.png`, `pdfstow-home-dark.png` — eyeballed: "PDFStow" wordmark top-left (PDF in ink, Stow in teal) in both modes, Deep Teal unchanged, zero page errors during capture.
+
+---
+
+# V4.1 — Motion system + animated hero logo
+
+Applied 2026-11-16, local only (not published). Safwan, viewing the OLD live site (v3.5 AURELIA), said there was "no logo animation, nothing" — the published site predates the rebrand, and the local package had no motion beyond hovers. V4.1 adds a visible-but-premium motion system and puts the animated PDFStow logo in the hero. Deep Teal only, Lucide icons, no new copy, all 31 tools and every test hook unchanged.
+
+## Hero animated logo
+- New file `logo-animated.gif` in the package root, placed at the top of the hero (centered lockup, headline below it), rendered at min(430px, 78vw).
+- **Size decision:** the brand master (`brand/final/pdfstow-logo-animated.gif`, 880×362, 51 frames) is 2.09 MB — too heavy for a hero. The hero rendition keeps the full 880px width (2× the 430px display size, so it stays crisp — upscaling to ~1100px would only blur it) and instead cuts weight by (a) rebuilding on one global 255-colour palette and (b) merging near-identical consecutive frames (51 → 24 frames, durations summed so the 2.96s loop timing — settle → wordmark wipe → shine → 0.92s hold → fade — is unchanged). **Result: 858 KB**, under the 1.2 MB target, frame-sequence QC'd against the master (spelling "PDFStow" exact, transparency clean).
+- Side finding: the master's final frame (index 50) is corrupt — Pillow cannot decode it ("codec configuration error"); browsers tolerate/skip it. The hero rendition is rebuilt cleanly from frames 0–49, so the shipped file is valid end to end. The master in `brand/final/` is untouched.
+- Dark mode: the lockup's wordmark is dark ink (known trait of the approved artwork), so in dark theme the hero logo sits on a soft pale radial "spotlight" halo — sequence captures confirm the wordmark stays legible through the hold phase.
+- Header keeps the static WebP icon, now with a CSS entrance (it rides the header slide-down) and a gentle hover tilt (-6° + scale 1.07, spring easing).
+
+## Motion system (styles.css "V4.1" block + a small reveal module in app.js)
+- **Page load:** header slides down; hero children stagger-rise (logo → badge → headline → subline → search → footnote, 80ms steps, spring-out cubic).
+- **Scroll reveal:** tool cards fade-rise via IntersectionObserver (threshold 0.05), staggered 0/70/140/210ms by position within each grid (`--rd` inline custom property). Once-only: reveal classes are removed after the transition (transitionend + 1.6s fallback), so normal card hover physics take over cleanly. Search re-renders reveal instantly (no replayed fades while typing).
+- **Cards:** hover lift (existing) + teal glow ring/shadow + icon micro-bounce; press-down active state unchanged.
+- **Buttons:** primary buttons get a soft sheen sweep on hover (::after gradient wipe, pointer-events none); focus states untouched.
+- **Dropzone:** gentle 3s pulsing dashed border + faint glow ring; on dragover the pulse stops, it scales to 1.02 and glows — replacing the plainer `.drag` style.
+- **Background:** two very subtle blurred teal radial glows drift slowly behind the hero (transform-only, 16s/21s alternate) — alive but calm.
+- **Tool views:** opening a tool fades/slides the panel in; the result panel pops with a slight scale when results land.
+- **Theme toggle:** a `theme-anim` class on `<html>` for 520ms cross-fades background/border/text colours during light↔dark switches.
+- **Safety:** every entrance/reveal initial state exists ONLY under `.js-anim`, which the head init adds pre-paint only when JS runs AND `prefers-reduced-motion` does not match — no-JS and reduced-motion users always see final-state content. A global reduced-motion media block also collapses all animation/transition durations and stops the dropzone/process pulses. All animation is transform/opacity only.
+
+## Proof
+- `node --check app.js` — OK. `tests/ui-test.js` — **20/20 PASS** · `tests/v3-checks.js` — **18/18 PASS**, both re-run against the final files. No assertions changed.
+- **Motion QC** (`tests/qc-v41.js`, real headless Chrome, file:// + local vendor harness) — **8/8 PASS**: GIF element present in hero and loaded (430×177 rendered); header + headline settle at opacity 1; scroll-reveal settles all ≥15%-visible cards at opacity 1 (~0.9s); dark hero clean; reduced-motion run has no `.js-anim` and all content at opacity 1; zero page errors.
+- **Screenshots** (`tests/qc-v41/`): `hero-light.png`, `hero-dark.png`, `hero-mobile.png` (390px), `grid-scroll.png` — eyeballed: lockup centered over the headline in both themes, badge on its own centered line, mid-scroll grids at final state under the sticky header, mobile hero stacked cleanly. Two defects were caught and fixed during QC: (1) the hero-logo wrapper (GIF + halo padding) overflowed a 390px viewport by 18px → wrapper is now block/fit-content with tighter padding and the GIF capped at 78vw (overflow 0); (2) the logo wrapper initially shared a line with the badge (inline-block flow) pushing the badge off-center → block layout, badge/logo/hero centers verified identical (640/640/640 at 1280px).
