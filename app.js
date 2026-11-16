@@ -84,8 +84,10 @@ function revealScan(instant){
 /* Theme (light/dark) persists in localStorage ('aurelia-theme') and is applied pre-paint by the inline init in index.html. */
 const themeBtn=$('themeBtn');
 function syncThemeBtn(){const d=document.documentElement.dataset.theme==='dark';themeBtn.innerHTML=icon(d?'sun':'moon',16)+' '+(d?'Light':'Dark')}
-syncThemeBtn();
-themeBtn.addEventListener('click',()=>{const h=document.documentElement;h.classList.add('theme-anim');setTimeout(()=>h.classList.remove('theme-anim'),520);const d=h.dataset.theme!=='dark';h.dataset.theme=d?'dark':'light';try{if(d)localStorage.setItem('aurelia-theme','dark');else localStorage.removeItem('aurelia-theme')}catch(e){}syncThemeBtn()});
+/* Hero lockup has a dark variant (light-ink wordmark); keep the img in step with the theme. */
+function syncHeroLogo(){const i=document.querySelector('.hero-logo img');if(!i)return;const d=document.documentElement.dataset.theme==='dark';const want=d?'dark':'light';if(i.dataset.variant===want)return;i.dataset.variant=want;i.src=d?'logo-animated-dark.gif?v=42':'logo-animated.gif?v=42'}
+syncThemeBtn();syncHeroLogo();
+themeBtn.addEventListener('click',()=>{const h=document.documentElement;h.classList.add('theme-anim');setTimeout(()=>h.classList.remove('theme-anim'),520);const d=h.dataset.theme!=='dark';h.dataset.theme=d?'dark':'light';try{if(d)localStorage.setItem('aurelia-theme','dark');else localStorage.removeItem('aurelia-theme')}catch(e){}syncThemeBtn();syncHeroLogo()});
 
 /* ================= Job / progress system (v3) =================
    Every run goes through startJob/endJob: the button locks with a
