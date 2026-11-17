@@ -366,3 +366,72 @@ Applied 2026-11-16, local only (not published). Two Safwan screenshots drove thi
 - `node --check app.js` — OK. `tests/ui-test.js` — **20/20 PASS** · `tests/v3-checks.js` — **18/18 PASS**, re-run against the final files. No assertions changed.
 - **QC** (`tests/qc-v412.js`, real headless Chrome, file:// + vendor harness) — **8/8 PASS**: light hero serves `logo-animated.gif?v=42` and loads; theme toggle swaps to `logo-animated-dark.gif?v=42` and back; saved-dark load (pre-paint path) serves the dark GIF with `.hero-logo` computed background `none` (halo gone) and zero overflow at desktop and 390px; computed-style checks confirm the quiet caption (weight 400, transparent bg, 1px hairline) and the strengthened card border/shadow in both themes; zero page errors. (First QC run caught its own harness bug — localStorage leaking dark theme into the "light" pages; fixed by explicitly clearing the key for light pages and re-run green with true light tokens.)
 - **Screenshots** (`tests/qc-v412/`): `hero-dark.png`, `hero-dark-390.png`, `hero-light.png`, `grid-390-light-summarize.png`, `grid-390-light-unlock.png`, `grid-390-dark-summarize.png`, `grid-390-dark-unlock.png` — eyeballed: dark hero shows the icon + light wordmark directly on the deep-sea background with no halo at both widths; light hero unchanged; at 390px the Summarize and Unlock notes read as footnotes under a hairline in both themes, cards have clear edges, icon chips carry the deeper teal tint.
+
+# V4.2.0 — Deep-audit fix pass (2026-11-17)
+
+All 39 items from `~/workspace/your_files/aurelia-deep-audit-2026-11-16.md` (written against v3.5) were re-verified against the v4.1.2 code first; items already fixed by v4.0–v4.1.2 are marked as such. Cache-busts bumped to `?v=43`. **This build is LOCAL ONLY — not published.**
+
+## Item-by-item results
+
+| # | Item | Status | Evidence |
+|---|------|--------|----------|
+| 1 | pdf.js CVE-2024-4367 | **Fixed (stopgap); 4.x upgrade blocked** | Every pdf.js call goes through one helper `GD()` that sets `isEvalSupported:false` (all 9 call sites). 4.x attempt: see "pdf.js 4.x attempt" below. |
+| 2 | Privacy wording overclaim | Fixed | "No server" removed everywhere (hero, README); the line is now "Your files are never uploaded — everything runs in your browser." Full disclosure lives on trust.html (#12). |
+| 3 | Unguarded library destructure | Fixed | Boot guard: guarded destructure + plain failure panel ("A library failed to load — check your connection and reload") with a Reload button. Spot check (a): pdf-lib blocked → panel shows, all tools still render. |
+| 4 | No SRI / CSP | Fixed | `integrity` sha384 + `crossorigin` on all eager CDN scripts (hashes computed from byte-identical downloads); lazy loader sets SRI on injected tags; meta CSP allows the used CDN origins + workers + data:/blob:. All suites pass under the CSP. |
+| 5 | Page-manager toolbar under header | Fixed | `#visualWrap{scroll-margin-top:104px}`. |
+| 6 | Button gradient contrast | Fixed | Dedicated `--btn1 #0E7C86` / `--btn2 #0A7F86` stops for buttons + selected signature tab. Measured in-browser (qc-v42e): white on stops = 4.95:1 / 4.78:1 (both themes). Logo/hero gradient text untouched. |
+| 7 | Muted / pill / success contrast | Fixed | Light `--muted` darkened to #47636E (measured 5.86:1 on bg, 5.30:1 on bg2); success green is now `--ok` token (5.25:1 light, 7.64:1 dark). |
+| 8 | Hero button overflow at 390px | Fixed | `.search input{min-width:0}`; Explore now scrolls to the "Most popular" section (`id="popular"`). qc-v41/qc-v42 390px shots: no overflow. |
+| 9 | Focus indicators / aria-live | Fixed | Global `:focus-visible` outline; `aria-live="polite"` on status, toast and the search-result count. |
+| 10 | OG image was the square app icon | Fixed | New `og-image.png` (1200×630, 134 KB): Stow Box lockup on deep-sea + headline. og:image/twitter:image point at its absolute github.io URL; `twitter:card` = summary_large_image. Canonical stays pdfstow.safwan.digital. |
+| 11 | robots / sitemap / deep-links | Fixed | `robots.txt` + `sitemap.xml` (preview URL + trust page); hash deep-links `#/merge` style (open sets, Back/logo clears, load reads). Spot check (c) passes. ItemList JSON-LD added alongside the existing WebApplication block. |
+| 12 | Trust page | Fixed | `trust.html` in the same design system: About, "How PDFStow works" (3 lines), Privacy (honest disclosure: GitHub Pages hosting, CDN library loads, first-OCR language download, files never uploaded), Terms (Unlock/Protect/Redact only on documents you own/have permission for), Contact = GitHub repo link (no email invented — DEC-4 is Safwan's). Nav + footer point at its sections. Spot check (d) passes. |
+| 13 | CI + publish checklist | Fixed | `.github/workflows/test.yml` authored (push/PR: node --check + all four suites; runs on first push — this pass is unpublished, so it has not executed in CI yet). Publish checklist line added here and in README. |
+| 14 | Touch targets under 44px | Fixed | chipbtn / cont-chip / .btn.sm / password eye / thumb-del → 44px; color dots 40px effective (transparent-border trick); field inputs min-height 44px; nav links padded; mobile theme button 44px; redact ✕ 26px. |
+| 15 | Range styling / signature order / stage width | Fixed | `accent-color` on range + checkbox inputs; the signature block moves above the page preview in Sign PDF (visible in qc-v42 sign screenshot); slimmer mobile panel padding widens the stage. (Stage stays paper-white in both themes by design; the signature checkerboard is theme-neutral alpha grey.) |
+| 16 | Pre-file guidance | Fixed | Persistent line under the action buttons — "Choose a file above to begin — it stays on this device" — until a file is chosen. |
+| 17 | Search feedback | Fixed | Result count announced ("3 tools match…", aria-live); empty state offers "Show all tools". |
+| 18 | Category sublines | Fixed | Plain descriptive sublines replace "N tool(s)" counts (e.g. Organize → "Merge, split, reorder and clean up pages"). |
+| 19 | Placeholder / dark chip / stage | Fixed | `::placeholder` uses the theme muted token; dark card icon chips simplified to one visible layer; checkerboard is alpha-grey (theme-neutral). |
+| 20 | Lazy-load heavy libraries | Fixed | SheetJS, Mammoth, Tesseract.js load on first open of their tool via an SRI-setting loader; failure surfaces the #3 panel. Spot checks (b) pass. |
+| 21 | SheetJS 0.18.5 frozen with CVEs | Fixed | Current SheetJS **0.20.3** vendored same-origin at `vendor/xlsx.full.min.js`, lazy-loaded; verified in-browser: `XLSX.version === '0.20.3'`, PDF→Excel produces a real .xlsx; CSV fallback retained if the load ever fails. |
+| 22 | Tesseract runtime unpinned | Fixed | Explicit pinned `workerPath` (tesseract.js@5.0.4), `corePath` (tesseract.js-core@5.0.0), `langPath` (@tesseract.js-data/eng@1.0.0/4.0.0); OCR tool note states the first-use ~10 MB download. v3 (f-b) completes OCR end-to-end with the pinned paths. |
+| 23 | No file-size guidance | Fixed | Accept hint gains "works best under ~50 MB per file on phones"; adding a file over 50 MB raises a non-blocking toast (the existing >100 MB warning stays). |
+| 24 | SPA rewrite question | **Skipped** | The audit itself recommends no rewrite now. |
+| 25 | PWA | Fixed (manifest-only) | `manifest.json` (PDFStow, standalone, theme #0E7C86, background #04141A, icons 192 + 512). The `<link rel="manifest">` is injected only on http(s) — Chromium refuses manifest fetches over file:// and logs a console error, which would poison the suites' error gate; on the real site the link is present. **No service worker** (DEC-5 is Safwan's). |
+| 26 | Meta said "28+ tools" | Already fixed | Corrected in the v4.0 rebrand — meta description and hero both say 31 tools. |
+| 27 | Badge alignment | Fixed | `.badge` gains `align-items:center` + `text-align:left`. |
+| 28 | Position-grid dots clipped | Fixed | Dot insets moved from 4%/96% to 14%/86% — dots now sit fully inside the squares. |
+| 29 | Card text crowding | Fixed | Card descriptions clamp to 3 lines; the five longest descriptions trimmed (Beta caveats live in each tool's note/panel text, unchanged). |
+| 30 | Reduced motion | Already fixed | Shipped in v4.1 (`.js-anim` gating + reveal bypass); qc-v41 reduced-motion check passes. |
+| 31 | Signature preview text size | Fixed | `.sigtypeprev` font-size `var(--fs-hero)` → 40px. |
+| 32 | Acting defaults | Fixed | Watermark text and Split ranges now start **empty** with examples as placeholders; an empty watermark errors plainly ("Type the watermark text first") instead of silently stamping a fallback. |
+| 33 | British spellings in UI copy | Fixed | US-spelling sweep (Recognize, recognized, Summarizing, reorganized, center, checkered, color); zero British spellings remain in app.js / index.html. |
+| 34 | Frozen-looking progress | Fixed | Jobs start with an animated indeterminate bar until the first real progress tick replaces it; under reduced-motion it degrades to a static bar. |
+| 35 | Expectation lines | Already fixed | Shipped pre-audit (per-tool "N pages will be created…" lines + honest result lines); verified in the suites. |
+| 36 | No file-type validation | Fixed | `addFiles` checks extensions against the tool's accept list; a wrong-type file gets a plain toast ("That tool needs PDF — "x.jpg" is a JPG file, so it was not added") and is not added. |
+| 37 | Remove Pages output doesn't shrink | Fixed | Kept pages are rebuilt into a fresh document (same copyPages path as Organize) instead of in-place removal; ui-test Remove flow green (14 → 12 pages, tracemonkey corpus). |
+| 38 | Branded 404 | Fixed | `404.html` — same palette/tokens, self-contained styles (relative paths break on nested 404 URLs), home link + icon use absolute preview URLs; update them when the custom domain launches. |
+| 39 | Footer GitHub source link | Fixed (code side) | Footer sitemap row: Tools · About · How it works · Privacy · Terms · Contact · "Source on GitHub — verify the privacy claim". Repo topics + social-preview image remain publish-step settings for Safwan. |
+
+## pdf.js 4.x attempt (#1b) — blocked, evidence
+
+Attempted in a throwaway copy (the shipped package was never touched): pdfjs-dist 4.2.67 ESM (`pdf.min.mjs` + `pdf.worker.min.mjs`) wired via a module import + readiness promise, all 9 `GD()` call sites converted to `(await GD(...)).promise`. Results: the library loads and a blank test PDF opens/renders via the fake-worker fallback, **but the UI suite stalls** at the Remove Pages step (30 s wait for 14 rendered thumbnails of tracemonkey.pdf): worker requests bypass the harness's page interception, and pdf.js 4's standard-font fetches then fail against the sandbox proxy. Two structural costs also weigh against adopting now: (1) pdf.js 4.x is ESM-only, forcing an async boot refactor of every pdf.js flow; (2) SRI cannot be applied to an import inside an inline module (import-map integrity is not broadly supported), which would *regress* item #4 for the largest library. The CVE-2024-4367 code path stays closed by the `isEvalSupported:false` stopgap on 3.11.174, per the audit's own note. **Recommendation: keep 3.11.174 + stopgap; revisit 4.x with a dedicated harness (font fixtures + worker plumbing) as its own project.**
+
+## Harness adaptations (assertions unchanged in all cases)
+
+- `tests/ui-test.js`: vendor-fixture responses now send `Access-Control-Allow-Origin: *` — the header the real CDNs send; required for Chromium to accept the SRI+crossorigin script loads. Mirrors the other three suites, which already had it.
+- `tests/v3-checks.js`: the OCR shim's `createWorker` override now also redirects `corePath`/`langPath` to the local byte-identical fixture server, alongside the pre-existing `workerPath` override — necessary because the app now pins all three paths explicitly (#22).
+- `tests/qc-v41.js`: hero-GIF assertion accepts the `?v=43` cache-bust suffix (`startsWith`), per the version bump.
+- New suite `tests/qc-v42.js`: the (a)–(f) spot checks below.
+
+## Test results (final files)
+
+- `node --check app.js` — OK.
+- `tests/ui-test.js` — **20/20 PASS** · `tests/v3-checks.js` — **18/18 PASS** (incl. (f-b) OCR end-to-end with pinned asset paths) · `tests/qc-v41.js` — **8/8 PASS** · `tests/qc-v412.js` — **8/8 PASS**.
+- `tests/qc-v42.js` — **10/10 PASS**: (a) pdf-lib blocked → failure panel + tools render; (b) PDF→Excel lazy-loads vendored SheetJS 0.20.3 → real .xlsx, Word→PDF lazy-loads Mammoth → real PDF, OCR lazy-loads Tesseract.js with SRI; (c) `#/merge` deep-link opens Merge, Back clears the hash; (d) trust.html renders (5 sections, anchors resolve, GitHub link, disclosure, themed); (e) contrast printed from computed styles — btn stops 4.95/4.78, muted 5.86/5.30, ok 5.25 (light) and 8.41/7.64 (dark); (f) screenshots in `tests/qc-v42/` (home desktop light/dark, Merge panel 390 light, Sign panel 390 dark, Trust desktop light + 390 dark) — eyeballed: new hero copy, no Explore overflow, dark hero wordmark clean, pre-file hint + 50 MB guidance visible in the panel, signature pad above the preview position, Trust page in the same design system.
+
+## Publish checklist
+
+**Do not publish unless `node --check app.js` passes and ui-test (20/20), v3-checks (18/18), qc-v41, qc-v412 and qc-v42 are all green on the exact files being pushed.** Publishing remains a separate step (with repo topics + social-preview image set in GitHub settings at the same time).

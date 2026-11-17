@@ -6,7 +6,7 @@
 
 PDFStow is a complete PDF toolkit in the spirit of the classic online PDF suites — rebuilt with a clean, modern interface (light + dark mode) and one big difference:
 
-> 🔒 **100% client-side. Your files never leave your browser.** No uploads, no server, no login, no storage — processing happens entirely on your device.
+> 🔒 **100% client-side. Your files are never uploaded — everything runs in your browser.** No login, no storage — processing happens entirely on your device. (The honest details — hosting, CDN library loads, the one-time OCR language download — are on the site's Trust page, `trust.html`.)
 
 ## ✨ 31 working tools
 
@@ -23,6 +23,8 @@ No mock tools: every card in the app runs a real operation. Honest limits are la
 ## 🧪 Tested with real-world files
 
 Every tool was tested against real files downloaded from public sample sources (Mozilla pdf.js test corpus, W3C, Wikimedia, Picsum, calibre demo, Tesseract sample) — **31/31 passed**. Full per-tool table, sources and known limits: [`TEST-REPORT.md`](TEST-REPORT.md).
+
+**Publish checklist:** do not publish unless `node --check app.js` passes and the headless suites (ui-test 20/20, v3-checks 18/18, qc-v41, qc-v412, qc-v42) are all green on the exact files being pushed.
 
 ## 🛠 Tech
 

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://safwan-digital.github.io/aurelia-pdf/sitemap.xml

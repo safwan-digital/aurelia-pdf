@@ -2,6 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net http://127.0.0.1:* file: blob:; worker-src 'self' blob: file: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net http://127.0.0.1:*; child-src blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' file:; img-src 'self' data: blob: file:; font-src 'self' data: file:; connect-src 'self' data: blob: file: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com http://127.0.0.1:*; media-src blob: data:; object-src 'none'; base-uri 'self'; form-action 'self'">
 <title>PDFStow — Free PDF Tools, Private by Design</title>
 <meta name="description" content="Free PDF tools — merge, split, compress, convert, sign and OCR PDFs right in your browser. Private by design: files never leave your device. No sign-up.">
 <meta name="theme-color" content="#0E7C86">
@@ -10,24 +11,30 @@
 <meta property="og:description" content="Free PDF tools — merge, split, compress, convert, sign and OCR PDFs right in your browser. Private by design: files never leave your device. No sign-up.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pdfstow.safwan.digital/">
-<meta property="og:image" content="https://pdfstow.safwan.digital/icon-512.png">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://safwan-digital.github.io/aurelia-pdf/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="PDFStow — Free PDF Tools, Private by Design">
 <meta name="twitter:description" content="Free PDF tools — merge, split, compress, convert, sign and OCR PDFs right in your browser. Private by design: files never leave your device. No sign-up.">
+<meta name="twitter:image" content="https://safwan-digital.github.io/aurelia-pdf/og-image.png">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"PDFStow","url":"https://pdfstow.safwan.digital/","applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)","browserRequirements":"Requires a modern web browser with JavaScript enabled","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free PDF tools that run 100% in your browser — merge, split, compress, convert, sign and OCR PDFs. Private by design: files are processed on your device and never uploaded.","featureList":"Merge PDF, Split PDF, Remove Pages, Extract Pages, Organize PDF, Rotate PDF, Crop PDF, Compress PDF, Repair PDF, OCR, Images to PDF, HTML to PDF, Word to PDF, Text to PDF, PDF to JPG, PDF to PNG, PDF to Text, PDF to Word, PDF to Excel, PDF to Markdown, Edit PDF, Annotate PDF, Page Numbers, Watermark, Sign PDF, Redact PDF, Protect PDF, Unlock PDF, Metadata Editor, Compare PDFs, Summarize PDF"}
 </script>
-<script>try{localStorage.removeItem('aurelia-palette');if(localStorage.getItem('aurelia-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('js-anim')}catch(e){}try{document.addEventListener('DOMContentLoaded',function(){var i=document.querySelector('.hero-logo img');if(i&&!i.dataset.variant&&localStorage.getItem('aurelia-theme')==='dark'){i.dataset.variant='dark';i.src='logo-animated-dark.gif?v=42'}})}catch(e){}</script>
-<link rel="stylesheet" href="styles.css?v=42">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ItemList","name":"PDFStow tools","itemListElement":[{"@type":"ListItem","position":1,"name":"Merge PDF","url":"https://pdfstow.safwan.digital/#/merge"},{"@type":"ListItem","position":2,"name":"Split PDF","url":"https://pdfstow.safwan.digital/#/split"},{"@type":"ListItem","position":3,"name":"Remove Pages","url":"https://pdfstow.safwan.digital/#/remove-pages"},{"@type":"ListItem","position":4,"name":"Extract Pages","url":"https://pdfstow.safwan.digital/#/extract-pages"},{"@type":"ListItem","position":5,"name":"Organize PDF","url":"https://pdfstow.safwan.digital/#/organize"},{"@type":"ListItem","position":6,"name":"Rotate PDF","url":"https://pdfstow.safwan.digital/#/rotate"},{"@type":"ListItem","position":7,"name":"Crop PDF","url":"https://pdfstow.safwan.digital/#/crop"},{"@type":"ListItem","position":8,"name":"Compress PDF","url":"https://pdfstow.safwan.digital/#/compress"},{"@type":"ListItem","position":9,"name":"Repair PDF","url":"https://pdfstow.safwan.digital/#/repair"},{"@type":"ListItem","position":10,"name":"OCR PDF","url":"https://pdfstow.safwan.digital/#/ocr"},{"@type":"ListItem","position":11,"name":"Images to PDF","url":"https://pdfstow.safwan.digital/#/images-to-pdf"},{"@type":"ListItem","position":12,"name":"HTML to PDF","url":"https://pdfstow.safwan.digital/#/html-to-pdf"},{"@type":"ListItem","position":13,"name":"Word to PDF","url":"https://pdfstow.safwan.digital/#/word-to-pdf"},{"@type":"ListItem","position":14,"name":"Text to PDF","url":"https://pdfstow.safwan.digital/#/text-to-pdf"},{"@type":"ListItem","position":15,"name":"PDF to JPG","url":"https://pdfstow.safwan.digital/#/pdf-to-jpg"},{"@type":"ListItem","position":16,"name":"PDF to PNG","url":"https://pdfstow.safwan.digital/#/pdf-to-png"},{"@type":"ListItem","position":17,"name":"PDF to Text","url":"https://pdfstow.safwan.digital/#/pdf-to-text"},{"@type":"ListItem","position":18,"name":"PDF to Word","url":"https://pdfstow.safwan.digital/#/pdf-to-word"},{"@type":"ListItem","position":19,"name":"PDF to Excel","url":"https://pdfstow.safwan.digital/#/pdf-to-excel"},{"@type":"ListItem","position":20,"name":"PDF to Markdown","url":"https://pdfstow.safwan.digital/#/pdf-to-markdown"},{"@type":"ListItem","position":21,"name":"Add Text to PDF","url":"https://pdfstow.safwan.digital/#/edit-pdf"},{"@type":"ListItem","position":22,"name":"Annotate PDF","url":"https://pdfstow.safwan.digital/#/annotate"},{"@type":"ListItem","position":23,"name":"Add Page Numbers","url":"https://pdfstow.safwan.digital/#/page-numbers"},{"@type":"ListItem","position":24,"name":"Watermark","url":"https://pdfstow.safwan.digital/#/watermark"},{"@type":"ListItem","position":25,"name":"Sign PDF","url":"https://pdfstow.safwan.digital/#/sign-pdf"},{"@type":"ListItem","position":26,"name":"Redact PDF","url":"https://pdfstow.safwan.digital/#/redact"},{"@type":"ListItem","position":27,"name":"Protect PDF","url":"https://pdfstow.safwan.digital/#/protect"},{"@type":"ListItem","position":28,"name":"Unlock PDF","url":"https://pdfstow.safwan.digital/#/unlock"},{"@type":"ListItem","position":29,"name":"Metadata Editor","url":"https://pdfstow.safwan.digital/#/metadata"},{"@type":"ListItem","position":30,"name":"Compare PDF","url":"https://pdfstow.safwan.digital/#/compare"},{"@type":"ListItem","position":31,"name":"Summarize PDF","url":"https://pdfstow.safwan.digital/#/summarize"}]}
+</script>
+<!-- The manifest link is injected by the init script below, only on http(s):
+     Chromium refuses manifest fetches over file:// and logs a console error. -->
+<script>try{if(/^https?:$/.test(location.protocol)){var ml=document.createElement('link');ml.rel='manifest';ml.href='manifest.json';document.head.appendChild(ml)}}catch(e){}try{localStorage.removeItem('aurelia-palette');if(localStorage.getItem('aurelia-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('js-anim')}catch(e){}try{document.addEventListener('DOMContentLoaded',function(){var i=document.querySelector('.hero-logo img');if(i&&!i.dataset.variant&&localStorage.getItem('aurelia-theme')==='dark'){i.dataset.variant='dark';i.src='logo-animated-dark.gif?v=43'}})}catch(e){}</script>
+<link rel="stylesheet" href="styles.css?v=43">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<script src="https://unpkg.com/pdf-lib-plus-encrypt@1.1.0/dist/pdf-lib-plus-encrypt.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
+<script src="https://unpkg.com/pdf-lib-plus-encrypt@1.1.0/dist/pdf-lib-plus-encrypt.min.js" integrity="sha384-3Vtx+d/EbRfd0HOhIWT43lRjbbmpzXlIjVW9jorWQoodg/CiZLtori41Pt0Klz5P" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG" crossorigin="anonymous"></script>
+<!-- SheetJS, Mammoth and Tesseract.js are lazy-loaded by app.js on first use of their tools (audit items 20-22). -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -88,7 +95,7 @@
 </defs></svg>
 <header class="glass">
   <a class="logo" href="#" onclick="showHome();return false"><img class="logo-icon" src="logo-icon.webp" alt="PDFStow" width="25" height="32">PDF<span>Stow</span></a>
-  <nav><a href="#tools">Tools</a><a href="#privacy">Privacy</a><a href="#about">About</a></nav>
+  <nav><a href="#tools">Tools</a><a href="trust.html#privacy">Privacy</a><a href="trust.html#about">About</a></nav>
   <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode"><svg class="ic" width="16" height="16" aria-hidden="true"><use href="#i-moon"/></svg> Dark</button>
 </header>
 <main class="wrap">
@@ -97,8 +104,9 @@
       <div class="hero-logo"><img src="logo-animated.gif" alt="PDFStow" width="880" height="362"></div>
       <div class="badge glass"><svg class="ic" width="14" height="14" aria-hidden="true"><use href="#i-lock"/></svg> 100% private — files never leave your browser</div>
       <h1>Every PDF tool.<br><em>Private. Free.</em></h1>
-      <p>Merge, split, compress, convert, edit, sign and protect PDFs — with zero uploads. No login. No server. No waiting.</p>
-      <div class="search glass"><input id="searchInput" type="search" placeholder="Search tools — try “merge”, “ocr”, “sign”…" aria-label="Search tools"><button class="btn" onclick="document.getElementById('tools').scrollIntoView({behavior:'smooth'})">Explore</button></div>
+      <p>Merge, split, compress, convert, edit, sign and protect PDFs — right here in your browser. Your files are never uploaded. No login. No waiting.</p>
+      <div class="search glass"><input id="searchInput" type="search" placeholder="Search tools — try “merge”, “ocr”, “sign”…" aria-label="Search tools"><button class="btn" onclick="(document.getElementById('popular')||document.getElementById('tools')).scrollIntoView({behavior:'smooth'})">Explore</button></div>
+      <p id="searchMeta" class="searchmeta hidden" aria-live="polite"></p>
       <p style="font-size:var(--fs-2);margin-top:14px">31 fully working tools · Works on phone, tablet & desktop · English</p>
     </div>
     <div id="tools"></div>
@@ -131,12 +139,12 @@
           <label style="font-weight:700" for="sigpad">Draw your signature</label>
           <canvas id="sigpad" width="800" height="260"></canvas>
           <div class="sigrow">
-            <span class="pm-hint">Pen colour:</span>
+            <span class="pm-hint">Pen color:</span>
             <button type="button" class="colordot sel" data-sigcolor="#111111" style="background:#111111" aria-label="Black pen"></button>
             <button type="button" class="colordot" data-sigcolor="#3b3e45" style="background:#3b3e45" aria-label="Graphite pen"></button>
             <button type="button" class="btn secondary" onclick="clearSig()">Clear signature</button>
           </div>
-          <p class="pm-hint">The chequered background means your signature is transparent — no white box on your document.</p>
+          <p class="pm-hint">The checkered background means your signature is transparent — no white box on your document.</p>
         </div>
         <div id="sigTypePane" class="hidden">
           <div class="field" style="max-width:420px"><label for="sigName">Your name</label><input id="sigName" type="text" placeholder="Type your name" autocomplete="off"></div>
@@ -145,7 +153,7 @@
             <button type="button" class="fontpick" data-sigfont="'Snell Roundhand','Apple Chancery',cursive" style="font-family:'Snell Roundhand','Apple Chancery',cursive">Signature</button>
             <button type="button" class="fontpick" data-sigfont="'Lucida Handwriting','Comic Sans MS',cursive" style="font-family:'Lucida Handwriting',cursive">Signature</button>
           </div>
-          <div class="sigrow"><span class="pm-hint">Colour:</span>
+          <div class="sigrow"><span class="pm-hint">Color:</span>
             <button type="button" class="colordot sel" data-sigtype-color="#111111" style="background:#111111" aria-label="Black"></button>
             <button type="button" class="colordot" data-sigtype-color="#3b3e45" style="background:#3b3e45" aria-label="Graphite"></button>
           </div>
@@ -160,16 +168,18 @@
         <label class="sigdate"><input type="checkbox" id="sigDate"> Add today's date next to the signature</label>
       </div>
       <div class="progrow hidden" id="progWrap"><div class="progress"><div class="bar" id="progBar"></div></div><span id="progText" class="progtext"></span></div>
-      <p id="status" style="color:var(--muted)"></p>
+      <p id="status" style="color:var(--muted)" aria-live="polite"></p>
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary" id="processBtn">Process</button><button class="btn secondary hidden" id="cancelBtn" type="button">Cancel</button><button class="btn secondary" onclick="resetTool()">Reset</button></div>
+      <p id="preFileHint" class="pm-hint" style="margin-top:10px">Choose a file above to begin — it stays on this device.</p>
       <div class="result" id="resultBox" style="margin-top:18px"></div>
     </div>
   </section>
 </main>
-<footer id="privacy">
+<footer>
   <p><strong>Privacy first:</strong> PDFStow runs entirely in your browser. Your files are never uploaded, never stored, and never leave your device.</p>
-  <p id="about">PDFStow by Safwan Digital · Free forever · Some Office conversions are text-based Beta — see each tool's note for honest limits.</p>
+  <nav class="footnav" aria-label="Footer"><a href="#tools">Tools</a><a href="trust.html#about">About</a><a href="trust.html#how">How it works</a><a href="trust.html#privacy">Privacy</a><a href="trust.html#terms">Terms</a><a href="trust.html#contact">Contact</a><a href="https://github.com/safwan-digital/aurelia-pdf" target="_blank" rel="noopener">Source on GitHub — verify the privacy claim</a></nav>
+  <p>PDFStow by Safwan Digital · Free forever · Some Office conversions are text-based Beta — see each tool's note for honest limits.</p>
 </footer>
-<div id="toast" class="toast glass hidden"></div>
-<script src="app.js?v=42"></script>
+<div id="toast" class="toast glass hidden" role="status" aria-live="polite"></div>
+<script src="app.js?v=43"></script>
 </body></html>
