@@ -107,7 +107,7 @@ function revealScan(instant){
 const themeBtn=$('themeBtn');
 function syncThemeBtn(){const d=document.documentElement.dataset.theme==='dark';themeBtn.innerHTML=icon(d?'sun':'moon',16)+' '+(d?'Light':'Dark')}
 /* Hero lockup has a dark variant (light-ink wordmark); keep the img in step with the theme. */
-function syncHeroLogo(){const i=document.querySelector('.hero-logo img');if(!i)return;const d=document.documentElement.dataset.theme==='dark';const want=d?'dark':'light';if(i.dataset.variant===want)return;i.dataset.variant=want;i.src=d?'logo-animated-dark.gif?v=43':'logo-animated.gif?v=43'}
+function syncHeroLogo(){const i=document.querySelector('.hero-logo img');if(!i)return;const d=document.documentElement.dataset.theme==='dark';const want=d?'dark':'light';if(i.dataset.variant===want)return;i.dataset.variant=want;i.src=d?'logo-animated-dark.gif?v=44':'logo-animated.gif?v=44'}
 syncThemeBtn();syncHeroLogo();
 themeBtn.addEventListener('click',()=>{const h=document.documentElement;h.classList.add('theme-anim');setTimeout(()=>h.classList.remove('theme-anim'),520);const d=h.dataset.theme!=='dark';h.dataset.theme=d?'dark':'light';try{if(d)localStorage.setItem('aurelia-theme','dark');else localStorage.removeItem('aurelia-theme')}catch(e){}syncThemeBtn();syncHeroLogo()});
 

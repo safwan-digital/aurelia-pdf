@@ -434,4 +434,37 @@ Attempted in a throwaway copy (the shipped package was never touched): pdfjs-dis
 
 ## Publish checklist
 
-**Do not publish unless `node --check app.js` passes and ui-test (20/20), v3-checks (18/18), qc-v41, qc-v412 and qc-v42 are all green on the exact files being pushed.** Publishing remains a separate step (with repo topics + social-preview image set in GitHub settings at the same time).
+**Do not publish unless `node --check app.js` and `node --check sw.js` pass and ui-test (20/20), v3-checks (18/18), qc-v41, qc-v412, qc-v42 and qc-v43 are all green on the exact files being pushed.** Publishing remains a separate step (with repo topics + social-preview image set in GitHub settings at the same time).
+
+# V4.3.0 — Offline mode (service worker) (2026-11-17)
+
+DEC-5 resolved by Safwan 2026-11-17 ("Add offline mode"). Goal: after a first visit, the site opens and its tools work with no internet, like an app.
+
+## What was added
+
+- **`sw.js`** (new, package root) — service worker, cache name `pdfstow-v4.3.0`.
+- **Registration** in index.html's existing guarded inline script: only on http(s) (the file:// guard, same lesson as the manifest link), on window load, failures swallowed silently. The v4.2 meta CSP needed **no change** — `worker-src 'self'` / `script-src 'self'` already permit a same-origin worker.
+- Cache-busts bumped to `?v=44` (styles.css, app.js, hero GIFs). Files changed: `index.html`, `app.js` (GIF refs only), `sw.js` (new), `tests/qc-v43.js` (new).
+
+## Caching strategy
+
+- **Install:** precache the same-origin shell — `./`, index.html, `app.js?v=44` + unversioned `app.js`, `styles.css?v=44` + unversioned, trust.html, manifest.json, favicon set, icon-192/512, logo-icon.webp, both hero GIFs, og-image.png, xlsx.full.min.js, 404.html — **plus the four eager CDN URLs** (pdf-lib on unpkg, pdf.js + its worker and JSZip on cdnjs), because those load before the worker controls the page. Every `cache.add` is caught individually, so one failure never fails the install. `skipWaiting` on install; on activate, all non-current caches are deleted and clients are claimed.
+- **Navigations:** network-first (fresh HTML wins online), cached index.html as the offline fallback; successful navigations refresh the cached index.
+- **Same-origin static:** stale-while-revalidate (instant from cache, refreshed in background; the `?v=` versioning bounds staleness).
+- **Cross-origin:** cache-first, successful (200/opaque) responses stored on first fetch — this covers the pdf.js worker and the lazy libraries.
+- GET only; range requests are left to the network.
+
+## Honest scope
+
+- Shell + eager libraries are precached at install, so the site and the eager-lib tools work offline **from the first visit onward**.
+- Lazy libraries — Mammoth, the Tesseract engine + English language data, and the vendored SheetJS — are cached at first use of their tool, so those tools work offline **from their second use onward**. A first-ever OCR still needs internet for its one-time language download (already disclosed on the Trust page).
+
+## Harness note
+
+The existing suites run on file://, where registration is guarded off — no suite needed changes and no localhost gating was required. The new offline QC could not use a local http server: this sandbox Chromium blocks loopback navigations (ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS) and the sandbox proxy resets requests to the container IP. `tests/qc-v43.js` therefore serves the package at a fake HTTPS origin (https://pdfstow.test) through browser-level CDP Fetch interception — every request (page, service worker, workers) is fulfilled from the files on disk / vendor fixtures, and "offline" fails every request. The worker, caches and app run for real.
+
+## Test results (final files)
+
+- `node --check app.js` — OK · `node --check sw.js` — OK.
+- `tests/ui-test.js` — **20/20 PASS** · `tests/v3-checks.js` — **18/18 PASS** · `tests/qc-v41.js` — **8/8 PASS** · `tests/qc-v412.js` — **8/8 PASS** · `tests/qc-v42.js` — **10/10 PASS**.
+- `tests/qc-v43.js` — **6/6 PASS**: (a) worker active + controlling after the first visit; (b) precache populated (24 entries, shell + CDN, nothing missing); (c) offline reload renders home from cache (35 cards, pdf-lib present, no failure panel); (d) **fully offline merge of two PDFs → `pdfstow-merged.pdf`, validated 2 pages**; (e) back-online reload healthy; (f) zero uncaught page errors.
