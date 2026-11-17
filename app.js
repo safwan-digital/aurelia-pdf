@@ -21,6 +21,26 @@ const LAZY_LIBS={
  tesseract:{url:'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js',integrity:'sha384-Ptw8HCYAWF6vIop6WuGxfSCiDCIzUWqjrHYfx8Vd0S4CMBaicAdBh2y+Ufle664A',global:'Tesseract',label:'The OCR library'}};
 const libPromises={};
 function loadLib(key){const L=LAZY_LIBS[key];if(!L)return Promise.resolve();if(window[L.global])return Promise.resolve();if(libPromises[key])return libPromises[key];libPromises[key]=new Promise((res,rej)=>{const s=document.createElement('script');s.src=L.url;if(L.integrity){s.integrity=L.integrity;s.crossOrigin='anonymous'}s.onload=()=>res();s.onerror=()=>{delete libPromises[key];showLibFailure(L.label);rej(new Error(L.label+' failed to load — check your connection and reload the page.'))};document.head.appendChild(s)});return libPromises[key]}
+/* Analytics (v4.4.0, DEC-2): Google Analytics 4 + Microsoft Clarity.
+   Loaded ONLY on http(s) — on file:// (the test suites, local previews)
+   this stays completely silent: no requests, no errors, exactly like the
+   manifest / service-worker guards. Everything is wrapped so an analytics
+   failure can never affect the tools. The service worker bypasses these
+   hosts entirely, so nothing here is ever cached or stale-served. What is
+   collected is disclosed on the Trust page: visits and usage only —
+   analytics never receives files or anything inside them. */
+(function loadAnalytics(){
+  try{
+    if(!/^https?:$/.test(location.protocol))return;
+    const add=u=>{const s=document.createElement('script');s.async=true;s.src=u;document.head.appendChild(s)};
+    add('https://www.googletagmanager.com/gtag/js?id=G-4BR0BJ17MC');
+    window.dataLayer=window.dataLayer||[];
+    window.gtag=function(){window.dataLayer.push(arguments)};
+    window.gtag('js',new Date());
+    window.gtag('config','G-4BR0BJ17MC');
+    add('https://www.clarity.ms/tag/zf09zdj8dk');
+  }catch(e){}
+})();
 
 const F=(key,label,type='text',def='',extra={})=>({key,label,type,def,...extra});
 const O=(v,l)=>({v,l}); // select option with separate value/label
@@ -107,7 +127,7 @@ function revealScan(instant){
 const themeBtn=$('themeBtn');
 function syncThemeBtn(){const d=document.documentElement.dataset.theme==='dark';themeBtn.innerHTML=icon(d?'sun':'moon',16)+' '+(d?'Light':'Dark')}
 /* Hero lockup has a dark variant (light-ink wordmark); keep the img in step with the theme. */
-function syncHeroLogo(){const i=document.querySelector('.hero-logo img');if(!i)return;const d=document.documentElement.dataset.theme==='dark';const want=d?'dark':'light';if(i.dataset.variant===want)return;i.dataset.variant=want;i.src=d?'logo-animated-dark.gif?v=44':'logo-animated.gif?v=44'}
+function syncHeroLogo(){const i=document.querySelector('.hero-logo img');if(!i)return;const d=document.documentElement.dataset.theme==='dark';const want=d?'dark':'light';if(i.dataset.variant===want)return;i.dataset.variant=want;i.src=d?'logo-animated-dark.gif?v=45':'logo-animated.gif?v=45'}
 syncThemeBtn();syncHeroLogo();
 themeBtn.addEventListener('click',()=>{const h=document.documentElement;h.classList.add('theme-anim');setTimeout(()=>h.classList.remove('theme-anim'),520);const d=h.dataset.theme!=='dark';h.dataset.theme=d?'dark':'light';try{if(d)localStorage.setItem('aurelia-theme','dark');else localStorage.removeItem('aurelia-theme')}catch(e){}syncThemeBtn();syncHeroLogo()});
 

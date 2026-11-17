@@ -240,6 +240,9 @@ input[type=range],input[type=checkbox]{accent-color:var(--accent)}
 .footnav{display:flex;gap:8px 20px;flex-wrap:wrap;justify-content:center;margin:14px 0}
 .footnav a{color:var(--accent);font-weight:600;text-decoration:none}
 .footnav a:hover{text-decoration:underline}
+.credit{margin:2px 0 0}
+.credit a{color:var(--accent);font-weight:600;text-decoration:none}
+.credit a:hover{text-decoration:underline}
 .progress.indet .bar{width:38%!important;animation:pdfstow-indet 1.15s ease-in-out infinite alternate}
 @keyframes pdfstow-indet{from{margin-left:0}to{margin-left:62%}}
 @media (prefers-reduced-motion: reduce){.progress.indet .bar{animation:none;width:100%!important;opacity:.55}}

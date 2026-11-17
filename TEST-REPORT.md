@@ -434,7 +434,9 @@ Attempted in a throwaway copy (the shipped package was never touched): pdfjs-dis
 
 ## Publish checklist
 
-**Do not publish unless `node --check app.js` and `node --check sw.js` pass and ui-test (20/20), v3-checks (18/18), qc-v41, qc-v412, qc-v42 and qc-v43 are all green on the exact files being pushed.** Publishing remains a separate step (with repo topics + social-preview image set in GitHub settings at the same time).
+**Do not publish unless `node --check app.js` and `node --check sw.js` pass and ui-test (20/20), v3-checks (18/18), qc-v41, qc-v412, qc-v42, qc-v43 and qc-v44 are all green on the exact files being pushed.** Publishing remains a separate step (with repo topics + social-preview image set in GitHub settings at the same time).
+
+**The Search Console verification file `google34a3d9be7162bb1f.html` must never be deleted** — removing it loses the site's Google Search Console verification (DEC-9).
 
 # V4.3.0 — Offline mode (service worker) (2026-11-17)
 
@@ -468,3 +470,37 @@ The existing suites run on file://, where registration is guarded off — no sui
 - `node --check app.js` — OK · `node --check sw.js` — OK.
 - `tests/ui-test.js` — **20/20 PASS** · `tests/v3-checks.js` — **18/18 PASS** · `tests/qc-v41.js` — **8/8 PASS** · `tests/qc-v412.js` — **8/8 PASS** · `tests/qc-v42.js` — **10/10 PASS**.
 - `tests/qc-v43.js` — **6/6 PASS**: (a) worker active + controlling after the first visit; (b) precache populated (24 entries, shell + CDN, nothing missing); (c) offline reload renders home from cache (35 cards, pdf-lib present, no failure panel); (d) **fully offline merge of two PDFs → `pdfstow-merged.pdf`, validated 2 pages**; (e) back-online reload healthy; (f) zero uncaught page errors.
+
+# V4.4.0 — Analytics (GA4 + Clarity), maker credit, Trust disclosure (2026-11-17)
+
+DEC-2 resolved by Safwan 2026-11-17 ("add microsoft clarity and Google Analytics after Search Console"), sequenced after the Search Console setup (DEC-9: property verified, sitemap submitted). In the same release, Safwan's branding call: keep "Private by Design" AND add the maker credit — "Need both".
+
+## What was added
+
+- **Analytics loader in `app.js`** (no new inline scripts — the v4.2 meta CSP is strict). A small `loadAnalytics()` runs **only on http(s)**; on file:// it returns before doing anything, exactly like the manifest / service-worker guards, so the suites see zero analytics traffic and zero console errors. It dynamically inserts the GA4 script (`https://www.googletagmanager.com/gtag/js?id=G-4BR0BJ17MC`) plus the standard `gtag('config','G-4BR0BJ17MC')` queue setup, and the Clarity tag (`https://www.clarity.ms/tag/zf09zdj8dk`). The whole loader is wrapped in try/catch — an analytics failure can never affect the tools.
+  - Google Analytics 4 Measurement ID: **G-4BR0BJ17MC**
+  - Microsoft Clarity project ID: **zf09zdj8dk**
+- **CSP (index.html)** extended minimally, nothing else changed: `script-src` gains `https://www.googletagmanager.com` and `https://www.clarity.ms`; `connect-src` gains `https://www.google-analytics.com`, `https://*.analytics.google.com`, `https://www.googletagmanager.com`, `https://*.clarity.ms`. All suites still pass under the extended policy.
+- **Service worker (`sw.js`)**: the fetch handler now bypasses the analytics hosts entirely (googletagmanager.com, google-analytics.com, analytics.google.com, clarity.ms and their subdomains — it returns without `respondWith`), so analytics traffic is never cached and never stale-served. Cache name bumped to **`pdfstow-v4.4.0`** (old caches are purged on activate, as before).
+- **Maker credit**: footer of index.html and trust.html gains a quiet credit line — "Built by Safwan.Digital", Safwan.Digital linking to https://safwan.digital (new tab, noopener), styled via a new `.credit` rule in styles.css using the existing Deep Teal tokens. The trust.html About section gains the line "PDFStow is built and run by Safwan.Digital." (linked), and the WebApplication JSON-LD gains `"publisher":{"@type":"Organization","name":"Safwan.Digital","url":"https://safwan.digital"}` (validated as parseable JSON).
+- **Search Console parity file**: `google34a3d9be7162bb1f.html` created locally with the exact verification content (already live in the repo; the local package now matches). The publish checklist above now records that this file must never be deleted.
+- Cache-busts bumped to `?v=45` (styles.css on both pages, app.js, hero GIFs; SW shell entries follow).
+
+## Honest disclosure (Trust page, Privacy section)
+
+Adding analytics changed what the site does, so the Trust page changed with it — same standard as the v4.2 privacy fix. The old "No tracking" bullet ("PDFStow has no accounts, no analytics and no advertising cookies") was **removed because it is no longer true**, and replaced by two bullets. The Analytics bullet reads, verbatim:
+
+> **Analytics:** PDFStow uses Google Analytics and Microsoft Clarity to count visits and see how people use the pages — which tools are popular, and where people click and scroll — so the site can be improved. They never receive your files or anything inside them: your documents still never leave your device. Like the hosting and library servers above, these services receive a normal visit request (such as your IP address and browser type) — about your visit, never about your documents.
+
+The companion bullet now reads "**No accounts, no adverts:** PDFStow has no accounts and no advertising. Your light/dark theme choice is stored only on your own device." Every "files are never uploaded / never leave your device" claim on the page is unchanged — it remains exactly true: analytics sees visits, never files.
+
+## Harness adaptations (assertions unchanged)
+
+- `tests/qc-v43.js`: only the version literals moved with the release — cache name `pdfstow-v4.3.0` → `pdfstow-v4.4.0` and the precache need-list `?v=44` → `?v=45` (the same adaptation the ?v=43 bump needed in qc-v41). Every behavioural assertion is identical.
+- No other suite needed changes: the file:// guard keeps analytics invisible to all of them.
+
+## Test results (final files)
+
+- `node --check app.js` — OK · `node --check sw.js` — OK · JSON-LD blocks parse — OK.
+- `tests/ui-test.js` — **20/20 PASS** · `tests/v3-checks.js` — **18/18 PASS** · `tests/qc-v41.js` — **8/8 PASS** · `tests/qc-v412.js` — **8/8 PASS** · `tests/qc-v42.js` — **10/10 PASS** · `tests/qc-v43.js` — **6/6 PASS**.
+- `tests/qc-v44.js` (new) — **7/7 PASS**: (a) on the fake-HTTPS origin the loader attempts BOTH scripts (recorded: `googletagmanager.com/gtag/js?id=G-4BR0BJ17MC` and `clarity.ms/tag/zf09zdj8dk`, answered with empty 200s); (b) on file:// **zero** analytics requests while the app still boots (35 cards); (c) footer credit present on index and trust with the correct href, plus the About maker line on trust; (d) Trust page names Google Analytics + Microsoft Clarity, the files claim intact, no stale "no analytics" wording; (e) with the v4.4.0 worker controlling, a reload re-requests both analytics scripts through the SW and **no analytics URL appears in any cache** (24 cached keys scanned); (f) zero uncaught page errors.

@@ -1,4 +1,4 @@
-/* PDFStow service worker — v4.3.0 offline support.
+/* PDFStow service worker — v4.4.0 offline support.
    Strategy:
    - Install: precache the same-origin shell (each file added individually,
      so one failure never fails the whole install).
@@ -7,12 +7,15 @@
    - Cross-origin (pinned CDN libraries, pdf.js worker, Tesseract engine/data):
      cache-first, stored on first successful fetch — lazy tools therefore
      work offline from their second use onward.
+   - Analytics hosts (Google Analytics / Tag Manager, Microsoft Clarity)
+     are bypassed entirely: the fetch handler returns without respondWith,
+     so analytics traffic is never cached and never stale-served.
    Only GET requests are handled; range requests are left to the network. */
-const CACHE = 'pdfstow-v4.3.0';
+const CACHE = 'pdfstow-v4.4.0';
 const SHELL = [
   './', 'index.html',
-  'app.js?v=44', 'app.js',
-  'styles.css?v=44', 'styles.css',
+  'app.js?v=45', 'app.js',
+  'styles.css?v=45', 'styles.css',
   'trust.html', 'manifest.json',
   'favicon.ico', 'favicon-32.png', 'apple-touch-icon.png',
   'icon-192.png', 'icon-512.png', 'logo-icon.webp',
@@ -52,6 +55,12 @@ self.addEventListener('fetch', e => {
   let url;
   try { url = new URL(req.url); } catch (err) { return; }
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+  /* Analytics bypass: never intercept, never cache (v4.4.0). */
+  const h = url.hostname;
+  if (h === 'googletagmanager.com' || h.endsWith('.googletagmanager.com') ||
+      h === 'google-analytics.com' || h.endsWith('.google-analytics.com') ||
+      h === 'analytics.google.com' || h.endsWith('.analytics.google.com') ||
+      h === 'clarity.ms' || h.endsWith('.clarity.ms')) return;
 
   if (req.mode === 'navigate') {
     e.respondWith((async () => {
