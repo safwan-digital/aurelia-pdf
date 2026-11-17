@@ -4,9 +4,9 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Page not found — PDFStow</title>
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#0E7C86">
-<script>try{localStorage.removeItem('aurelia-palette');if(localStorage.getItem('aurelia-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}</script>
-<link rel="stylesheet" href="/styles.css?v=48">
+<meta name="theme-color" content="#1A365D">
+<script>try{localStorage.removeItem('aurelia-palette');var _t=localStorage.getItem('aurelia-theme');if(_t==='dark'||(_t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.dataset.theme='dark'}catch(e){}</script>
+<link rel="stylesheet" href="/styles.css?v=49">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -38,7 +38,7 @@
   <p>PDFStow by Safwan Digital · Free forever · Some Office conversions are text-based Beta — see each tool's note for honest limits.</p>
 </footer>
 <script>
-(function(){var b=document.getElementById('themeBtn');if(!b)return;var MOON='<svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /></svg>';var SUN='<svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></svg>';function sync(){var d=document.documentElement.dataset.theme==='dark';b.innerHTML=(d?SUN:MOON)+' '+(d?'Light':'Dark')}sync();b.addEventListener('click',function(){var h=document.documentElement;var d=h.dataset.theme!=='dark';h.dataset.theme=d?'dark':'light';try{if(d)localStorage.setItem('aurelia-theme','dark');else localStorage.removeItem('aurelia-theme')}catch(e){}sync()})})();
+(function(){var b=document.getElementById('themeBtn');if(!b)return;var MOON='<svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /></svg>';var SUN='<svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></svg>';function sync(){var d=document.documentElement.dataset.theme==='dark';b.innerHTML=(d?SUN:MOON)+' '+(d?'Light':'Dark')}sync();b.addEventListener('click',function(){var h=document.documentElement;var d=h.dataset.theme!=='dark';h.dataset.theme=d?'dark':'light';try{localStorage.setItem('aurelia-theme',d?'dark':'light')}catch(e){}sync()});try{var mq=matchMedia('(prefers-color-scheme: dark)');var fol=function(e){var sv=null;try{sv=localStorage.getItem('aurelia-theme')}catch(err){}if(sv)return;document.documentElement.dataset.theme=e.matches?'dark':'light';sync()};if(mq.addEventListener)mq.addEventListener('change',fol);else if(mq.addListener)mq.addListener(fol)}catch(e){}})();
 </script>
 </body>
 </html>

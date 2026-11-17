@@ -640,3 +640,80 @@ Local only (not published): `build/generate.js`, `tests/qc-v452.js` (new), the a
 - `tests/qc-v452.js` (new) — **29/29 PASS**: F1 overflow/buttons at 390+360 · F2 static lockup both themes · F3 nav fully in viewport at 360, no scroll strip · F4 scroll-margin landings (home + tool page) · F5 zero overflow · F6 cards at opacity 1 pre-scroll · F7 placeholder whole · F10 nav/chips/related/font-picker ≥44px, redact close 40px, crop handle 44px · F11 trust header/toggle/H1/back link · F12 404 site-theme + local logo · F13 title once + one-line breadcrumb · F14 size-once in both Compress branches (success driven by an image-heavy fixture whose re-render is guaranteed smaller — tracemonkey's re-render is larger, i.e. keep-original, so it cannot drive the success branch) · F19 editor states + retina canvas + square stage · zero page errors.
 - AFTER screenshots: 32 frames in `tests/qc-v452/` — the auditor's full capture set (home 390/360/1440 light+dark, compress results, merge long-name, sign editor + sigbox, privacy, 404) plus `merge_360_light_longname.png`, `compress_390_light_keeporiginal.png`, `redact_390_light_box.png`, `crop_390_light_editor.png`. All inspected.
 - One honesty note: in the single back-to-back battery run, v3-checks read 17/18 (its known render race, the same flake documented under V4.5.1); standalone on the final files it is **18/18**, and the v4.5.2 diff does not touch that path. In the same battery, qc-v412's section printed empty because the battery's grep pattern missed its total-line format; standalone it is **8/8** (shown above).
+
+# V4.6.0 — Palette A "Midnight & Gold" + hero logo removal + auto theme + real search + focus language (2026-11-17)
+
+Spec: Safwan's order "Need Same Like This" (palette A samples, 2026-11-16) — the samples `tests/palette-preview/palette-a.html` (light) and `palette-a-dark.html` (dark) + shared `base.css` are the law; values were extracted from them verbatim. Plus three addenda from Safwan the same day: (1) AUTO theme following the device setting, (2) hero search becomes a REAL search with a results dropdown, (3) site-wide focus language replaces the harsh default outline. Base: local v4.5.2 — all behaviour unchanged (v4.5.1 compress honesty, v4.5.2 fixes; their suites pass at the same counts). Proof: new suite `tests/qc-v46.js` (25 checks) + 12 AFTER screenshots under `tests/qc-v46/`, each inspected.
+
+## Palette mapping (old Deep Teal → Palette A), both themes
+
+| Token | Light: was → now | Dark: was → now |
+|---|---|---|
+| `--bg` / `--bg2` | #EDFAFB / #D9F1F2 → **#F8F4EC / #EEE5D3** (warm ivory) | #04141B / #06222D → **#070D1A / #0C1626** (navy-black) |
+| `--glass` / `--glass2` | rgba(255,255,255,.62) / .42 (unchanged values, now over ivory) | rgba(6,30,39,.55) / .42 → **rgba(16,28,50,.62) / .42** |
+| `--stroke` | rgba(255,255,255,.65) (unchanged) | rgba(255,255,255,.1) → **rgba(255,236,205,.14)** |
+| `--ink` | #0A2530 → **#13233C** | #EDFAFB → **#F4EEE1** |
+| `--muted` | #3E5A64 → **#655D4F** (deviation, see below) | #9FC2CA → **#ABA08D** (as sampled) |
+| `--acc` | #0E7C86 → **#1A365D** (navy) | #2EC4C6 → **#C5A059** (gold) |
+| `--acc2` | #17A2B0 → **#2E5583** | #7FE3EA → **#7FA8D9** |
+| `--acc3` | #0B5A63 → **#C5A059** (gold) | #0E7C86 → **#E3C078** |
+| `--shadow` | rgba(14,90,99,.15) → **rgba(26,54,93,.15)** | rgba(0,0,0,.45) → **rgba(0,0,0,.5)** |
+| Primary button | teal gradient → **`linear-gradient(95deg,#122741,#1A365D 58%,#A8843E 165%)`**, shadow rgba(197,160,89,.38) | → **`linear-gradient(95deg,#1A365D,#2E5583 58%,#A8843E 165%)`**, shadow rgba(197,160,89,.32) |
+| Hero headline gradient (`--em-grad`) | teal → **#1A365D → #7D6435 55% → #C5A059** | → **#7FA8D9 → #C5A059 55% → #E3C078** |
+| Wordmark span (`--logo-grad`) | teal → **#1A365D → #C5A059** | → **#7FA8D9 → #E3C078** |
+| Body backdrop radials | teal glows → **rgba(26,54,93,.20) / rgba(197,160,89,.30) / rgba(216,192,148,.24)** | → **rgba(46,85,131,.38) / rgba(197,160,89,.20) / rgba(197,160,89,.10)** |
+| Chips / pills / badges | teal tints → gold tints: chip bg rgba(197,160,89,.17), ring .40, icon #9A7B2D; pill text **#715A2E** on rgba(197,160,89,.18) (deviation); badge #7D6435 | chip bg rgba(197,160,89,.16), ring .45, icon #E3C078; pill #E3C078; badge #D8BC7A |
+| Nav hover | teal → **#9A7B2D** | → **#E3C078** |
+| Selection | teal → **rgba(197,160,89,.35)** | → **rgba(197,160,89,.4)** |
+| Toast (derived, samples never defined it) | teal rgb(14,124,134) → **navy rgb(26,54,93)** (#1A365D family) | same |
+| theme-color meta / manifest | #0E7C86 → **#1A365D**; manifest background #04141B → **#070D1A** | same single values |
+
+Zero teal values remain in shipped CSS/app.js/HTML (grep-verified over all 42 shipped files: 0E7C86, 2EC4C6, 17A2B0, 14,124,134 and friends — qc-v46 asserts this statically).
+
+## Contrast deviations (2 — flagged, not silent)
+
+WCAG ratios computed against the actual surfaces (script-verified). Body/muted text stays ≥4.5:1 in both themes (the v4.2.0 rule):
+
+1. **Light `--muted`**: sampled #6E6759 = 4.48:1 on the deepest ivory stop #EEE5D3 (passes on #F8F4EC at 5.20:1, fails on the gradient's dark stop). Stepped within the warm-neutral family to **#655D4F** — ≥4.9:1 on every surface it renders on. Dark muted = sampled #ABA08D (7.53:1), unchanged.
+2. **Light pill/tag text**: sampled #8A6D2F = 3.90:1 on its own gold chip rgba(197,160,89,.18). Stepped within the gold family to **#715A2E** — 5.25:1 on the chip over ivory, 4.70:1 over bg2. Badge #7D6435 kept as sampled (5.42:1 on its actual glass surface). Nav-hover #9A7B2D kept as sampled (interactive-state colour, outside the body/muted rule). White text on every button-gradient stop ≥7.65:1.
+
+## Hero logo removal
+
+- The `.hero-logo` lockup block is deleted from index.html; the hero opens with the privacy pill + headline exactly as the samples compose it. `syncHeroLogo()` and both call sites removed from app.js; the head-init lockup-swap snippet removed; `logo-lockup.webp` / `logo-lockup-dark.webp` removed from the SW precache and all shipped references (grep-verified zero). The files stay in the repo unreferenced, like the old GIFs. F22's desktop compact-hero rule keeps its measurements (lockup part dropped); the 1440 first viewport still starts "Most popular" inside it (screenshot-verified).
+- Header keeps the small icon + PDFStow wordmark (gradient span restored per the samples). **Honest leftover:** the header's raster `logo-icon.webp` is still the teal mark — CSS-only treatment was judged worse than the small icon as-is; it and `favicon.ico`, `favicon-32.png`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `og-image.png` are teal raster assets that need regeneration to fully match palette A (no new binaries this release, per the brief).
+
+## Addendum 1 — AUTO theme
+
+- Pre-paint init (index.html head, generator trust head, 404): saved `aurelia-theme` wins → else `matchMedia('(prefers-color-scheme: dark)')` → else light.
+- A matchMedia change listener follows live system switches ONLY while no saved value exists (home app.js, trust-page inline script, 404 script).
+- The manual toggle now saves BOTH choices explicitly (previously choosing light removed the key, which under auto-theme would have silently re-enabled system-following); from the first tap the saved choice sticks and the system is ignored. No third "Auto" UI state.
+
+## Addendum 2 — Real search
+
+- Typing in the hero search opens a results dropdown (appended to `document.body`, `position:fixed` under the bar — as a child of `.search` it was trapped under later hero siblings' stacking contexts; an elementFromPoint probe caught clicks missing, fixed by the body-level placement; it re-places on scroll/resize and closes when the bar leaves the viewport).
+- Matching: tool name + card blurb + category + a `SEARCH_KEYS` synonym map for all 31 tools (shrink/smaller → Compress, combine/join → Merge, picture/photo/image → JPG/PNG tools, password/lock/unlock, scan → OCR, etc.); name matches rank first; cap 7. Rows are the same `/<slug>/` anchors with the same `openTool()` intercept as the cards; Lucide icon + name + blurb; rows ≥44px (measured 52px).
+- Enter opens the first/selected result; ArrowUp/Down move a `.sel` row; Esc closes; outside pointerdown closes. No-match line: `No tool matches "xyz" — try "merge" or "compress".` Grid filtering kept (it does not fight the dropdown; the "Showing X of 31 tools" line is force-hidden while the dropdown owns messaging). Explore button behaviour unchanged. `.hero` overflow changed clip → overflow-x:clip so the dropdown can extend below the bar.
+
+## Addendum 3 — Focus language
+
+- New tokens: `--ringc` (light #1A365D, dark #E3C078) and `--focus-ring` (light: navy 2px + gold 5px soft rings; dark: gold equivalents).
+- Global `:focus-visible` = 2px solid ring colour, offset 2px (follows each element's own radius) — replaces all three old 3px teal outline rules; no element is left with no visible focus.
+- The search input itself gets `outline:none`; its wrapper takes the focus state: deeper gold border rgba(197,160,89,.65) + `var(--focus-ring)` shadow (asserted in qc-v46 at 390 and 1440, screenshots captured).
+
+## Release mechanics
+
+- Version **v4.6.0**; cache-busts `?v=49`; SW cache **`pdfstow-v4.6.0`**. Pages regenerated through `build/generate.js` (31 tool pages + 4 trust pages + stub + sitemap + llms.txt; generator slice offsets adjusted for the one-line hero shift). Colour-bound test literals adapted to palette A at the same counts/intent: qc-v41/qc-v412 (lockup-free hero), qc-v42 (trust ink rgb(19, 35, 60)), qc-v43/qc-v44 (cache name), qc-v451 (toast rgb(26, 54, 93)), qc-v452 (F2 lockup-free, 404 ink).
+
+## Publish set (42 files)
+
+Changed core: `index.html`, `app.js`, `styles.css`, `sw.js`, `manifest.json`, `404.html`, `TEST-REPORT.md`.
+Regenerated: all 35 folder pages — the 31 tool pages (`merge-pdf`, `compress-pdf`, `jpg-to-pdf`, `pdf-to-word`, `pdf-to-jpg`, `word-to-pdf`, `split-pdf`, `pdf-to-excel`, `sign-pdf`, `ocr-pdf`, `edit-pdf`, `pdf-to-png`, `pdf-to-text`, `rotate-pdf`, `watermark-pdf`, `protect-pdf`, `unlock-pdf`, `remove-pages`, `extract-pages`, `organize-pdf`, `crop-pdf`, `page-numbers`, `annotate-pdf`, `html-to-pdf`, `text-to-pdf`, `pdf-metadata`, `repair-pdf`, `compare-pdf`, `pdf-to-markdown`, `summarize-pdf`, `redact-pdf`) plus `about`, `privacy`, `terms`, `contact`.
+Byte-identical after regeneration, so NOT in the set: `sitemap.xml`, `llms.txt`, `trust.html`.
+Local only (not published): `build/generate.js`, `tests/qc-v46.js` (new), the adapted `tests/qc-v41.js` / `qc-v412.js` / `qc-v42.js` / `qc-v43.js` / `qc-v44.js` / `qc-v451.js` / `qc-v452.js`, and the screenshots under `tests/qc-v46/`.
+
+## Test results (final files)
+
+- `node --check app.js` — OK · `node --check sw.js` — OK.
+- `tests/ui-test.js` — **20/20 PASS** · `tests/v3-checks.js` — **18/18 PASS** · `tests/qc-v41.js` — **8/8 PASS** · `tests/qc-v412.js` — **8/8 PASS** · `tests/qc-v42.js` — **10/10 PASS** · `tests/qc-v43.js` — **6/6 PASS** · `tests/qc-v44.js` — **7/7 PASS** · `tests/qc-v45.js` — **9/9 PASS** · `tests/qc-v451.js` — **6/6 PASS** · `tests/qc-v452.js` — **29/29 PASS**.
+- `tests/qc-v46.js` (new) — **25/25 PASS**: static teal/lockup scan over 42 shipped files · computed body background + button gradient match palette A at 390 + 1440 in both themes · hero lockup-free both themes · header at 360 (icon loaded, wordmark "PDFStow", nav links x 147–287 all in viewport, no scroll strip) · zero overflow at 360/390/1440 both themes · search: "merge" lists Merge PDF, "shrink" lists Compress PDF (synonym), click opens the Merge panel, Enter opens Compress, nonsense query shows the exact no-match line, dropdown at 360 inside the viewport (left 36, right 324) with 52px rows · focus: input outline none + wrapper ring shadow at 390 + 1440, Tab-driven 2px solid navy `:focus-visible` rings on a button and a select · auto theme on fresh contexts: dark system → dark, light → light, live switch followed, manual save sticks against later switches, saved light beats dark system · zero page errors.
+- AFTER screenshots: 12 frames in `tests/qc-v46/` — `home_390_light_top`, `home_390_light_tools`, `home_390_dark_top`, `home_390_dark_tools`, `home_1440_light_top`, `home_1440_light_tools`, `home_1440_dark_top`, `home_1440_dark_tools`, `compress_390_dark`, `privacy_390_dark`, `focus-search-390`, `focus-search-1440`. All inspected: premium ivory/navy/gold light theme and navy-black/gold dark theme, gradient headline and wordmark as sampled, readable throughout.

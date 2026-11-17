@@ -126,6 +126,46 @@ function renderTools(filter=''){
   revealScan(!!filter);
 }
 $('searchInput').addEventListener('input',e=>renderTools(e.target.value));
+/* ===== V4.6.0: real search — results dropdown under the hero bar =====
+   Matches name, card blurb, category and a synonym map; a result behaves
+   exactly like its card (same /<slug>/ anchor + openTool intercept). The
+   grid filter above still runs; the dropdown is the primary surface, so
+   it owns the match / no-match messaging (searchMeta stays hidden). */
+const SEARCH_KEYS={'merge':'combine join together','split':'separate apart','remove-pages':'delete pages','extract-pages':'pull out pages','organize':'reorder arrange pages','rotate':'turn sideways upside down','crop':'trim cut margins','compress':'shrink smaller reduce size squeeze','repair':'fix broken damaged corrupt','ocr':'scan scanned searchable recognition','images-to-pdf':'picture photo image jpg jpeg png','html-to-pdf':'html web page','word-to-pdf':'word doc docx','text-to-pdf':'text txt note','pdf-to-jpg':'picture photo image jpg jpeg','pdf-to-png':'picture photo image png','pdf-to-text':'text txt words extract','pdf-to-word':'word doc docx editable','pdf-to-excel':'excel spreadsheet xlsx table rows','pdf-to-markdown':'markdown md','edit-pdf':'add text write on','annotate':'note comment highlight sticky','page-numbers':'number numbering stamp','watermark':'stamp overlay faint text','sign-pdf':'sign signature autograph','redact':'black out hide censor sensitive','protect':'password lock encrypt secure','unlock':'password remove password decrypt unprotect','metadata':'title author keywords properties info','compare':'diff difference versus vs','summarize':'summary key points tldr'};
+(function(){
+  const bar=document.querySelector('.search');const input=$('searchInput');
+  if(!bar||!input||!bar.contains(input))return;
+  const drop=document.createElement('div');drop.className='sdrop glass hidden';drop.setAttribute('role','listbox');drop.setAttribute('aria-label','Matching tools');document.body.appendChild(drop);
+  const place=()=>{const r=bar.getBoundingClientRect();drop.style.left=r.left+'px';drop.style.top=(r.bottom+8)+'px';drop.style.width=r.width+'px'};
+  let rows=[],sel=-1;
+  const hay=t=>(t.name+' '+cardText(t)+' '+t.cat+' '+(SEARCH_KEYS[t.id]||'')).toLowerCase();
+  function matches(q){
+    const words=q.toLowerCase().split(/\s+/).filter(Boolean);if(!words.length)return[];
+    const scored=[];
+    TOOLS.forEach(t=>{const h=hay(t);if(!words.every(w=>h.includes(w)))return;const nm=t.name.toLowerCase();scored.push({t,s:nm.includes(q.trim().toLowerCase())?0:1})});
+    return scored.sort((a,b)=>a.s-b.s).slice(0,7).map(x=>x.t);
+  }
+  function close(){drop.classList.add('hidden');sel=-1;rows=[]}
+  function open(q){
+    const list=matches(q);
+    if(!list.length){drop.innerHTML='<div class="snone">No tool matches \u201c'+esc(q.trim())+'\u201d \u2014 try \u201cmerge\u201d or \u201ccompress\u201d.</div>';rows=[];sel=-1}
+    else{drop.innerHTML=list.map(t=>'<a class="sresult" role="option" href="/'+SLUGS[t.id]+'/" data-tool="'+t.id+'" onclick="openTool(\''+t.id+'\');return false"><span class="ic-in">'+icon(t.icon,20)+'</span><span class="st"><span class="sn">'+t.name+'</span><span class="sb">'+cardText(t)+'</span></span></a>').join('');rows=[...drop.querySelectorAll('.sresult')];sel=-1}
+    place();drop.classList.remove('hidden');
+  }
+  function mark(){rows.forEach((r,i)=>r.classList.toggle('sel',i===sel));if(sel>=0&&rows[sel])rows[sel].scrollIntoView({block:'nearest'})}
+  input.addEventListener('input',()=>{const sm=$('searchMeta');if(sm)sm.classList.add('hidden');const q=input.value;if(!q.trim()){close();return}open(q)});
+  input.addEventListener('focus',()=>{if(input.value.trim())open(input.value)});
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){close();return}
+    if(drop.classList.contains('hidden'))return;
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!rows.length)return;sel=e.key==='ArrowDown'?(sel+1)%rows.length:(sel-1+rows.length)%rows.length;mark();return}
+    if(e.key==='Enter'){const list=matches(input.value);if(list.length){e.preventDefault();const t=list[sel>=0?sel:0];close();input.blur();openTool(t.id)}}
+  });
+  drop.addEventListener('click',()=>close());
+  window.addEventListener('scroll',()=>{if(drop.classList.contains('hidden'))return;const r=bar.getBoundingClientRect();if(r.bottom<0||r.top>window.innerHeight)close();else place()},{capture:true,passive:true});
+  window.addEventListener('resize',()=>{if(!drop.classList.contains('hidden'))place()});
+  document.addEventListener('pointerdown',e=>{if(!bar.contains(e.target)&&!drop.contains(e.target))close()});
+})();
 /* ===== V4.1 motion: scroll reveal for tool cards =====
    Cards start hidden ONLY under .js-anim (added pre-paint by the head init
    when motion is allowed), so no-JS / reduced-motion always sees content.
@@ -142,13 +182,13 @@ function revealScan(instant){
   if(!revealIO){revealIO=new IntersectionObserver(entries=>{entries.forEach(en=>{if(!en.isIntersecting)return;const el=en.target;revealIO.unobserve(el);el.classList.add('in');el.addEventListener('transitionend',function h(ev){if(ev.propertyName==='transform'){revealClean(el);el.removeEventListener('transitionend',h)}});setTimeout(()=>revealClean(el),1600)})},{threshold:.05,rootMargin:'0px 0px -2% 0px'})}
   els.forEach(el=>revealIO.observe(el));
 }
-/* Theme (light/dark) persists in localStorage ('aurelia-theme') and is applied pre-paint by the inline init in index.html. */
+/* Theme: a saved choice ('aurelia-theme') wins; until one exists, the theme follows the device (prefers-color-scheme), including live system switches. The pre-paint resolution lives in the inline init in index.html. */
 const themeBtn=$('themeBtn');
 function syncThemeBtn(){const d=document.documentElement.dataset.theme==='dark';themeBtn.innerHTML=icon(d?'sun':'moon',16)+' '+(d?'Light':'Dark')}
-/* Hero lockup has a dark variant (light-ink wordmark); keep the img in step with the theme. */
-function syncHeroLogo(){const i=document.querySelector('.hero-logo img');if(!i)return;const d=document.documentElement.dataset.theme==='dark';const want=d?'dark':'light';if(i.dataset.variant===want)return;i.dataset.variant=want;i.src=d?'logo-lockup-dark.webp?v=48':'logo-lockup.webp?v=48'}
-syncThemeBtn();syncHeroLogo();
-themeBtn.addEventListener('click',()=>{const h=document.documentElement;h.classList.add('theme-anim');setTimeout(()=>h.classList.remove('theme-anim'),520);const d=h.dataset.theme!=='dark';h.dataset.theme=d?'dark':'light';try{if(d)localStorage.setItem('aurelia-theme','dark');else localStorage.removeItem('aurelia-theme')}catch(e){}syncThemeBtn();syncHeroLogo()});
+syncThemeBtn();
+themeBtn.addEventListener('click',()=>{const h=document.documentElement;h.classList.add('theme-anim');setTimeout(()=>h.classList.remove('theme-anim'),520);const d=h.dataset.theme!=='dark';h.dataset.theme=d?'dark':'light';try{localStorage.setItem('aurelia-theme',d?'dark':'light')}catch(e){}syncThemeBtn()});
+/* Auto theme: follow live system switches only while no choice is saved. */
+try{const schemeMq=matchMedia('(prefers-color-scheme: dark)');const followScheme=e=>{let saved=null;try{saved=localStorage.getItem('aurelia-theme')}catch(err){}if(saved)return;document.documentElement.dataset.theme=e.matches?'dark':'light';syncThemeBtn()};if(schemeMq.addEventListener)schemeMq.addEventListener('change',followScheme);else if(schemeMq.addListener)schemeMq.addListener(followScheme)}catch(e){}
 
 /* ================= Job / progress system (v3) =================
    Every run goes through startJob/endJob: the button locks with a
