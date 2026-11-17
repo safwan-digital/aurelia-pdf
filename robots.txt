@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://safwan-digital.github.io/aurelia-pdf/sitemap.xml
+Sitemap: https://pdfstow.safwan.digital/sitemap.xml
