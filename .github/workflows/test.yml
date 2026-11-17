@@ -1,0 +1,30 @@
+name: tests
+# Runs the same gates that must be green before any publish
+on:
+  push:
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Syntax check
+        run: node --check app.js
+      - name: Install test dependencies (Puppeteer downloads Chromium)
+        working-directory: tests
+        run: npm install --no-audit --no-fund
+      - name: UI suite (20 checks)
+        working-directory: tests
+        run: node ui-test.js
+      - name: V3 feature suite (18 checks, incl. OCR via local fixtures)
+        working-directory: tests
+        run: node v3-checks.js
+      - name: V4.1 motion QC
+        working-directory: tests
+        run: node qc-v41.js
+      - name: V4.1.2 QC
+        working-directory: tests
+        run: node qc-v412.js
