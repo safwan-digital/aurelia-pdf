@@ -25,8 +25,8 @@
 </script>
 <!-- The manifest link is injected by the init script below, only on http(s):
      Chromium refuses manifest fetches over file:// and logs a console error. -->
-<script>try{if(/^https?:$/.test(location.protocol)&&/\/index\.html$/.test(location.pathname)){history.replaceState(null,'',location.pathname.replace(/\/index\.html$/,'/')+location.search+location.hash)}}catch(e){}try{if(/^https?:$/.test(location.protocol)){var ml=document.createElement('link');ml.rel='manifest';ml.href='/manifest.json';document.head.appendChild(ml)}}catch(e){}try{localStorage.removeItem('aurelia-palette');if(localStorage.getItem('aurelia-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('js-anim')}catch(e){}try{document.addEventListener('DOMContentLoaded',function(){var i=document.querySelector('.hero-logo img');if(i&&!i.dataset.variant&&localStorage.getItem('aurelia-theme')==='dark'){i.dataset.variant='dark';i.src='logo-animated-dark.gif?v=46'}})}catch(e){}</script>
-<link rel="stylesheet" href="/styles.css?v=46">
+<script>try{if(/^https?:$/.test(location.protocol)&&/\/index\.html$/.test(location.pathname)){history.replaceState(null,'',location.pathname.replace(/\/index\.html$/,'/')+location.search+location.hash)}}catch(e){}try{if(/^https?:$/.test(location.protocol)){var ml=document.createElement('link');ml.rel='manifest';ml.href='/manifest.json';document.head.appendChild(ml)}}catch(e){}try{localStorage.removeItem('aurelia-palette');if(localStorage.getItem('aurelia-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('js-anim')}catch(e){}try{document.addEventListener('DOMContentLoaded',function(){var i=document.querySelector('.hero-logo img');if(i&&!i.dataset.variant&&localStorage.getItem('aurelia-theme')==='dark'){i.dataset.variant='dark';i.src='logo-lockup-dark.webp?v=48'}})}catch(e){}</script>
+<link rel="stylesheet" href="/styles.css?v=48">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -98,12 +98,12 @@
   <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode"><svg class="ic" width="16" height="16" aria-hidden="true"><use href="#i-moon"/></svg> Dark</button>
 </header>
 <main class="wrap">
-  <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> <span aria-hidden="true">/</span> <span>PDF to Excel</span></nav>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> <span class="sep" aria-hidden="true">/</span> <span>PDF to Excel</span></nav>
   <div class="toolpage-head">
-    <h1>PDF to Excel</h1>
+    <h1><span class="title-ic"><svg class="ic" width="22" height="22" aria-hidden="true"><use href="#i-table-2"/></svg></span>PDF to Excel</h1>
     <p class="answer">PDF to Excel turns the text in a PDF into a spreadsheet: one row per line, split into columns where the spacing allows. It is the quick way to rescue numbers from statements, invoices and reports. This is a Beta, text-based conversion, and your file is never uploaded.</p>
   </div>
-  <section id="toolView">
+  <section id="toolView" class="pagetool">
     <button class="btn secondary" onclick="showHome()"><svg class="ic" width="16" height="16" aria-hidden="true"><use href="#i-arrow-left"/></svg> All tools</button>
     <div class="panel glass">
       <h2 id="toolTitle" style="margin-top:0;font-size:var(--fs-7)"></h2>
@@ -112,7 +112,7 @@
       <div class="drop" id="dropZone" role="button" tabindex="0" aria-label="Choose files">
         <div class="drop-ic"><svg class="ic" width="40" height="40" aria-hidden="true"><use href="#i-upload"/></svg></div>
         <p><strong>Drag & drop your file(s) here — or tap anywhere in this box</strong><br><span style="color:var(--muted)">or</span></p>
-        <label class="btn" for="fileInput">Choose file(s)</label>
+        <label class="btn secondary" for="fileInput">Choose file(s)</label>
         <input id="fileInput" type="file" class="hidden" multiple>
         <p id="acceptHint" style="color:var(--muted);font-size:var(--fs-2)"></p>
       </div>
@@ -200,10 +200,10 @@
 </main>
 <footer>
   <p><strong>Privacy first:</strong> PDFStow runs entirely in your browser. Your files are never uploaded, never stored, and never leave your device.</p>
-  <nav class="footnav" aria-label="Footer"><a href="#tools">Tools</a><a href="/about/">About</a><a href="/about/#how">How it works</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="/contact/">Contact</a><a href="https://github.com/safwan-digital/pdfstow" target="_blank" rel="noopener">Source on GitHub — verify the privacy claim</a></nav>
+  <nav class="footnav" aria-label="Footer"><a href="#tools">Tools</a><a href="/about/">About</a><a href="/about/#how">How it works</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="/contact/">Contact</a><a href="https://github.com/safwan-digital/pdfstow" target="_blank" rel="noopener">Source on GitHub</a></nav>
   <p class="credit">Built by <a href="https://safwan.digital" target="_blank" rel="noopener">Safwan.Digital</a></p>
   <p>PDFStow by Safwan Digital · Free forever · Some Office conversions are text-based Beta — see each tool's note for honest limits.</p>
 </footer>
-<div id="toast" class="toast glass hidden" role="status" aria-live="polite"></div>
-<script src="/app.js?v=46"></script>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<script src="/app.js?v=48"></script>
 </body></html>

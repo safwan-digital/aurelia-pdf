@@ -1,4 +1,4 @@
-/* PDFStow service worker — v4.5.0 offline support.
+/* PDFStow service worker — v4.5.2 offline support.
    Strategy:
    - Install: precache the same-origin shell (each file added individually,
      so one failure never fails the whole install).
@@ -11,15 +11,15 @@
      are bypassed entirely: the fetch handler returns without respondWith,
      so analytics traffic is never cached and never stale-served.
    Only GET requests are handled; range requests are left to the network. */
-const CACHE = 'pdfstow-v4.5.0';
+const CACHE = 'pdfstow-v4.5.2';
 const SHELL = [
   './', 'index.html',
-  'app.js?v=46', 'app.js',
-  'styles.css?v=46', 'styles.css',
+  'app.js?v=48', 'app.js',
+  'styles.css?v=48', 'styles.css',
   'trust.html', 'about/', 'privacy/', 'terms/', 'contact/', 'manifest.json',
   'favicon.ico', 'favicon-32.png', 'apple-touch-icon.png',
   'icon-192.png', 'icon-512.png', 'logo-icon.webp',
-  'logo-animated.gif', 'logo-animated-dark.gif',
+  'logo-lockup.webp', 'logo-lockup-dark.webp',
   'og-image.png', 'xlsx.full.min.js', '404.html'
 ];
 /* Eager CDN libraries + the pdf.js worker. These load before the worker
