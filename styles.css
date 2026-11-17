@@ -248,3 +248,33 @@ input[type=range],input[type=checkbox]{accent-color:var(--accent)}
 @media (prefers-reduced-motion: reduce){.progress.indet .bar{animation:none;width:100%!important;opacity:.55}}
 [data-theme=dark] .card .icchip .ic-in{background:rgba(var(--acc-rgb),.14);box-shadow:none}
 @media(max-width:640px){.panel{padding:18px 14px}}
+
+/* ===== V4.5 static pages: per-tool pages + trust split =====
+   Anchor cards (the grid cards are real <a> links since v4.5 so crawlers
+   and no-JS visitors reach the tool pages; JS still intercepts the click
+   and opens the tool in place, exactly as the old <button> cards did). */
+a.card{display:block}
+a.cont-chip{text-decoration:none}
+.crumbs{max-width:1180px;margin:0 auto;padding:18px 16px 0;color:var(--muted);font-size:var(--fs-2);font-weight:600}
+.crumbs a{color:var(--accent)}
+.crumbs a:hover{text-decoration:underline}
+.crumbs .sep{margin:0 8px;opacity:.6}
+.toolpage-head{max-width:1180px;margin:0 auto;padding:6px 16px 0}
+.toolpage-head h1{font-size:clamp(30px,5vw,44px);letter-spacing:-.02em;margin:10px 0 10px}
+.toolpage-head .answer{color:var(--muted);font-size:var(--fs-lede);line-height:1.55;max-width:760px;margin:0}
+.seo{max-width:1180px;margin:0 auto;padding:0 16px}
+.seo section{margin:0 0 22px;padding:24px 26px;border-radius:var(--r-lg)}
+.seo h2{margin:0 0 12px;font-size:var(--fs-6)}
+.seo p,.seo li{color:var(--muted);line-height:1.65;font-size:var(--fs-3)}
+.seo p{margin:0 0 12px}
+.seo ol,.seo ul{margin:0 0 6px;padding-left:22px}
+.seo li{margin-bottom:8px}
+.seo strong{color:var(--ink)}
+.seo a{color:var(--accent);font-weight:600}
+.faqitem{margin-bottom:16px}
+.faqitem:last-child{margin-bottom:0}
+.faqitem h3{margin:0 0 6px;font-size:var(--fs-4);color:var(--ink)}
+.faqitem p{margin:0}
+.relrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.relrow a{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--stroke);background:var(--glass);color:var(--ink);border-radius:var(--r-pill);min-height:40px;padding:8px 14px;font-weight:600;font-size:var(--fs-3)}
+.relrow a:hover{border-color:rgba(var(--acc-rgb),.45)}

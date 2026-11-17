@@ -21,26 +21,37 @@ const LAZY_LIBS={
  tesseract:{url:'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js',integrity:'sha384-Ptw8HCYAWF6vIop6WuGxfSCiDCIzUWqjrHYfx8Vd0S4CMBaicAdBh2y+Ufle664A',global:'Tesseract',label:'The OCR library'}};
 const libPromises={};
 function loadLib(key){const L=LAZY_LIBS[key];if(!L)return Promise.resolve();if(window[L.global])return Promise.resolve();if(libPromises[key])return libPromises[key];libPromises[key]=new Promise((res,rej)=>{const s=document.createElement('script');s.src=L.url;if(L.integrity){s.integrity=L.integrity;s.crossOrigin='anonymous'}s.onload=()=>res();s.onerror=()=>{delete libPromises[key];showLibFailure(L.label);rej(new Error(L.label+' failed to load — check your connection and reload the page.'))};document.head.appendChild(s)});return libPromises[key]}
-/* Analytics (v4.4.0, DEC-2): Google Analytics 4 + Microsoft Clarity.
-   Loaded ONLY on http(s) — on file:// (the test suites, local previews)
-   this stays completely silent: no requests, no errors, exactly like the
-   manifest / service-worker guards. Everything is wrapped so an analytics
-   failure can never affect the tools. The service worker bypasses these
-   hosts entirely, so nothing here is ever cached or stale-served. What is
-   collected is disclosed on the Trust page: visits and usage only —
-   analytics never receives files or anything inside them. */
+/* Analytics (v4.4.0, DEC-2; v4.5.0: GA fires via Tag Manager):
+   Google Tag Manager + Microsoft Clarity. Loaded ONLY on http(s) —
+   on file:// (the test suites, local previews) this stays completely
+   silent: no requests, no errors, exactly like the manifest /
+   service-worker guards. Everything is wrapped so an analytics
+   failure can never affect the tools. The service worker bypasses
+   these hosts entirely, so nothing here is ever cached or
+   stale-served. Google Analytics is NOT loaded directly any more:
+   the GTM container (GTM-MDP3TXXV) holds the Google tag, which fires
+   GA4 property G-PQVM1CRD02 — Safwan's separate PDFStow account.
+   What is collected is disclosed on the Privacy page: visits and
+   usage only — analytics never receives files or anything inside
+   them. */
 (function loadAnalytics(){
   try{
     if(!/^https?:$/.test(location.protocol))return;
     const add=u=>{const s=document.createElement('script');s.async=true;s.src=u;document.head.appendChild(s)};
-    add('https://www.googletagmanager.com/gtag/js?id=G-4BR0BJ17MC');
     window.dataLayer=window.dataLayer||[];
-    window.gtag=function(){window.dataLayer.push(arguments)};
-    window.gtag('js',new Date());
-    window.gtag('config','G-4BR0BJ17MC');
+    window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+    add('https://www.googletagmanager.com/gtm.js?id=GTM-MDP3TXXV');
     add('https://www.clarity.ms/tag/zf09zdj8dk');
   }catch(e){}
 })();
+/* Service worker registration (v4.3.0; moved here from the index.html
+   inline init in v4.5.0 so EVERY page that loads app.js — home and
+   all 31 tool pages — registers the same root worker). Guarded to
+   http(s) exactly like the analytics above: on file:// it stays
+   silent. The absolute path '/sw.js' matters: on a tool page
+   (/merge-pdf/) a relative 'sw.js' would resolve inside the folder
+   and 404. */
+try{if(/^https?:$/.test(location.protocol)&&'serviceWorker' in navigator){addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})})}}catch(e){}
 
 const F=(key,label,type='text',def='',extra={})=>({key,label,type,def,...extra});
 const O=(v,l)=>({v,l}); // select option with separate value/label
@@ -87,7 +98,7 @@ const TOOLS=[
 let current=null, files=[];
 const $=id=>document.getElementById(id);
 function toast(m){const t=$('toast');t.textContent=m;t.classList.remove('hidden');setTimeout(()=>t.classList.add('hidden'),4200)}
-function showHome(){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}$('homeView').classList.remove('hidden');$('toolView').classList.add('hidden');window.scrollTo({top:0,behavior:'smooth'})}
+function showHome(){if(PAGE_TOOL){location.href='/';return}try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}$('homeView').classList.remove('hidden');$('toolView').classList.add('hidden');window.scrollTo({top:0,behavior:'smooth'})}
 function fmt(n){return n<1024?n+' B':n<1048576?(n/1024).toFixed(1)+' KB':(n/1048576).toFixed(2)+' MB'}
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const icon=(n,s=20)=>`<svg class="ic" width="${s}" height="${s}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
@@ -95,15 +106,19 @@ const expandDesc=d=>d.replace(/\[\[([\w-]+)\]\]/g,(m,n)=>icon(n,14));
 const pillHTML=note=>{if(!note)return '';const txt=note.split('—')[0].trim();const cls=txt.split(/\s+/).filter(Boolean).length<=3?'pill tag':'pill';return `<span class="${cls}">${txt}</span>`};
 const POPULAR=['merge','compress','pdf-to-jpg','images-to-pdf'];
 const CAT_SUB={'Organize':'Merge, split, reorder and clean up pages','Optimize':'Smaller files, rescued documents, scanned text','Convert to PDF':'Bring documents and images into PDF','Convert from PDF':'Turn PDFs into images, text and Office files','Edit':'Mark up, sign and add to your pages','Security':'Locks, passwords and document details','Compare & AI':'Read, compare and summarize documents'};
-function clearSearch(){const si=$('searchInput');if(si)si.value='';renderTools('')}
+const SLUGS={'merge':'merge-pdf','split':'split-pdf','remove-pages':'remove-pages','extract-pages':'extract-pages','organize':'organize-pdf','rotate':'rotate-pdf','crop':'crop-pdf','compress':'compress-pdf','repair':'repair-pdf','ocr':'ocr-pdf','images-to-pdf':'jpg-to-pdf','html-to-pdf':'html-to-pdf','word-to-pdf':'word-to-pdf','text-to-pdf':'text-to-pdf','pdf-to-jpg':'pdf-to-jpg','pdf-to-png':'pdf-to-png','pdf-to-text':'pdf-to-text','pdf-to-word':'pdf-to-word','pdf-to-excel':'pdf-to-excel','pdf-to-markdown':'pdf-to-markdown','edit-pdf':'edit-pdf','annotate':'annotate-pdf','page-numbers':'page-numbers','watermark':'watermark-pdf','sign-pdf':'sign-pdf','redact':'redact-pdf','protect':'protect-pdf','unlock':'unlock-pdf','metadata':'pdf-metadata','compare':'compare-pdf','summarize':'summarize-pdf'};
+/* Per-tool pages (v4.5.0): <body data-tool="<id>"> marks a static tool
+   page (/<slug>/). app.js opens that tool at boot and never writes the
+   #/<id> hash there — the URL already names the tool. */
+const PAGE_TOOL=(document.body&&document.body.dataset&&document.body.dataset.tool)||null;function clearSearch(){const si=$('searchInput');if(si)si.value='';renderTools('')}
 function renderTools(filter=''){
   const cats=[...new Set(TOOLS.map(t=>t.cat))]; let html='';
   if(!filter){const pop=POPULAR.map(id=>TOOLS.find(t=>t.id===id)).filter(Boolean);
-    html+=`<section class="cat" id="popular"><h2>${icon('flame',22)} Most popular</h2><p>The everyday tools — one tap away</p><div class="grid">${pop.map((t,i)=>`<button class="card glass rv" style="--rd:${(i%4)*70}ms" onclick="openTool('${t.id}')"><div class="icchip"><span class="ic-in">${icon(t.icon,24)}</span></div><h3>${t.name}</h3><p>${expandDesc(t.desc)}</p>${pillHTML(t.note)}</button>`).join('')}</div></section>`}
+    html+=`<section class="cat" id="popular"><h2>${icon('flame',22)} Most popular</h2><p>The everyday tools — one tap away</p><div class="grid">${pop.map((t,i)=>`<a class="card glass rv" style="--rd:${(i%4)*70}ms" href="/${SLUGS[t.id]}/" onclick="openTool('${t.id}');return false"><div class="icchip"><span class="ic-in">${icon(t.icon,24)}</span></div><h3>${t.name}</h3><p>${expandDesc(t.desc)}</p>${pillHTML(t.note)}</a>`).join('')}</div></section>`}
   cats.forEach(c=>{const list=TOOLS.filter(t=>t.cat===c&&(t.name+' '+t.desc).toLowerCase().includes(filter.toLowerCase())); if(!list.length)return;
-    html+=`<section class="cat"><h2>${c}</h2><p>${CAT_SUB[c]||''}</p><div class="grid">${list.map((t,i)=>`<button class="card glass rv" style="--rd:${(i%4)*70}ms" onclick="openTool('${t.id}')"><div class="icchip"><span class="ic-in">${icon(t.icon,24)}</span></div><h3>${t.name}</h3><p>${expandDesc(t.desc)}</p>${pillHTML(t.note)}</button>`).join('')}</div></section>`});
+    html+=`<section class="cat"><h2>${c}</h2><p>${CAT_SUB[c]||''}</p><div class="grid">${list.map((t,i)=>`<a class="card glass rv" style="--rd:${(i%4)*70}ms" href="/${SLUGS[t.id]}/" onclick="openTool('${t.id}');return false"><div class="icchip"><span class="ic-in">${icon(t.icon,24)}</span></div><h3>${t.name}</h3><p>${expandDesc(t.desc)}</p>${pillHTML(t.note)}</a>`).join('')}</div></section>`});
   const sm=$('searchMeta');const q=filter.trim();if(sm){if(q){const n=TOOLS.filter(t=>(t.name+' '+t.desc).toLowerCase().includes(q.toLowerCase())).length;sm.textContent=n?n+' tool'+(n===1?'':'s')+' match \u201c'+q+'\u201d':'No tools match that search.';sm.classList.remove('hidden')}else sm.classList.add('hidden')}
-  $('tools').innerHTML=html||`<div class="emptystate glass"><p>No tools match \u201c${esc(q)}\u201d. Try a shorter word \u2014 or browse them all.</p><button class="btn" type="button" onclick="clearSearch()">Show all tools</button></div>`;
+  $('tools').innerHTML=html||`<div class="emptystate glass"><p>No tools match \u201c${esc(q)}\u201d. Try a shorter word — or browse them all.</p><button class="btn" type="button" onclick="clearSearch()">Show all tools</button></div>`;
   revealScan(!!filter);
 }
 $('searchInput').addEventListener('input',e=>renderTools(e.target.value));
@@ -127,7 +142,7 @@ function revealScan(instant){
 const themeBtn=$('themeBtn');
 function syncThemeBtn(){const d=document.documentElement.dataset.theme==='dark';themeBtn.innerHTML=icon(d?'sun':'moon',16)+' '+(d?'Light':'Dark')}
 /* Hero lockup has a dark variant (light-ink wordmark); keep the img in step with the theme. */
-function syncHeroLogo(){const i=document.querySelector('.hero-logo img');if(!i)return;const d=document.documentElement.dataset.theme==='dark';const want=d?'dark':'light';if(i.dataset.variant===want)return;i.dataset.variant=want;i.src=d?'logo-animated-dark.gif?v=45':'logo-animated.gif?v=45'}
+function syncHeroLogo(){const i=document.querySelector('.hero-logo img');if(!i)return;const d=document.documentElement.dataset.theme==='dark';const want=d?'dark':'light';if(i.dataset.variant===want)return;i.dataset.variant=want;i.src=d?'logo-animated-dark.gif?v=46':'logo-animated.gif?v=46'}
 syncThemeBtn();syncHeroLogo();
 themeBtn.addEventListener('click',()=>{const h=document.documentElement;h.classList.add('theme-anim');setTimeout(()=>h.classList.remove('theme-anim'),520);const d=h.dataset.theme!=='dark';h.dataset.theme=d?'dark':'light';try{if(d)localStorage.setItem('aurelia-theme','dark');else localStorage.removeItem('aurelia-theme')}catch(e){}syncThemeBtn();syncHeroLogo()});
 
@@ -180,7 +195,7 @@ function wirePasswordWidgets(){document.querySelectorAll('[data-eye]').forEach(b
     const ch=$('pwhelp_confirm');if(ch){if(cf.value&&v!==cf.value)ch.innerHTML='<div class="pwmatch bad">Passwords don\'t match yet</div>';else if(cf.value&&v===cf.value)ch.innerHTML='<div class="pwmatch good">'+icon('check',14)+' Passwords match</div>';else ch.innerHTML=''}};
   if(pw)pw.addEventListener('input',check);if(cf)cf.addEventListener('input',check)}
 const LAZY_FOR={'word-to-pdf':'mammoth','pdf-to-excel':'xlsx','ocr':'tesseract'};
-function openTool(id){current=TOOLS.find(t=>t.id===id);files=[];metaLoaded=false;try{history.replaceState(null,'','#/'+id)}catch(e){}if(LAZY_FOR[id])loadLib(LAZY_FOR[id]).catch(()=>{});$('homeView').classList.add('hidden');$('toolView').classList.remove('hidden');
+function openTool(id){current=TOOLS.find(t=>t.id===id);files=[];metaLoaded=false;if(!PAGE_TOOL)try{history.replaceState(null,'','#/'+id)}catch(e){}if(LAZY_FOR[id])loadLib(LAZY_FOR[id]).catch(()=>{});$('homeView').classList.add('hidden');$('toolView').classList.remove('hidden');
   $('toolTitle').innerHTML='<span class="title-ic">'+icon(current.icon,24)+'</span>'+esc(current.name);$('toolDesc').innerHTML=expandDesc(current.desc);
   const n=$('toolNote'); if(current.note){n.textContent=current.note;n.classList.toggle('tag',current.note.trim().split(/\s+/).length<=3);n.classList.remove('hidden')}else n.classList.add('hidden');
   $('fileInput').accept=current.accept;$('fileInput').multiple=!!current.multiple;
@@ -234,7 +249,7 @@ function done(msg,extraHtml){setProg(1,'Done');$('status').textContent=msg;toast
   const rb=$('resultBox');const head=document.createElement('div');head.className='result-head';head.innerHTML=icon('circle-check',22)+' '+esc((SUCCESS_LINES[current.id]||(()=> 'Done!'))(msg));rb.insertBefore(head,rb.firstChild);
   if(extraHtml){const x=document.createElement('div');x.className='result-extra';x.innerHTML=extraHtml;rb.appendChild(x)}
   const rel=TOOLS.filter(t=>t.cat===current.cat&&t.id!==current.id).slice(0,4);
-  const cont=document.createElement('div');cont.className='continue';cont.innerHTML='<span class="cont-label">Continue to</span>'+rel.map(t=>`<button type="button" class="cont-chip" onclick="openTool('${t.id}')">${icon(t.icon,15)} ${t.name}</button>`).join('')+`<button type="button" class="cont-chip" onclick="resetTool()">${icon('rotate-ccw',15)} New task</button>`;rb.appendChild(cont);
+  const cont=document.createElement('div');cont.className='continue';cont.innerHTML='<span class="cont-label">Continue to</span>'+rel.map(t=>PAGE_TOOL?`<a class="cont-chip" href="/${SLUGS[t.id]}/">${icon(t.icon,15)} ${t.name}</a>`:`<button type="button" class="cont-chip" onclick="openTool('${t.id}')">${icon(t.icon,15)} ${t.name}</button>`).join('')+`<button type="button" class="cont-chip" onclick="resetTool()">${icon('rotate-ccw',15)} New task</button>`;rb.appendChild(cont);
   const pv=document.createElement('p');pv.className='privacy-note';pv.innerHTML=icon('lock',13)+' Processed 100% locally — your file never left this device.';rb.appendChild(pv)}
 function infoDone(msg){setProg(0);$('progWrap').classList.add('hidden');$('status').textContent=msg;toast(msg)}
 async function bytes(f){return new Uint8Array(await f.arrayBuffer())}
@@ -580,6 +595,8 @@ async function makeDocx(pages,title){
 renderTools();
 /* Boot checks + hash deep-links (deep-audit #3, #11): #/merge opens Merge. */
 if(!LIBS_OK)showLibFailure('A core library');
-function routeFromHash(){const m=/^#\/([\w-]+)$/.exec(location.hash||'');if(m&&TOOLS.some(t=>t.id===m[1])){if(!current||current.id!==m[1])openTool(m[1])}else if(current&&(location.hash===''||location.hash==='#'))showHome()}
+function routeFromHash(){if(PAGE_TOOL)return;const m=/^#\/([\w-]+)$/.exec(location.hash||'');if(m&&TOOLS.some(t=>t.id===m[1])){if(!current||current.id!==m[1])openTool(m[1])}else if(current&&(location.hash===''||location.hash==='#'))showHome()}
 if(/^#\//.test(location.hash||''))routeFromHash();
 window.addEventListener('hashchange',routeFromHash);
+/* Per-tool pages (v4.5.0): open this page's tool at boot. */
+if(PAGE_TOOL&&TOOLS.some(t=>t.id===PAGE_TOOL))openTool(PAGE_TOOL);

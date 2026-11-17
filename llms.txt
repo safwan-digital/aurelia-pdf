@@ -1,0 +1,74 @@
+# PDFStow
+
+> PDFStow is a free set of 31 PDF tools that runs entirely in your web browser. Your files are never uploaded — every tool works on your own device. No sign-up, no install, no watermark. PDFStow is made by Safwan Digital.
+
+Key facts:
+- Price: free. All 31 tools, no paid tier.
+- Privacy: files are processed 100% in the browser and never leave the user's device. There is no server upload, no account, and no file storage.
+- Works on phone, tablet and desktop in a modern web browser. English only.
+- Source code is public on GitHub, so the no-upload claim can be checked by anyone.
+
+## Organize a PDF
+
+- [Merge PDF](https://pdfstow.safwan.digital/merge-pdf/): Combine several PDF files into one, in the order you choose.
+- [Split PDF](https://pdfstow.safwan.digital/split-pdf/): Split a PDF by page ranges or into single pages.
+- [Remove Pages](https://pdfstow.safwan.digital/remove-pages/): Delete pages you do not need from a PDF.
+- [Extract Pages](https://pdfstow.safwan.digital/extract-pages/): Pull chosen pages out into a new PDF.
+- [Organize PDF](https://pdfstow.safwan.digital/organize-pdf/): Reorder, rotate and delete pages in one view.
+- [Rotate PDF](https://pdfstow.safwan.digital/rotate-pdf/): Turn pages 90, 180 or 270 degrees and save them that way.
+- [Crop PDF](https://pdfstow.safwan.digital/crop-pdf/): Trim the margins or a chosen area from PDF pages.
+
+## Make a PDF
+
+- [JPG to PDF](https://pdfstow.safwan.digital/jpg-to-pdf/): Turn JPG, PNG and other images into one PDF.
+- [Word to PDF](https://pdfstow.safwan.digital/word-to-pdf/): Convert a Word document (.docx) into a PDF.
+- [Text to PDF](https://pdfstow.safwan.digital/text-to-pdf/): Turn plain text into a clean PDF.
+- [HTML to PDF](https://pdfstow.safwan.digital/html-to-pdf/): Save HTML content as a PDF.
+
+## Convert a PDF to something else
+
+- [PDF to JPG](https://pdfstow.safwan.digital/pdf-to-jpg/): Turn every PDF page into a JPG image.
+- [PDF to PNG](https://pdfstow.safwan.digital/pdf-to-png/): Turn every PDF page into a PNG image.
+- [PDF to Text](https://pdfstow.safwan.digital/pdf-to-text/): Pull the text out of a PDF into a text file.
+- [PDF to Word](https://pdfstow.safwan.digital/pdf-to-word/): Convert a PDF into an editable Word document (text-based).
+- [PDF to Excel](https://pdfstow.safwan.digital/pdf-to-excel/): Convert PDF tables into an Excel spreadsheet.
+- [PDF to Markdown](https://pdfstow.safwan.digital/pdf-to-markdown/): Convert a PDF's text into Markdown.
+
+## Make a PDF smaller
+
+- [Compress PDF](https://pdfstow.safwan.digital/compress-pdf/): Reduce a PDF's file size for email and upload limits. Works best on scanned and photo-heavy PDFs.
+
+## Edit and sign
+
+- [Edit PDF](https://pdfstow.safwan.digital/edit-pdf/): Add text to a PDF, placed exactly where you want it.
+- [Annotate PDF](https://pdfstow.safwan.digital/annotate-pdf/): Draw, highlight and add notes on a PDF.
+- [Page Numbers](https://pdfstow.safwan.digital/page-numbers/): Add page numbers to a PDF.
+- [Watermark PDF](https://pdfstow.safwan.digital/watermark-pdf/): Stamp a word such as DRAFT across PDF pages.
+- [Sign PDF](https://pdfstow.safwan.digital/sign-pdf/): Draw, type or upload a signature and place it on a PDF.
+
+## Keep a PDF safe
+
+- [Protect PDF](https://pdfstow.safwan.digital/protect-pdf/): Add a password to a PDF.
+- [Unlock PDF](https://pdfstow.safwan.digital/unlock-pdf/): Remove a password you know from your own PDF.
+- [Redact PDF](https://pdfstow.safwan.digital/redact-pdf/): Permanently black out text and remove it from the file.
+- [PDF Metadata Editor](https://pdfstow.safwan.digital/pdf-metadata/): View and change a PDF's title, author and other details.
+
+## Smart tools
+
+- [OCR PDF](https://pdfstow.safwan.digital/ocr-pdf/): Make a scanned PDF searchable by recognizing its text (English).
+- [Repair PDF](https://pdfstow.safwan.digital/repair-pdf/): Try to rebuild a damaged PDF so it opens again.
+- [Compare PDF](https://pdfstow.safwan.digital/compare-pdf/): See the text differences between two PDFs.
+- [Summarize PDF](https://pdfstow.safwan.digital/summarize-pdf/): Get a short summary of a PDF's text.
+
+## About and trust
+
+- [All PDFStow tools](https://pdfstow.safwan.digital/): The home page lists all 31 tools, with search.
+- [About PDFStow](https://pdfstow.safwan.digital/about/): What PDFStow is and how it works. PDFStow is made by Safwan Digital (safwan.digital).
+- [Privacy](https://pdfstow.safwan.digital/privacy/): Why files are never uploaded, and what hosting, library and analytics services can see.
+- [Terms](https://pdfstow.safwan.digital/terms/): The simple terms of use.
+- [Contact](https://pdfstow.safwan.digital/contact/): Instagram @safwan.digital or the GitHub repo.
+- [Source code on GitHub](https://github.com/safwan-digital/pdfstow): The complete public source code — the no-upload claim can be verified here.
+
+## Optional
+
+- [PDFStow home](https://pdfstow.safwan.digital/): Start page with search across all 31 tools.
