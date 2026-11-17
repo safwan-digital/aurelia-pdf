@@ -1,4 +1,4 @@
-/* PDFStow service worker — v4.6.0 offline support.
+/* PDFStow service worker — v4.6.1 offline support.
    Strategy:
    - Install: precache the same-origin shell (each file added individually,
      so one failure never fails the whole install).
@@ -11,11 +11,11 @@
      are bypassed entirely: the fetch handler returns without respondWith,
      so analytics traffic is never cached and never stale-served.
    Only GET requests are handled; range requests are left to the network. */
-const CACHE = 'pdfstow-v4.6.0';
+const CACHE = 'pdfstow-v4.6.1';
 const SHELL = [
   './', 'index.html',
-  'app.js?v=49', 'app.js',
-  'styles.css?v=49', 'styles.css',
+  'app.js?v=50', 'app.js',
+  'styles.css?v=50', 'styles.css',
   'trust.html', 'about/', 'privacy/', 'terms/', 'contact/', 'manifest.json',
   'favicon.ico', 'favicon-32.png', 'apple-touch-icon.png',
   'icon-192.png', 'icon-512.png', 'logo-icon.webp',

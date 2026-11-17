@@ -182,7 +182,7 @@ nav a{transition:color .2s;padding:10px 2px}nav a:hover{color:#9a7b2d}
 @keyframes pdfstowDrift1{from{transform:translate(0,0)}to{transform:translate(52px,26px)}}
 @keyframes pdfstowDrift2{from{transform:translate(0,0)}to{transform:translate(-48px,34px)}}
 .js-anim header{animation:pdfstowHeadIn .7s cubic-bezier(.22,1,.36,1) both}
-@keyframes pdfstowHeadIn{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pdfstowHeadIn{from{opacity:0}to{opacity:1}}
 .js-anim .hero>*{animation:pdfstowRise .85s cubic-bezier(.22,1,.36,1) both}
 .js-anim .hero>*:nth-child(1){animation-delay:.02s}.js-anim .hero>*:nth-child(2){animation-delay:.10s}.js-anim .hero>*:nth-child(3){animation-delay:.18s}.js-anim .hero>*:nth-child(4){animation-delay:.26s}.js-anim .hero>*:nth-child(5){animation-delay:.34s}.js-anim .hero>*:nth-child(6){animation-delay:.42s}
 @keyframes pdfstowRise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
@@ -201,9 +201,9 @@ nav a{transition:color .2s;padding:10px 2px}nav a:hover{color:#9a7b2d}
 @keyframes pdfstowDropPulse{0%,100%{border-color:rgba(var(--acc-rgb),.35);box-shadow:0 0 0 0 rgba(var(--acc-rgb),0)}50%{border-color:rgba(var(--acc-rgb),.6);box-shadow:0 0 0 7px rgba(var(--acc-rgb),.05)}}
 .drop.drag{animation:none;transform:scale(1.02);border-color:var(--accent);box-shadow:0 0 0 10px rgba(var(--acc-rgb),.12)}
 .js-anim #toolView:not(.hidden) .panel{animation:pdfstowPanelIn .5s cubic-bezier(.22,1,.36,1) both}
-@keyframes pdfstowPanelIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pdfstowPanelIn{from{opacity:0}to{opacity:1}}
 .js-anim .result:not(:empty){animation:pdfstowPop .45s var(--spring) both}
-@keyframes pdfstowPop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@keyframes pdfstowPop{from{opacity:0}to{opacity:1}}
 html.theme-anim *,html.theme-anim *::before,html.theme-anim *::after{transition:background-color .45s ease,border-color .45s ease,color .45s ease!important}
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -385,3 +385,44 @@ footer{padding:22px 16px 34px}
 .sresult .sn{display:block;font-weight:700;font-size:var(--fs-3)}
 .sresult .sb{display:block;color:var(--muted);font-size:var(--fs-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .snone{padding:12px;color:var(--muted);font-size:var(--fs-3);line-height:1.5}
+
+/* ===== V4.6.1: crisp surfaces (Safwan: hover blur / low-quality softness) =====
+   A hovered card was the worst case on the site: .glass backdrop-filter
+   (blur 22px + saturate) AND a sustained fractional transform
+   (translateY(-5px) scale(1.01)) — Chromium re-rasterizes that combination
+   at a reduced scale for as long as the hover lasts, so the card's text
+   and icon sit soft. Fix: on hover the card drops the backdrop filter and
+   takes the solid surface colour the glass composites to over the page
+   gradient (same family, same look), and the lift becomes an integer-pixel
+   translate with NO scale — the resting and hovered card both rasterize
+   at full resolution. The gold ring + deep shadow hover (V4.1) still apply.
+   The glass entrance animations on the reading surfaces (header pill,
+   tool panel, result box) are opacity-only as of this release (keyframes
+   above): a transform on a backdrop-filtered surface is never left
+   applied to text the user is about to read. */
+:root{--card-solid:#faf8f1}
+[data-theme=dark]{--card-solid:#0d1629}
+.card:hover{transform:translateY(-5px);background:var(--card-solid);backdrop-filter:none;-webkit-backdrop-filter:none}
+
+/* ===== V4.6.1: Page Manager cards must read as cards (Safwan's Organize
+   screenshot: Page 20 an empty white box, the option buttons floating as
+   loose white circles, the card boundary nearly invisible). Root cause:
+   --stroke is WHITE at 65% in the light theme (a border meant for glass
+   over the gradient) and the thumb card/button surfaces were that same
+   translucent white glass — on the light page background there was no
+   visible edge anywhere, and a white page's thumbnail (canvas bg #fff)
+   had nothing separating it from the card. Fix: thumb cards take the
+   solid surface colour with a real ink-tinted border in both themes, the
+   page preview itself gets its own border, and the circular option
+   buttons (trash / rotate / move chevrons) sit on the solid surface with
+   the same visible border. Deleted pages get a red outline on top of the
+   existing dim + "removed" label, so the state is unmistakable. */
+:root{--card-stroke:rgba(26,54,93,.30)}
+[data-theme=dark]{--card-stroke:rgba(255,236,205,.34)}
+.thumb{background:var(--card-solid);border:1px solid var(--card-stroke);box-shadow:0 4px 14px rgba(26,54,93,.10)}
+.thumb-wrap{border:1px solid var(--card-stroke);background:#fff}
+.thumb-fallback{min-height:150px;place-items:center;align-content:center;gap:8px;color:var(--muted);font-size:var(--fs-2);font-weight:600;text-align:center;padding:12px;background:var(--glass2)}
+.thumb-del,.rotbtn{background:var(--card-solid);border:1px solid var(--card-stroke);color:var(--ink)}
+.thumb-move .chipbtn{background:var(--card-solid);border:1px solid var(--card-stroke);color:var(--ink)}
+.thumb-blank{border-color:var(--card-stroke)}
+.thumb.deleted{outline:3px solid rgba(192,69,69,.8);outline-offset:-1px}

@@ -98,7 +98,7 @@ const TOOLS=[
 let current=null, files=[];
 const $=id=>document.getElementById(id);
 function toast(m){const t=$('toast');t.textContent=m;t.classList.remove('hidden');setTimeout(()=>t.classList.add('hidden'),4200)}
-function showHome(){if(PAGE_TOOL){location.href='/';return}try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}$('homeView').classList.remove('hidden');$('toolView').classList.add('hidden');window.scrollTo({top:0,behavior:'smooth'})}
+function showHome(){if(PAGE_TOOL){location.href='/';return}cleanUrl('/');$('homeView').classList.remove('hidden');$('toolView').classList.add('hidden');window.scrollTo({top:0,behavior:'smooth'})}
 function fmt(n){return n<1024?n+' B':n<1048576?(n/1024).toFixed(1)+' KB':(n/1048576).toFixed(2)+' MB'}
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const icon=(n,s=20)=>`<svg class="ic" width="${s}" height="${s}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
@@ -112,8 +112,9 @@ const cardText=t=>CARD_BLURBS[t.id]||t.desc;
 const CAT_SUB={'Organize':'Merge, split, reorder and clean up pages','Optimize':'Smaller files, rescued documents, scanned text','Convert to PDF':'Bring documents and images into PDF','Convert from PDF':'Turn PDFs into images, text and Office files','Edit':'Mark up, sign and add to your pages','Security':'Locks, passwords and document details','Compare & AI':'Read, compare and summarize documents'};
 const SLUGS={'merge':'merge-pdf','split':'split-pdf','remove-pages':'remove-pages','extract-pages':'extract-pages','organize':'organize-pdf','rotate':'rotate-pdf','crop':'crop-pdf','compress':'compress-pdf','repair':'repair-pdf','ocr':'ocr-pdf','images-to-pdf':'jpg-to-pdf','html-to-pdf':'html-to-pdf','word-to-pdf':'word-to-pdf','text-to-pdf':'text-to-pdf','pdf-to-jpg':'pdf-to-jpg','pdf-to-png':'pdf-to-png','pdf-to-text':'pdf-to-text','pdf-to-word':'pdf-to-word','pdf-to-excel':'pdf-to-excel','pdf-to-markdown':'pdf-to-markdown','edit-pdf':'edit-pdf','annotate':'annotate-pdf','page-numbers':'page-numbers','watermark':'watermark-pdf','sign-pdf':'sign-pdf','redact':'redact-pdf','protect':'protect-pdf','unlock':'unlock-pdf','metadata':'pdf-metadata','compare':'compare-pdf','summarize':'summarize-pdf'};
 /* Per-tool pages (v4.5.0): <body data-tool="<id>"> marks a static tool
-   page (/<slug>/). app.js opens that tool at boot and never writes the
-   #/<id> hash there — the URL already names the tool. */
+   page (/<slug>/). app.js opens that tool at boot and never rewrites the
+   URL there — the address already names the tool. On the home SPA,
+   openTool mirrors that same clean /<slug>/ path (v4.6.1). */
 const PAGE_TOOL=(document.body&&document.body.dataset&&document.body.dataset.tool)||null;function clearSearch(){const si=$('searchInput');if(si)si.value='';renderTools('')}
 function renderTools(filter=''){
   const cats=[...new Set(TOOLS.map(t=>t.cat))]; let html='';
@@ -239,7 +240,11 @@ function wirePasswordWidgets(){document.querySelectorAll('[data-eye]').forEach(b
     const ch=$('pwhelp_confirm');if(ch){if(cf.value&&v!==cf.value)ch.innerHTML='<div class="pwmatch bad">Passwords don\'t match yet</div>';else if(cf.value&&v===cf.value)ch.innerHTML='<div class="pwmatch good">'+icon('check',14)+' Passwords match</div>';else ch.innerHTML=''}};
   if(pw)pw.addEventListener('input',check);if(cf)cf.addEventListener('input',check)}
 const LAZY_FOR={'word-to-pdf':'mammoth','pdf-to-excel':'xlsx','ocr':'tesseract'};
-function openTool(id){current=TOOLS.find(t=>t.id===id);files=[];metaLoaded=false;if(!PAGE_TOOL)try{history.replaceState(null,'','#/'+id)}catch(e){}if(LAZY_FOR[id])loadLib(LAZY_FOR[id]).catch(()=>{});$('homeView').classList.add('hidden');$('toolView').classList.remove('hidden');
+function openTool(id){current=TOOLS.find(t=>t.id===id);files=[];metaLoaded=false;if(!PAGE_TOOL){/* v4.6.1: the address bar takes the tool's clean path, exactly like
+     its standalone page — never a hash. file:// (local QC harness only)
+     cannot change path via the History API, so it keeps the legacy hash
+     write there; production is https-only. */
+    try{if(/^https?:$/.test(location.protocol))history.replaceState(null,'','/'+SLUGS[id]+'/');else history.replaceState(null,'','#/'+id)}catch(e){}}if(LAZY_FOR[id])loadLib(LAZY_FOR[id]).catch(()=>{});$('homeView').classList.add('hidden');$('toolView').classList.remove('hidden');
   $('toolTitle').innerHTML='<span class="title-ic">'+icon(current.icon,24)+'</span>'+esc(current.name);$('toolDesc').innerHTML=expandDesc(current.desc);
   const n=$('toolNote'); if(current.note){n.textContent=current.note;n.classList.toggle('tag',current.note.trim().split(/\s+/).length<=3);n.classList.remove('hidden')}else n.classList.add('hidden');
   $('fileInput').accept=current.accept;$('fileInput').multiple=!!current.multiple;
@@ -275,7 +280,7 @@ function addFiles(list){if(!list||!list.length)return;const acc=((current&&curre
   files=current&&current.multiple?files.concat(good):good.slice(0,1);renderFileList();onFilesChanged()}
 /* ---------- File cards: real first-page thumbnail + page count (benchmark A) ---------- */
 const probeCache=new WeakMap();
-function probePdf(f){if(probeCache.has(f))return probeCache.get(f);const p=(async()=>{try{const raw=await bytes(f);const pdf=await GD({data:raw.slice()}).promise;let thumb='';try{const pg=await pdf.getPage(1);const base=pg.getViewport({scale:1});const vp=pg.getViewport({scale:88/base.width});const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;thumb=c.toDataURL('image/jpeg',.7)}catch(e){}return{pages:pdf.numPages,thumb}}catch(e){return{pages:0,thumb:''}}})();probeCache.set(f,p);return p}
+function probePdf(f){if(probeCache.has(f))return probeCache.get(f);const p=(async()=>{try{const raw=await bytes(f);const pdf=await GD({data:raw.slice()}).promise;let thumb='';try{const pg=await pdf.getPage(1);const base=pg.getViewport({scale:1});const vp=pg.getViewport({scale:176/base.width});const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;thumb=c.toDataURL('image/jpeg',.82)}catch(e){}return{pages:pdf.numPages,thumb}}catch(e){return{pages:0,thumb:''}}})();probeCache.set(f,p);return p}
 function renderFileList(){const el=$('fileList');if(!el)return;if(!files.length){el.innerHTML='';return}const multi=current&&current.multiple;
   el.innerHTML=files.map((f,i)=>{const isImg=/\.(jpe?g|png)$/i.test(f.name)||/^image\//.test(f.type);const isPdf=/\.pdf$/i.test(f.name);
     return `<div class="fileitem" data-idx="${i}">${isPdf?`<img class="fthumb" data-thumb alt="">`:isImg?`<img class="fthumb" data-thumb src="${URL.createObjectURL(f)}" alt="">`:`<span class="fthumb-ic">${icon(current?current.icon:'file-text',24)}</span>`}<span class="fname" title="${esc(f.name)}">${i+1}. ${esc(f.name)}<span class="fmeta" data-meta>${fmt(f.size)}</span></span><span class="fbtns">${multi&&files.length>1?`<button type="button" class="chipbtn" title="Move up" onclick="moveFile(${i},-1)">${icon('arrow-up',15)}</button><button type="button" class="chipbtn" title="Move down" onclick="moveFile(${i},1)">${icon('arrow-down',15)}</button>`:''}<button type="button" class="chipbtn rm" title="Remove file" onclick="removeFile(${i})">${icon('x',15)}</button></span></div>`}).join('')
@@ -406,16 +411,25 @@ function buildPageManager(pdf,mode){
   if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){renderThumb(parseInt(en.target.dataset.idx));io.unobserve(en.target)}})},{rootMargin:'240px'});Object.values(pm.thumbEls).forEach(d=>{if(d.dataset.idx>=0)io.observe(d)})}else for(let i=0;i<pm.count;i++)renderThumb(i);
 }
 function makeThumb(i){const mode=pm.mode;const d=document.createElement('div');d.className='thumb';d.dataset.idx=i;
-  d.innerHTML=`<div class="thumb-wrap"><canvas></canvas>${mode==='remove'?'<div class="thumb-x">'+icon('x',46)+'</div>':''}${(mode==='extract'||mode==='pick')?'<div class="thumb-check">'+icon('check',38)+'</div>':''}${mode==='rotate'?'<button type="button" class="rotbtn" title="Rotate this page 90°">'+icon('rotate-cw',18)+'</button>':''}${mode==='organize'?'<button type="button" class="thumb-del" title="Remove this page from the new document">'+icon('trash-2',15)+'</button><div class="thumb-move"><button type="button" class="chipbtn" data-mv="-1" title="Move earlier">'+icon('chevron-left',15)+'</button><button type="button" class="chipbtn" data-mv="1" title="Move later">'+icon('chevron-right',15)+'</button></div>':''}</div><div class="thumb-label">Page ${i+1}</div>`;
+  d.innerHTML=`<div class="thumb-wrap"><canvas></canvas><div class="thumb-fallback" style="display:none">${icon('file',30)}<span>Preview unavailable</span></div>${mode==='remove'?'<div class="thumb-x">'+icon('x',46)+'</div>':''}${(mode==='extract'||mode==='pick')?'<div class="thumb-check">'+icon('check',38)+'</div>':''}${mode==='rotate'?'<button type="button" class="rotbtn" title="Rotate this page 90°">'+icon('rotate-cw',18)+'</button>':''}${mode==='organize'?'<button type="button" class="thumb-del" title="Remove this page from the new document">'+icon('trash-2',15)+'</button>':''}</div>${mode==='organize'?'<div class="thumb-move"><button type="button" class="chipbtn" data-mv="-1" title="Move earlier">'+icon('chevron-left',15)+'</button><button type="button" class="chipbtn" data-mv="1" title="Move later">'+icon('chevron-right',15)+'</button></div>':''}<div class="thumb-label">Page ${i+1}</div>`;
   pm.thumbEls[i]=d;
   if(mode==='remove'||mode==='extract'||mode==='pick'){d.addEventListener('click',()=>{if(pm.sel.has(i))pm.sel.delete(i);else pm.sel.add(i);d.classList.toggle('sel',pm.sel.has(i));pmSync();pmInfo()})}
   if(mode==='rotate'){d.querySelector('.rotbtn').addEventListener('click',ev=>{ev.stopPropagation();pm.rot[i]=((pm.rot[i]||0)+90)%360;d.querySelector('canvas').style.transform='rotate('+pm.rot[i]+'deg)';pmInfo()})}
   if(mode==='organize'){d.querySelectorAll('[data-mv]').forEach(b=>b.addEventListener('click',ev=>{ev.stopPropagation();moveThumb(i,parseInt(b.dataset.mv))}));d.querySelector('.thumb-del').addEventListener('click',ev=>{ev.stopPropagation();pmToggleDelete(i)});attachThumbDrag(d)}
   return d}
-async function renderThumb(i){if(!pm||i<0||pm.rendered.has(i))return;pm.rendered.add(i);try{const pg=await pm.pdf.getPage(i+1);const base=pg.getViewport({scale:1});const vp=pg.getViewport({scale:150/base.width});const c=pm.thumbEls[i].querySelector('canvas');if(!c)return;c.width=vp.width;c.height=vp.height;await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise}catch(e){}}
+/* V4.6.1: thumbnail renders are SERIALIZED through one promise chain and
+   retried once. The old code fired every visible page render at once and
+   swallowed any failure in an empty catch after marking the page rendered —
+   on a phone with a 21+ page file, one dropped render left a permanently
+   empty white box (Safwan's Page 20). Renders now happen at 300px wide
+   (>= 2x the card's CSS width, retina-crisp), and a page that genuinely
+   fails twice shows the in-card "Preview unavailable" fallback instead of
+   an empty box. */
+let pmRenderChain=Promise.resolve();
+function renderThumb(i){if(!pm||i<0||pm.rendered.has(i))return;pm.rendered.add(i);const job=async()=>{const el=pm&&pm.thumbEls?pm.thumbEls[i]:null;if(!el)return;let ok=false;for(let attempt=0;attempt<2&&!ok;attempt++){try{const pg=await pm.pdf.getPage(i+1);const base=pg.getViewport({scale:1});const vp=pg.getViewport({scale:300/base.width});const c=el.querySelector('canvas');if(!c)break;c.width=Math.max(1,Math.round(vp.width));c.height=Math.max(1,Math.round(vp.height));await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;if(c.width>0&&c.height>0)ok=true}catch(e){}}if(!ok){pm.rendered.delete(i);const c=el.querySelector('canvas');if(c)c.style.display='none';const fb=el.querySelector('.thumb-fallback');if(fb)fb.style.display='grid'}};pmRenderChain=pmRenderChain.then(job,job)}
 function pmToggleDelete(i){if(!pm)return;if(pm.deleted.has(i)){pm.deleted.delete(i);pm.thumbEls[i].classList.remove('deleted')}else{pm.deleted.add(i);pm.thumbEls[i].classList.add('deleted')}pmSync();pmInfo()}
 function pmAddBlank(){if(!pm)return;pm.blanks++;const id=-pm.blanks;const d=document.createElement('div');d.className='thumb';d.dataset.idx=id;
-  d.innerHTML=`<div class="thumb-wrap"><div class="thumb-blank">${icon('file',32)}</div><button type="button" class="thumb-del" title="Remove this blank page">${icon('trash-2',15)}</button><div class="thumb-move"><button type="button" class="chipbtn" data-mv="-1" title="Move earlier">${icon('chevron-left',15)}</button><button type="button" class="chipbtn" data-mv="1" title="Move later">${icon('chevron-right',15)}</button></div></div><div class="thumb-label">Blank page</div>`;
+  d.innerHTML=`<div class="thumb-wrap"><div class="thumb-blank">${icon('file',32)}</div><button type="button" class="thumb-del" title="Remove this blank page">${icon('trash-2',15)}</button></div><div class="thumb-move"><button type="button" class="chipbtn" data-mv="-1" title="Move earlier">${icon('chevron-left',15)}</button><button type="button" class="chipbtn" data-mv="1" title="Move later">${icon('chevron-right',15)}</button></div><div class="thumb-label">Blank page</div>`;
   pm.thumbEls[id]=d;pm.order.push(id);$('thumbGrid').appendChild(d);
   d.querySelectorAll('[data-mv]').forEach(b=>b.addEventListener('click',ev=>{ev.stopPropagation();moveThumb(id,parseInt(b.dataset.mv))}));
   d.querySelector('.thumb-del').addEventListener('click',ev=>{ev.stopPropagation();pm.order=pm.order.filter(x=>x!==id);delete pm.thumbEls[id];d.remove();pmSync();pmInfo()});
@@ -645,10 +659,23 @@ async function makeDocx(pages,title){
   return zip.generateAsync({type:'blob'});
 }
 renderTools();
-/* Boot checks + hash deep-links (deep-audit #3, #11): #/merge opens Merge. */
+/* Boot checks + deep-links (deep-audit #3, #11; v4.6.1 clean paths).
+   Legacy '#/merge' links still open Merge, but the address is normalized
+   to the tool's clean /<slug>/ path — no hash ever survives in the bar.
+   A '#tools' hash (header/footer links from other pages) scrolls to the
+   grid and is stripped; a bare '#' is stripped. No popstate listener is
+   needed: every in-app URL write uses replaceState, so the SPA adds no
+   history entries and Back/Forward only traverse real documents — the
+   restored document re-runs this same boot normalization. */
 if(!LIBS_OK)showLibFailure('A core library');
-function routeFromHash(){if(PAGE_TOOL)return;const m=/^#\/([\w-]+)$/.exec(location.hash||'');if(m&&TOOLS.some(t=>t.id===m[1])){if(!current||current.id!==m[1])openTool(m[1])}else if(current&&(location.hash===''||location.hash==='#'))showHome()}
-if(/^#\//.test(location.hash||''))routeFromHash();
+function cleanUrl(p){try{if(/^https?:$/.test(location.protocol))history.replaceState(null,'',p);else history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+function goTools(){$('toolView').classList.add('hidden');$('homeView').classList.remove('hidden');cleanUrl('/');const t=$('tools');if(t)t.scrollIntoView({behavior:'smooth'})}
+function routeFromHash(){if(PAGE_TOOL)return;const h=location.hash||'';const m=/^#\/([\w-]+)$/.exec(h);if(m&&TOOLS.some(t=>t.id===m[1])){if(!current||current.id!==m[1])openTool(m[1]);else cleanUrl('/'+SLUGS[m[1]]+'/')}else if(h==='#tools')goTools();else if(current&&(h===''||h==='#'))showHome()}
+if(location.hash)routeFromHash();else if(/#$/.test(location.href))cleanUrl('/');
 window.addEventListener('hashchange',routeFromHash);
+/* '#tools' links on the SPA itself: smooth-scroll to the grid without
+   letting the hash land in the address bar. (On tool pages the same link
+   is a real navigation home, where the boot pass above normalizes it.) */
+document.addEventListener('click',e=>{if(PAGE_TOOL)return;const a=e.target&&e.target.closest?e.target.closest('a[href="#tools"],a[href="/#tools"]'):null;if(!a)return;e.preventDefault();goTools()});
 /* Per-tool pages (v4.5.0): open this page's tool at boot. */
 if(PAGE_TOOL&&TOOLS.some(t=>t.id===PAGE_TOOL))openTool(PAGE_TOOL);
