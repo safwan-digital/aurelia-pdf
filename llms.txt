@@ -22,7 +22,7 @@ Key facts:
 
 - [JPG to PDF](https://pdfstow.safwan.digital/jpg-to-pdf/): Turn JPG, PNG and other images into one PDF.
 - [Word to PDF](https://pdfstow.safwan.digital/word-to-pdf/): Convert a Word document (.docx) into a PDF.
-- [Text to PDF](https://pdfstow.safwan.digital/text-to-pdf/): Turn plain text into a clean PDF.
+- [PDF Editor](https://pdfstow.safwan.digital/pdf-editor/): Edit the words in a PDF line by line, add text, images and a signature — all in one place.
 - [HTML to PDF](https://pdfstow.safwan.digital/html-to-pdf/): Save HTML content as a PDF.
 
 ## Convert a PDF to something else

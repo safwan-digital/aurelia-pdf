@@ -72,7 +72,6 @@ const TOOLS=[
  {id:'images-to-pdf',cat:'Convert to PDF',icon:'images',name:'Images to PDF',desc:'Convert JPG & PNG images into one polished PDF.',accept:'.jpg,.jpeg,.png',multiple:true,opts:[F('size','Page size','select','A4',{options:['A4','Letter','Fit image']}),F('margin','Margin around each image','select','18',{options:[O('0','No margin'),O('18','Small'),O('36','Comfortable')]})]},
  {id:'html-to-pdf',cat:'Convert to PDF',icon:'globe',name:'HTML to PDF',desc:'Upload an .html file — its text becomes a clean PDF.',accept:'.html,.htm',note:'Beta — text-based, layout is simplified'},
  {id:'word-to-pdf',cat:'Convert to PDF',icon:'file-type-2',name:'Word to PDF',desc:'Convert a .docx file into a PDF.',accept:'.docx',note:'Beta — text-based, layout is simplified'},
- {id:'text-to-pdf',cat:'Convert to PDF',icon:'type',name:'Text to PDF',desc:'Turn a .txt file into a formatted PDF.',accept:'.txt'},
  // Convert from PDF
  {id:'pdf-to-jpg',cat:'Convert from PDF',icon:'image',name:'PDF to JPG',desc:'Turn each page into a JPG image (ZIP if there are many).',accept:'.pdf',opts:[F('scale','Image quality','select','2',{options:[O('1','Standard — smaller files'),O('2','High — recommended'),O('3','Maximum — largest files')]})]},
  {id:'pdf-to-png',cat:'Convert from PDF',icon:'image-down',name:'PDF to PNG',desc:'Turn each page into a crisp PNG image (ZIP if there are many).',accept:'.pdf',opts:[F('scale','Image quality','select','2',{options:[O('1','Standard — smaller files'),O('2','High — recommended'),O('3','Maximum — largest files')]})]},
@@ -81,7 +80,8 @@ const TOOLS=[
  {id:'pdf-to-excel',cat:'Convert from PDF',icon:'table-2',name:'PDF to Excel',desc:'Turn PDF text into a spreadsheet (.xlsx) — one row per line, split into columns where the spacing allows.',accept:'.pdf',note:'Beta — text into rows/columns, table layout not preserved'},
  {id:'pdf-to-markdown',cat:'Convert from PDF',icon:'file-code-2',name:'PDF to Markdown',desc:'Extract text as Markdown, page by page.',accept:'.pdf',note:'Beta — text-based, structure is approximate'},
  // Edit
- {id:'edit-pdf',cat:'Edit',icon:'pen-line',name:'Add Text to PDF',desc:'Click on the page preview to place your text exactly there. (This adds new text — existing text in the PDF can\'t be changed in the browser.)',accept:'.pdf',opts:[F('text','Text to add','text','',{placeholder:'Type the text to add…'}),F('page','Page number','number','1'),F('size','Font size','number','18')]},
+ {id:'pdf-editor',cat:'Edit',icon:'pencil',name:'PDF Editor',desc:'Edit the words in a PDF, add text, images and a signature — all in one place.',accept:'.pdf'},
+ {id:'edit-pdf',cat:'Edit',icon:'pen-line',name:'Add Text',desc:'Click on the page preview to place your text exactly there. (To change words already in the PDF, use the PDF Editor.)',accept:'.pdf',opts:[F('text','Text to add','text','',{placeholder:'Type the text to add…'}),F('page','Page number','number','1'),F('size','Font size','number','18')]},
  {id:'annotate',cat:'Edit',icon:'sticky-note',name:'Annotate PDF',desc:'Drag a rectangle on the page preview to place a highlighted note, stamped onto the page.',accept:'.pdf',opts:[F('text','Note text','text','',{placeholder:'Type your note…'}),F('page','Page number','number','1')]},
  {id:'page-numbers',cat:'Edit',icon:'hash',name:'Add Page Numbers',desc:'Stamp page numbers on every page — tap a square to choose where they go.',accept:'.pdf',opts:[F('position','Position','posgrid','bottom-right'),F('format','Number style','select','n',{options:[O('n','Just the number (1, 2, 3…)'),O('Page n','Page 1, Page 2…'),O('n / total','1 / 14, 2 / 14…')]}),F('first','First number','number','1')]},
  {id:'watermark',cat:'Edit',icon:'stamp',name:'Watermark',desc:'Add a translucent text watermark — tap a square to choose where it sits.',accept:'.pdf',opts:[F('text','Watermark text','text','',{placeholder:'e.g. CONFIDENTIAL'}),F('position','Position','posgrid','center'),F('opacity','Strength','select','0.18',{options:[O('0.1','Light — faint'),O('0.18','Medium'),O('0.35','Strong')]}),F('size','Font size','number','42')]},
@@ -107,10 +107,10 @@ const pillHTML=note=>{if(!note)return '';const txt=note.split('—')[0].trim();c
 const POPULAR=['merge','compress','pdf-to-jpg','images-to-pdf'];
 /* Short card blurbs (v4.5.2, F9): cards get one plain line each — the full
    desc stays on the tool panel and the tool pages, where there is room. */
-const CARD_BLURBS={'merge':'Combine several PDFs into one file, in your order.','split':'Split by page ranges, one PDF per page, or by tapping pages.','remove-pages':'Tap the pages you do not want and delete them.','extract-pages':'Pull the pages you pick out into a new PDF.','organize':'Drag pages into a new order, remove pages, or add a blank one.','rotate':'Rotate single pages, or every page at once.','crop':'Trim the margins — drag the box on the preview.','compress':'Make a PDF smaller. Best for scans and photo-heavy files.','repair':'Re-save a damaged PDF cleanly so it opens again.','ocr':'Make scanned PDFs searchable. English, on your device.','images-to-pdf':'Turn JPG and PNG images into one polished PDF.','html-to-pdf':'Turn an HTML file into a clean, readable PDF.','word-to-pdf':'Convert a Word (.docx) file into a PDF.','text-to-pdf':'Turn a plain text file into a formatted PDF.','pdf-to-jpg':'Save each page as a JPG image.','pdf-to-png':'Save each page as a crisp PNG image.','pdf-to-text':'Pull all the readable text out as a .txt file.','pdf-to-word':'Extract the text into an editable Word file.','pdf-to-excel':'Turn PDF text into a spreadsheet, row by row.','pdf-to-markdown':'Extract the text as Markdown, page by page.','edit-pdf':'Click the page preview to place new text on it.','annotate':'Add a highlighted note anywhere on a page.','page-numbers':'Stamp page numbers where you want them.','watermark':'Add a faint text watermark across your pages.','sign-pdf':'Draw, type or upload a signature and place it.','redact':'Black out sensitive areas — removed for good, not just covered.','protect':'Lock a PDF with a password you choose.','unlock':'Remove a password from a PDF you own.','metadata':'See and edit the title, author and keywords inside a PDF.','compare':'Compare two PDFs and get a text difference report.','summarize':'Get the key sentences from a document, on your device.'};
+const CARD_BLURBS={'merge':'Combine several PDFs into one file, in your order.','split':'Split by page ranges, one PDF per page, or by tapping pages.','remove-pages':'Tap the pages you do not want and delete them.','extract-pages':'Pull the pages you pick out into a new PDF.','organize':'Drag pages into a new order, remove pages, or add a blank one.','rotate':'Rotate single pages, or every page at once.','crop':'Trim the margins — drag the box on the preview.','compress':'Make a PDF smaller. Best for scans and photo-heavy files.','repair':'Re-save a damaged PDF cleanly so it opens again.','ocr':'Make scanned PDFs searchable. English, on your device.','images-to-pdf':'Turn JPG and PNG images into one polished PDF.','html-to-pdf':'Turn an HTML file into a clean, readable PDF.','word-to-pdf':'Convert a Word (.docx) file into a PDF.','pdf-to-jpg':'Save each page as a JPG image.','pdf-to-png':'Save each page as a crisp PNG image.','pdf-to-text':'Pull all the readable text out as a .txt file.','pdf-to-word':'Extract the text into an editable Word file.','pdf-to-excel':'Turn PDF text into a spreadsheet, row by row.','pdf-to-markdown':'Extract the text as Markdown, page by page.','pdf-editor':'Change the words in a PDF, and add text, images and a signature.','edit-pdf':'Click the page preview to place new text on it.','annotate':'Add a highlighted note anywhere on a page.','page-numbers':'Stamp page numbers where you want them.','watermark':'Add a faint text watermark across your pages.','sign-pdf':'Draw, type or upload a signature and place it.','redact':'Black out sensitive areas — removed for good, not just covered.','protect':'Lock a PDF with a password you choose.','unlock':'Remove a password from a PDF you own.','metadata':'See and edit the title, author and keywords inside a PDF.','compare':'Compare two PDFs and get a text difference report.','summarize':'Get the key sentences from a document, on your device.'};
 const cardText=t=>CARD_BLURBS[t.id]||t.desc;
 const CAT_SUB={'Organize':'Merge, split, reorder and clean up pages','Optimize':'Smaller files, rescued documents, scanned text','Convert to PDF':'Bring documents and images into PDF','Convert from PDF':'Turn PDFs into images, text and Office files','Edit':'Mark up, sign and add to your pages','Security':'Locks, passwords and document details','Compare & AI':'Read, compare and summarize documents'};
-const SLUGS={'merge':'merge-pdf','split':'split-pdf','remove-pages':'remove-pages','extract-pages':'extract-pages','organize':'organize-pdf','rotate':'rotate-pdf','crop':'crop-pdf','compress':'compress-pdf','repair':'repair-pdf','ocr':'ocr-pdf','images-to-pdf':'jpg-to-pdf','html-to-pdf':'html-to-pdf','word-to-pdf':'word-to-pdf','text-to-pdf':'text-to-pdf','pdf-to-jpg':'pdf-to-jpg','pdf-to-png':'pdf-to-png','pdf-to-text':'pdf-to-text','pdf-to-word':'pdf-to-word','pdf-to-excel':'pdf-to-excel','pdf-to-markdown':'pdf-to-markdown','edit-pdf':'edit-pdf','annotate':'annotate-pdf','page-numbers':'page-numbers','watermark':'watermark-pdf','sign-pdf':'sign-pdf','redact':'redact-pdf','protect':'protect-pdf','unlock':'unlock-pdf','metadata':'pdf-metadata','compare':'compare-pdf','summarize':'summarize-pdf'};
+const SLUGS={'merge':'merge-pdf','split':'split-pdf','remove-pages':'remove-pages','extract-pages':'extract-pages','organize':'organize-pdf','rotate':'rotate-pdf','crop':'crop-pdf','compress':'compress-pdf','repair':'repair-pdf','ocr':'ocr-pdf','images-to-pdf':'jpg-to-pdf','html-to-pdf':'html-to-pdf','word-to-pdf':'word-to-pdf','pdf-to-jpg':'pdf-to-jpg','pdf-to-png':'pdf-to-png','pdf-to-text':'pdf-to-text','pdf-to-word':'pdf-to-word','pdf-to-excel':'pdf-to-excel','pdf-to-markdown':'pdf-to-markdown','pdf-editor':'pdf-editor','edit-pdf':'edit-pdf','annotate':'annotate-pdf','page-numbers':'page-numbers','watermark':'watermark-pdf','sign-pdf':'sign-pdf','redact':'redact-pdf','protect':'protect-pdf','unlock':'unlock-pdf','metadata':'pdf-metadata','compare':'compare-pdf','summarize':'summarize-pdf'};
 /* Per-tool pages (v4.5.0): <body data-tool="<id>"> marks a static tool
    page (/<slug>/). app.js opens that tool at boot and never rewrites the
    URL there — the address already names the tool. On the home SPA,
@@ -132,7 +132,7 @@ $('searchInput').addEventListener('input',e=>renderTools(e.target.value));
    exactly like its card (same /<slug>/ anchor + openTool intercept). The
    grid filter above still runs; the dropdown is the primary surface, so
    it owns the match / no-match messaging (searchMeta stays hidden). */
-const SEARCH_KEYS={'merge':'combine join together','split':'separate apart','remove-pages':'delete pages','extract-pages':'pull out pages','organize':'reorder arrange pages','rotate':'turn sideways upside down','crop':'trim cut margins','compress':'shrink smaller reduce size squeeze','repair':'fix broken damaged corrupt','ocr':'scan scanned searchable recognition','images-to-pdf':'picture photo image jpg jpeg png','html-to-pdf':'html web page','word-to-pdf':'word doc docx','text-to-pdf':'text txt note','pdf-to-jpg':'picture photo image jpg jpeg','pdf-to-png':'picture photo image png','pdf-to-text':'text txt words extract','pdf-to-word':'word doc docx editable','pdf-to-excel':'excel spreadsheet xlsx table rows','pdf-to-markdown':'markdown md','edit-pdf':'add text write on','annotate':'note comment highlight sticky','page-numbers':'number numbering stamp','watermark':'stamp overlay faint text','sign-pdf':'sign signature autograph','redact':'black out hide censor sensitive','protect':'password lock encrypt secure','unlock':'password remove password decrypt unprotect','metadata':'title author keywords properties info','compare':'diff difference versus vs','summarize':'summary key points tldr'};
+const SEARCH_KEYS={'merge':'combine join together','split':'separate apart','remove-pages':'delete pages','extract-pages':'pull out pages','organize':'reorder arrange pages','rotate':'turn sideways upside down','crop':'trim cut margins','compress':'shrink smaller reduce size squeeze','repair':'fix broken damaged corrupt','ocr':'scan scanned searchable recognition','images-to-pdf':'picture photo image jpg jpeg png','html-to-pdf':'html web page','word-to-pdf':'word doc docx','pdf-to-jpg':'picture photo image jpg jpeg','pdf-to-png':'picture photo image png','pdf-to-text':'text txt words extract','pdf-to-word':'word doc docx editable','pdf-to-excel':'excel spreadsheet xlsx table rows','pdf-to-markdown':'markdown md','pdf-editor':'edit change fix words typo editor write','edit-pdf':'add text write on','annotate':'note comment highlight sticky','page-numbers':'number numbering stamp','watermark':'stamp overlay faint text','sign-pdf':'sign signature autograph','redact':'black out hide censor sensitive','protect':'password lock encrypt secure','unlock':'password remove password decrypt unprotect','metadata':'title author keywords properties info','compare':'diff difference versus vs','summarize':'summary key points tldr'};
 (function(){
   const bar=document.querySelector('.search');const input=$('searchInput');
   if(!bar||!input||!bar.contains(input))return;
@@ -199,7 +199,7 @@ try{const schemeMq=matchMedia('(prefers-color-scheme: dark)');const followScheme
    error and unlocks the button. A watchdog keeps the user informed
    instead of staring at a frozen bar. */
 let busy=false, jobCancelled=false, jobWatchdog=null, ocrWorker=null, ocrCancelReject=null;
-const JOB_LABELS={'merge':'Merging PDFs…','split':'Splitting PDF…','remove-pages':'Removing pages…','extract-pages':'Extracting pages…','organize':'Reordering pages…','rotate':'Rotating pages…','crop':'Cropping PDF…','compress':'Compressing PDF…','repair':'Repairing PDF…','ocr':'Reading text (OCR)…','images-to-pdf':'Building your PDF…','html-to-pdf':'Converting HTML…','word-to-pdf':'Converting Word file…','text-to-pdf':'Converting text…','pdf-to-jpg':'Converting pages to JPG…','pdf-to-png':'Converting pages to PNG…','pdf-to-text':'Extracting text…','pdf-to-word':'Converting to Word…','pdf-to-excel':'Building spreadsheet…','pdf-to-markdown':'Converting to Markdown…','edit-pdf':'Adding your text…','annotate':'Adding your note…','page-numbers':'Adding page numbers…','watermark':'Adding watermark…','sign-pdf':'Stamping your signature…','redact':'Redacting — flattening pages…','protect':'Encrypting PDF…','unlock':'Unlocking PDF…','metadata':'Saving metadata…','compare':'Comparing PDFs…','summarize':'Summarizing…'};
+const JOB_LABELS={'merge':'Merging PDFs…','split':'Splitting PDF…','remove-pages':'Removing pages…','extract-pages':'Extracting pages…','organize':'Reordering pages…','rotate':'Rotating pages…','crop':'Cropping PDF…','compress':'Compressing PDF…','repair':'Repairing PDF…','ocr':'Reading text (OCR)…','images-to-pdf':'Building your PDF…','html-to-pdf':'Converting HTML…','word-to-pdf':'Converting Word file…','pdf-to-jpg':'Converting pages to JPG…','pdf-to-png':'Converting pages to PNG…','pdf-to-text':'Extracting text…','pdf-to-word':'Converting to Word…','pdf-to-excel':'Building spreadsheet…','pdf-to-markdown':'Converting to Markdown…','pdf-editor':'Saving your edited PDF…','edit-pdf':'Adding your text…','annotate':'Adding your note…','page-numbers':'Adding page numbers…','watermark':'Adding watermark…','sign-pdf':'Stamping your signature…','redact':'Redacting — flattening pages…','protect':'Encrypting PDF…','unlock':'Unlocking PDF…','metadata':'Saving metadata…','compare':'Comparing PDFs…','summarize':'Summarizing…'};
 function cancelError(){const e=new Error('Cancelled.');e.__cancelled=true;return e}
 function setProg(p,text){const w=$('progWrap');if(w)w.classList.remove('hidden');if(typeof p==='number'){$('progBar').style.width=Math.round(Math.min(1,Math.max(0,p))*100)+'%';const pr=$('progBar').parentElement;if(pr)pr.classList.remove('indet')}if(text)$('progText').textContent=text}
 function tick(i,total,label){if(jobCancelled)throw cancelError();if(total>0)setProg(.05+.9*(i/total),(label||'Working')+' — '+i+' of '+total)}
@@ -295,7 +295,7 @@ function download(blob,name,label,cls){const a=document.createElement('a');a.hre
 /* Result panel (benchmark C): tool-specific success line, sizes, a
    "Continue to" row of related tools, and the privacy line. The download
    anchor stays the FIRST <a> in #resultBox. */
-const SUCCESS_LINES={'merge':()=>'PDFs merged!','split':()=>'PDF split!','remove-pages':m=>m,'extract-pages':()=>'Pages extracted!','organize':()=>'Pages reorganized!','rotate':()=>'Pages rotated!','crop':()=>'PDF cropped!','compress':()=>'PDF compressed!','repair':()=>'PDF repaired!','ocr':()=>'Text recognized!','images-to-pdf':()=>'Your PDF is ready!','html-to-pdf':()=>'Your PDF is ready!','word-to-pdf':()=>'Your PDF is ready!','text-to-pdf':()=>'Your PDF is ready!','pdf-to-jpg':()=>'Images created!','pdf-to-png':()=>'Images created!','pdf-to-text':()=>'Text extracted!','pdf-to-word':()=>'Word file created!','pdf-to-excel':()=>'Spreadsheet created!','pdf-to-markdown':()=>'Markdown created!','edit-pdf':()=>'Text added!','annotate':()=>'Note added!','page-numbers':()=>'Page numbers added!','watermark':()=>'Watermark added!','sign-pdf':()=>'Document signed!','redact':()=>'Redaction complete — the hidden text is gone for good.','protect':()=>'PDF protected!','unlock':()=>'PDF unlocked!','metadata':()=>'Metadata saved!','compare':()=>'Comparison ready!','summarize':()=>'Summary ready!'};
+const SUCCESS_LINES={'merge':()=>'PDFs merged!','split':()=>'PDF split!','remove-pages':m=>m,'extract-pages':()=>'Pages extracted!','organize':()=>'Pages reorganized!','rotate':()=>'Pages rotated!','crop':()=>'PDF cropped!','compress':()=>'PDF compressed!','repair':()=>'PDF repaired!','ocr':()=>'Text recognized!','images-to-pdf':()=>'Your PDF is ready!','html-to-pdf':()=>'Your PDF is ready!','word-to-pdf':()=>'Your PDF is ready!','pdf-to-jpg':()=>'Images created!','pdf-to-png':()=>'Images created!','pdf-to-text':()=>'Text extracted!','pdf-to-word':()=>'Word file created!','pdf-to-excel':()=>'Spreadsheet created!','pdf-to-markdown':()=>'Markdown created!','pdf-editor':m=>m,'edit-pdf':()=>'Text added!','annotate':()=>'Note added!','page-numbers':()=>'Page numbers added!','watermark':()=>'Watermark added!','sign-pdf':()=>'Document signed!','redact':()=>'Redaction complete — the hidden text is gone for good.','protect':()=>'PDF protected!','unlock':()=>'PDF unlocked!','metadata':()=>'Metadata saved!','compare':()=>'Comparison ready!','summarize':()=>'Summary ready!'};
 function done(msg,extraHtml,headOpt){setProg(1,'Done');$('status').textContent=msg;toast(msg);
   const rb=$('resultBox');const head=document.createElement('div');head.className='result-head';head.innerHTML=icon(headOpt&&headOpt.icon?headOpt.icon:'circle-check',22)+' '+esc(headOpt&&headOpt.text?headOpt.text:(SUCCESS_LINES[current.id]||(()=> 'Done!'))(msg));if(headOpt&&headOpt.flat){const hi=head.querySelector('svg');if(hi)hi.style.color='var(--muted)'}rb.insertBefore(head,rb.firstChild);
   if(extraHtml){const x=document.createElement('div');x.className='result-extra';x.innerHTML=extraHtml;rb.appendChild(x)}
@@ -349,14 +349,14 @@ function clearSig(){const c=$('sigpad');sigCtx&&sigCtx.clearRect(0,0,c.width,c.h
    pdfY = pageH - (fy + fh) * pageH. Placement assumes page rotation 0 —
    pages with existing rotation are an edge limit (noted in TEST-REPORT). */
 const VISUAL_PM={'remove-pages':'remove','extract-pages':'extract','organize':'organize','rotate':'rotate'};
-const EDITOR_TOOLS=['crop','sign-pdf','edit-pdf','annotate','redact'];
-let pm=null, ed=null, visualSeq=0;
+const EDITOR_TOOLS=['crop','sign-pdf','edit-pdf','annotate','redact','pdf-editor'];
+let pm=null, ed=null, pe=null, visualSeq=0;
 /* clearVisual is the chokepoint where pm/ed state dies — Reset and
    last-file removal both pass through here, and renderFileList's empty
    branch never refreshes the label. Recompute the action label from the
    cleared state, or state-dependent labels (Redact's "Cover N area(s)",
    Merge's "Merge N PDFs", selection counts…) keep their stale text. */
-function clearVisual(){visualSeq++;pm=null;ed=null;const w=$('visualWrap');if(w){w.innerHTML='';w.classList.add('hidden')}updateActionLabel()}
+function clearVisual(){visualSeq++;pm=null;ed=null;pe=null;const w=$('visualWrap');if(w){w.innerHTML='';w.classList.add('hidden')}updateActionLabel()}
 function onFilesChanged(){if(!current)return;const needs=VISUAL_PM[current.id]||current.id==='split'||EDITOR_TOOLS.includes(current.id);if(needs&&files.length&&/\.pdf$/i.test(files[0].name))buildVisual();else if(!files.length)clearVisual();
   if(current.id==='metadata'&&files.length)loadMetadataView();refreshToolInfo()}
 async function loadMetadataView(){const view=$('metaView');if(!view||!files.length)return;metaLoaded=false;try{const doc=await PDFDocument.load(await bytes(files[0]));const cur={title:doc.getTitle()||'',author:doc.getAuthor()||'',subject:doc.getSubject()||'',keywords:doc.getKeywords()||''};metaLoaded=true;
@@ -384,18 +384,20 @@ function updateActionLabel(){const btn=$('processBtn');if(!btn||!current||busy)r
   else if(current.id==='organize')label='Save new order';
   else if(current.id==='rotate')label=(pm&&Object.values(pm.rot).some(a=>a))?'Save rotated PDF':'Rotate all pages';
   else if(current.id==='sign-pdf')label='Place signature & download';
+  else if(current.id==='pdf-editor')label='Save edited PDF';
   else if(current.id==='edit-pdf')label='Add text & download';
   else if(current.id==='annotate')label='Add note & download';
   else if(current.id==='redact')label=ed&&ed.boxes.length?'Cover '+ed.boxes.length+' area'+(ed.boxes.length>1?'s':'')+' & download':'Cover areas & download';
   else if(current.id==='images-to-pdf')label=n>1?'Make PDF from '+n+' images':'Make PDF';
   else if(current.id==='compare')label='Compare the 2 PDFs';
-  btn.textContent=label;btn.classList.toggle('pulse',n>0);const pfh=$('preFileHint');if(pfh)pfh.classList.toggle('hidden',n>0)}
+  btn.textContent=label;btn.classList.toggle('pulse',n>0);if(current.id!=='pdf-editor')btn.disabled=false;const pfh=$('preFileHint');if(pfh)pfh.classList.toggle('hidden',n>0)}
 async function buildVisual(){
-  const seq=++visualSeq;pm=null;ed=null;const w=$('visualWrap');if(!w)return;const wasHidden=w.classList.contains('hidden');w.classList.remove('hidden');w.innerHTML='<p class="vload">Rendering page previews…</p>';
+  const seq=++visualSeq;pm=null;ed=null;pe=null;const w=$('visualWrap');if(!w)return;const wasHidden=w.classList.contains('hidden');w.classList.remove('hidden');w.innerHTML='<p class="vload">Rendering page previews…</p>';
   let pdf;try{const raw=await bytes(files[0]);pdf=await GD({data:raw.slice()}).promise}catch(e){if(seq===visualSeq)w.innerHTML='<p class="vload">Could not render previews for this file. The options below still work.</p>';return}
   if(seq!==visualSeq||!current)return;
   if(VISUAL_PM[current.id])buildPageManager(pdf,VISUAL_PM[current.id]);
   else if(current.id==='split'){buildPageManager(pdf,'pick');const m=$('opt_mode');if(m)m.addEventListener('change',updateActionLabel)}
+  else if(current.id==='pdf-editor')buildPdfEditor(pdf);
   else buildEditor(pdf,current.id);
   updateActionLabel();
   if(wasHidden)setTimeout(()=>{const vw=$('visualWrap');if(vw&&visualSeq===seq)vw.scrollIntoView({behavior:'smooth',block:'start'})},80);
@@ -511,6 +513,334 @@ function attachStageHandlers(){
       ov.addEventListener('pointermove',move);ov.addEventListener('pointerup',up);ov.addEventListener('pointercancel',up)});return}
 }
 
+/* ================= PDF Editor (v4.7.0) =================
+   One workspace over one PDF, modelled on the big editors (Sejda,
+   iLovePDF, Smallpdf, Adobe, Xodo) but with their paid walls removed:
+   editing existing text is free here (it is Pro at Smallpdf, trial-
+   walled at Adobe, preview-only at Xodo, Premium-labelled at
+   iLovePDF, capped at 3 saves/hour at Sejda). No caps, no sign-up,
+   no watermark — and no upload wait, because everything is on-device.
+   Tools: Edit text, Add text, Add image, Sign, Mark (highlight /
+   underline / strike), Shapes, Draw, Cover, Stamps, Find & Replace,
+   plus a page-numbers setting, Undo/Redo and Zoom.
+   Every change is an op in pe.ops; the preview is pure overlay DOM —
+   the rendered page canvas is never re-drawn for an op — so mode
+   switches, drags and resizes run at pointer speed (drags mutate the
+   element's style during the move and commit to the op on release).
+   Save replays the ops with pdf-lib onto the original document:
+   headers, footers, letterheads, images and untouched lines are
+   never re-drawn.
+   Positions are fractions of the page, like the other visual editors;
+   placement assumes page rotation 0 (same stated limit as Sign/Edit).
+   Font mapping: the PDF.js font name picks the closest pdf-lib
+   standard family (Courier/Times/Helvetica + Bold/Italic variants)
+   and the detected size and baseline are reused, so a re-typed line
+   sits where the original sat. Text COLOUR: PDF.js exposes no colour
+   for text items, so edited lines default to near-black ink (#141414)
+   — the colour of most document text — and the format bar lets the
+   user pick ink/navy/grey/red. The COVER colour is real data: sampled
+   from the rendered page around the line (median of the rect's edge
+   pixels), so covers blend on tinted paper.
+   HONESTY: an edit COVERS the old words — they stay inside the file,
+   hidden, not erased (the same is true of Sejda's whiteout). The tool
+   page FAQ and the workspace say so, and point to Redact PDF for
+   removal that is permanent. */
+const PE_MODES=[
+ {id:'edit',label:'Edit text',icon:'pencil'},
+ {id:'text',label:'Add text',icon:'type'},
+ {id:'image',label:'Add image',icon:'image-plus'},
+ {id:'sign',label:'Sign',icon:'signature'},
+ {id:'mark',label:'Mark',icon:'pen-line'},
+ {id:'shapes',label:'Shapes',icon:'layers'},
+ {id:'draw',label:'Draw',icon:'pencil'},
+ {id:'cover',label:'Cover',icon:'eye-off'},
+ {id:'stamps',label:'Stamps',icon:'stamp'},
+ {id:'find',label:'Find & Replace',icon:'scan-text'}
+];
+const PE_TXT_COLORS=[{css:'#141414',rgb:[.08,.08,.08],name:'Ink'},{css:'#1a365d',rgb:[.10,.21,.36],name:'Navy'},{css:'#666666',rgb:[.40,.40,.40],name:'Grey'},{css:'#b03a2e',rgb:[.69,.23,.18],name:'Red'}];
+const PE_HL_COLORS=[{css:'rgba(255,213,79,.5)',rgb:[1,.84,.3],name:'Yellow'},{css:'rgba(110,220,110,.5)',rgb:[.45,.85,.45],name:'Green'},{css:'rgba(255,150,180,.5)',rgb:[1,.6,.75],name:'Pink'},{css:'rgba(110,170,255,.5)',rgb:[.45,.7,1],name:'Blue'}];
+const PE_STAMPS=[{text:'APPROVED',css:'#1e7d32',rgb:[.12,.49,.19]},{text:'DRAFT',css:'#666666',rgb:[.40,.40,.40]},{text:'CONFIDENTIAL',css:'#b03a2e',rgb:[.69,.23,.18]},{text:'FINAL',css:'#1a365d',rgb:[.10,.21,.36]},{text:'PAID',css:'#1e7d32',rgb:[.12,.49,.19]},{text:'REJECTED',css:'#b03a2e',rgb:[.69,.23,.18]}];
+function peFontFam(fontName){const n=(fontName||'').toLowerCase();if(/courier|mono/.test(n))return 'Courier';if(/times|roman|serif|georgia|garamond/.test(n))return 'TimesRoman';return 'Helvetica'}
+function peFontStd(fam,bold,ital){if(fam==='TimesRoman')return 'TimesRoman'+(bold?'Bold':'')+(ital?'Italic':'');return fam+(bold?'Bold':'')+(ital?'Oblique':'')}
+function peFontCss(fontName){const n=(fontName||'').toLowerCase();if(/courier|mono/.test(n))return "'Courier New',monospace";if(/times|roman|serif|georgia|garamond/.test(n))return "'Times New Roman',Times,serif";return 'Helvetica,Arial,sans-serif'}
+function peFontName(pg,it){try{const o=pg.commonObjs.get(it.fontName);if(o&&o.name)return o.name}catch(e){}return ''}
+function peFrac(e){const r=$('peOverlay').getBoundingClientRect();return{fx:Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),fy:Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))}}
+let peSeq=0;
+/* Median of the edge pixels of a page-fraction rect, sampled from a
+   rendered canvas of the page — the colour covers blend with. */
+function peSampleFrom(cv,fx,fy,fw,fh,pw,ph){try{const g=cv.getContext('2d');const sx=cv.width/pw,sy=cv.height/ph;const x0=Math.max(0,Math.round(fx*pw*sx)),y0=Math.max(0,Math.round(fy*ph*sy)),w=Math.min(cv.width-x0,Math.max(2,Math.round(fw*pw*sx))),h=Math.min(cv.height-y0,Math.max(2,Math.round(fh*ph*sy)));if(w<2||h<2)return[1,1,1];const data=g.getImageData(x0,y0,w,h).data;const pts=[];const ring=(x,y)=>{const o=(y*w+x)*4;pts.push([data[o],data[o+1],data[o+2]])};
+  for(let x=0;x<w;x++){ring(x,0);if(h>2)ring(x,h-1)}for(let y=1;y<h-1;y++){ring(0,y);if(w>2)ring(w-1,y)}
+  if(!pts.length)return[1,1,1];const med=ch=>{const a=pts.map(p=>p[ch]).sort((a,b)=>a-b);return a[a.length>>1]/255};return[med(0),med(1),med(2)]}catch(e){return[1,1,1]}}
+function buildPdfEditor(pdf){
+  pe={pdf,count:pdf.numPages,page:0,pageW:0,pageH:0,mode:'edit',ops:[],redo:[],sel:-1,lines:[],hasText:false,mostSize:12,lineCache:{},zoom:1,pn:{on:false,pos:'bottom-center',start:1},txt:{text:'',size:18,color:0,bold:false,sizeTouched:false},mark:{style:'highlight',hl:0,line:0},shape:{kind:'rect',color:0,width:1.5},draw:{color:0,width:2},stamp:0,editLine:-1,editFmt:null};
+  const modes=PE_MODES.map(m=>`<button type="button" class="pe-tool${m.id==='edit'?' sel':''}" data-pemode="${m.id}" aria-pressed="${m.id==='edit'}">${icon(m.icon,17)} ${m.label}</button>`).join('');
+  $('visualWrap').innerHTML=`<div class="pm pe"><div class="pe-tools" role="toolbar" aria-label="Editor tools">${modes}<button type="button" class="pe-tool" id="pePnBtn" aria-pressed="false">${icon('hash',17)} Page numbers</button><span class="pe-spacer"></span><button type="button" class="pe-tool" id="peUndo">${icon('rotate-ccw',17)} Undo</button><button type="button" class="pe-tool" id="peRedo">${icon('rotate-cw',17)} Redo</button><span class="pe-count" id="peCount">0 changes</span></div><div class="pe-modebar" id="peModeBar"></div><div class="pe-pn hidden" id="pePn"></div><div class="pm-toolbar"><strong>Page preview</strong><span class="pm-nav"><button type="button" class="chipbtn wide" id="peZoomOut" aria-label="Zoom out">${icon('minimize-2',15)}</button><span id="peZoomPct" class="pm-info">100%</span><button type="button" class="chipbtn wide" id="peZoomIn" aria-label="Zoom in">${icon('plus',15)}</button></span><span class="pm-nav"><button type="button" class="chipbtn wide" id="pePrev">${icon('chevron-left',15)} Prev</button><span id="pePageInfo" class="pm-info"></span><button type="button" class="chipbtn wide" id="peNext">Next ${icon('chevron-right',15)}</button></span></div><div class="pe-zoomwrap"><div class="stage" id="peStage"><canvas id="peCanvas"></canvas><div id="peOverlay"></div></div></div><input type="file" id="peImgFile" accept="image/png,image/jpeg" class="hidden"></div>`;
+  document.querySelectorAll('[data-pemode]').forEach(b=>b.addEventListener('click',()=>peSetMode(b.dataset.pemode)));
+  $('peUndo').addEventListener('click',()=>{if(!pe||!pe.ops.length)return;pe.redo.push(pe.ops.pop());pe.sel=-1;pe.editLine=-1;peDrawOverlay();if(pe.mode==='edit')peRenderModeBar();peSyncCount()});
+  $('peRedo').addEventListener('click',()=>{if(!pe||!pe.redo.length)return;pe.ops.push(pe.redo.pop());pe.sel=-1;peDrawOverlay();peSyncCount()});
+  $('pePnBtn').addEventListener('click',()=>{const p=$('pePn');if(!p)return;const opening=p.classList.contains('hidden');p.classList.toggle('hidden',!opening);$('pePnBtn').classList.toggle('sel',opening);if(opening)peRenderPn()});
+  $('pePrev').addEventListener('click',()=>peNav(-1));$('peNext').addEventListener('click',()=>peNav(1));
+  $('peZoomIn').addEventListener('click',()=>peSetZoom(pe.zoom+.25));$('peZoomOut').addEventListener('click',()=>peSetZoom(pe.zoom-.25));
+  $('peImgFile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(f)peAddImageFile(f)});
+  peAttachStage();peRenderModeBar();peSyncCount();peRenderPage();
+}
+function peShowSig(){const sw=$('sigWrap'),vw=$('visualWrap');if(sw&&vw&&vw.parentNode&&vw.previousElementSibling!==sw)vw.parentNode.insertBefore(sw,vw);if(sw)sw.classList.remove('hidden');initSig()}
+function peSetMode(m){if(!pe)return;pe.mode=m;pe.editLine=-1;document.querySelectorAll('[data-pemode]').forEach(b=>{const on=b.dataset.pemode===m;b.classList.toggle('sel',on);b.setAttribute('aria-pressed',on?'true':'false')});if(m==='sign')peShowSig();peRenderModeBar();peDrawOverlay()}
+function peNav(d){if(!pe)return;const np=Math.min(pe.count-1,Math.max(0,pe.page+d));if(np===pe.page)return;pe.page=np;pe.editLine=-1;pe.sel=-1;peRenderPage()}
+function peSetZoom(z){if(!pe)return;const nz=Math.min(2,Math.max(.5,Math.round(z*4)/4));if(nz===pe.zoom)return;pe.zoom=nz;const el=$('peZoomPct');if(el)el.textContent=Math.round(nz*100)+'%';peRenderPage()}
+function peSyncCount(){if(!pe)return;const n=pe.ops.length+(pe.pn.on?1:0);const el=$('peCount');if(el)el.textContent=pe.ops.length+' change'+(pe.ops.length===1?'':'s')+(pe.pn.on?' · page numbers on':'');const u=$('peUndo'),r=$('peRedo');if(u)u.disabled=!pe.ops.length;if(r)r.disabled=!pe.redo.length;const pb=$('processBtn');if(pb)pb.disabled=n===0}
+function pePushOp(op,select){if(!pe)return;pe.ops.push(op);pe.redo=[];pe.sel=select===false?-1:pe.ops.length-1;peDrawOverlay();peSyncCount()}
+function peRenderPn(){if(!pe)return;const p=$('pePn');if(!p)return;
+  p.innerHTML=`<div class="pe-row"><div class="field"><label class="checkline"><input type="checkbox" id="pePnOn" ${pe.pn.on?'checked':''}> Add page numbers when saving</label></div><div class="field"><label for="pePnPos">Position</label><select id="pePnPos"><option value="bottom-center" ${pe.pn.pos==='bottom-center'?'selected':''}>Bottom center</option><option value="bottom-left" ${pe.pn.pos==='bottom-left'?'selected':''}>Bottom left</option><option value="bottom-right" ${pe.pn.pos==='bottom-right'?'selected':''}>Bottom right</option></select></div><div class="field"><label for="pePnStart">Start at</label><input type="number" id="pePnStart" min="0" max="9999" value="${pe.pn.start}"></div></div><p class="pm-hint">Numbers are stamped on every page when you save — they are not placed by hand.</p>`;
+  $('pePnOn').addEventListener('change',e=>{pe.pn.on=e.target.checked;const b=$('pePnBtn');if(b){b.classList.toggle('on',pe.pn.on);b.setAttribute('aria-pressed',pe.pn.on?'true':'false')}peSyncCount()});
+  $('pePnPos').addEventListener('change',e=>{pe.pn.pos=e.target.value});
+  $('pePnStart').addEventListener('input',e=>{const v=parseInt(e.target.value);pe.pn.start=isNaN(v)?1:Math.max(0,v)})}
+function peColorDots(list,cur,attr){return list.map((c,i)=>`<button type="button" class="colordot ${i===cur?'sel':''}" data-${attr}="${i}" style="background:${c.css}" aria-label="${c.name}"></button>`).join('')}
+function peWireDots(bar,attr,fn){bar.querySelectorAll('[data-'+attr+']').forEach(b=>b.addEventListener('click',()=>{fn(parseInt(b.dataset[attr]));bar.querySelectorAll('[data-'+attr+']').forEach(x=>x.classList.toggle('sel',x===b))}))}
+function peRenderModeBar(){
+  if(!pe)return;const bar=$('peModeBar');if(!bar)return;const m=pe.mode;
+  if(m==='edit'){
+    if(pe.editLine>=0&&pe.lines[pe.editLine]&&pe.editFmt){const l=pe.lines[pe.editLine];const f=pe.editFmt;const oi=pe.ops.findIndex(o=>o.type==='edit'&&o.page===pe.page&&o.lineIdx===pe.editLine);const cur=oi>=0?pe.ops[oi].newText:l.text;
+      bar.innerHTML=`<div class="pe-row"><div class="field grow"><label for="peEditInput">Change this line <span class="pm-hint">— font: ${esc(l.fontName||'standard')}, matched as closely as possible</span></label><input id="peEditInput" type="text" value="${esc(cur).replace(/"/g,'&quot;')}"></div><button type="button" class="btn sm" id="peEditUse">Use new text</button>${oi>=0?'<button type="button" class="btn secondary sm" id="peEditRemove">Remove this edit</button>':''}<button type="button" class="btn secondary sm" id="peEditCancel">Cancel</button></div><div class="pe-row" style="margin-top:8px"><span class="pe-step"><button type="button" class="pe-stepbtn" id="peSizeDown" aria-label="Smaller text">−</button><span class="pm-info" id="peSizeVal">${f.size} pt</span><button type="button" class="pe-stepbtn" id="peSizeUp" aria-label="Bigger text">+</button></span><button type="button" class="pe-chip ${f.bold?'sel':''}" id="peFmtBold" aria-pressed="${f.bold}">Bold</button><button type="button" class="pe-chip ${f.italic?'sel':''}" id="peFmtItalic" aria-pressed="${f.italic}">Italic</button><span class="sigrow">${peColorDots(PE_TXT_COLORS,f.color,'pefmtcolor')}</span></div>`;
+      $('peEditUse').addEventListener('click',peUseEdit);
+      const rm=$('peEditRemove');if(rm)rm.addEventListener('click',()=>{const ix=pe.ops.findIndex(o=>o.type==='edit'&&o.page===pe.page&&o.lineIdx===pe.editLine);if(ix>=0){pe.ops.splice(ix,1);pe.redo=[]}pe.editLine=-1;peRenderModeBar();peDrawOverlay();peSyncCount()});
+      $('peEditCancel').addEventListener('click',()=>{pe.editLine=-1;peRenderModeBar();peDrawOverlay()});
+      const inp=$('peEditInput');if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();peUseEdit()}});
+      $('peSizeDown').addEventListener('click',()=>{f.size=Math.max(6,f.size-1);$('peSizeVal').textContent=f.size+' pt'});
+      $('peSizeUp').addEventListener('click',()=>{f.size=Math.min(72,f.size+1);$('peSizeVal').textContent=f.size+' pt'});
+      $('peFmtBold').addEventListener('click',e=>{f.bold=!f.bold;e.currentTarget.classList.toggle('sel',f.bold);e.currentTarget.setAttribute('aria-pressed',f.bold?'true':'false')});
+      $('peFmtItalic').addEventListener('click',e=>{f.italic=!f.italic;e.currentTarget.classList.toggle('sel',f.italic);e.currentTarget.setAttribute('aria-pressed',f.italic?'true':'false')});
+      peWireDots(bar,'pefmtcolor',i=>{f.color=i});
+      return}
+    bar.innerHTML=pe.hasText?'<p class="pm-hint">Tap a line to change its words. Editing is line by line — everything else on the page stays exactly as it is. Edits cover the old words: hidden, not erased. To remove sensitive text for good, use the Redact PDF tool.</p>':'<p class="pm-hint">This page is a scanned picture, so its words can\'t be edited. Add text, images, highlights and signatures still work on it.</p>';return}
+  if(m==='text'){
+    if(!pe.txt.sizeTouched)pe.txt.size=pe.mostSize||12;
+    bar.innerHTML=`<div class="pe-row"><div class="field grow"><label for="peTxtInput">Text to add</label><input id="peTxtInput" type="text" placeholder="Type the text, then tap the page" value="${esc(pe.txt.text).replace(/"/g,'&quot;')}"></div><div class="field"><label for="peTxtSize">Size</label><select id="peTxtSize">${[10, 12, 14, 18, 24, 30, 36].map(s=>`<option value="${s}" ${s===pe.txt.size?'selected':''}>${s} pt</option>`).join('')}</select></div><div class="field"><label>Color</label><div class="sigrow" style="margin-top:2px">${peColorDots(PE_TXT_COLORS,pe.txt.color,'pecolor')}</div></div><div class="field"><label class="checkline"><input type="checkbox" id="peTxtBold" ${pe.txt.bold?'checked':''}> Bold</label></div></div><p class="pm-hint">Type the text, then tap the page where it should start — one tap places it. The starting size matches this page's own text. Tap placed text to move it, or use Duplicate / Delete above it.</p>`;
+    $('peTxtInput').addEventListener('input',e=>{pe.txt.text=e.target.value});
+    $('peTxtSize').addEventListener('change',e=>{pe.txt.size=parseInt(e.target.value)||12;pe.txt.sizeTouched=true});
+    peWireDots(bar,'pecolor',i=>{pe.txt.color=i});
+    $('peTxtBold').addEventListener('change',e=>{pe.txt.bold=e.target.checked});return}
+  if(m==='image'){bar.innerHTML='<div class="pe-row"><label class="btn secondary sm" for="peImgFile">'+icon('image-plus',16)+' Choose an image</label><span class="pm-hint">PNG or JPG — a logo, stamp or photo. Drag it on the page; resize it from the corner dot.</span></div>';return}
+  if(m==='sign'){bar.innerHTML=`<div class="pe-row"><button type="button" class="btn sm" id="pePlaceSig">${icon('signature',16)} Place signature on this page</button><span class="pm-hint">${sigDrawn?'Your signature is ready — place it, then drag it into position.':'Create your signature below first — draw it, type it, or upload a picture.'}</span></div>`;$('pePlaceSig').addEventListener('click',pePlaceSig);return}
+  if(m==='mark'){const st=pe.mark.style;
+    bar.innerHTML=`<div class="pe-row"><button type="button" class="pe-chip ${st==='highlight'?'sel':''}" data-pemarkstyle="highlight">Highlight</button><button type="button" class="pe-chip ${st==='underline'?'sel':''}" data-pemarkstyle="underline">Underline</button><button type="button" class="pe-chip ${st==='strike'?'sel':''}" data-pemarkstyle="strike">Strike through</button><span class="sigrow">${st==='highlight'?peColorDots(PE_HL_COLORS,pe.mark.hl,'pemarkhl'):peColorDots([PE_TXT_COLORS[0],PE_TXT_COLORS[3],PE_TXT_COLORS[1]],pe.mark.line,'pemarkline')}</span></div><p class="pm-hint">Drag across the words to ${st==='highlight'?'highlight them':st==='underline'?'underline them':'strike through them'}. Tap a mark to move or remove it.</p>`;
+    bar.querySelectorAll('[data-pemarkstyle]').forEach(b=>b.addEventListener('click',()=>{pe.mark.style=b.dataset.pemarkstyle;peRenderModeBar()}));
+    peWireDots(bar,'pemarkhl',i=>{pe.mark.hl=i});peWireDots(bar,'pemarkline',i=>{pe.mark.line=i});return}
+  if(m==='shapes'){const k=pe.shape.kind;
+    bar.innerHTML=`<div class="pe-row">${[['rect','Rectangle'],['ellipse','Ellipse'],['line','Line'],['arrow','Arrow']].map(([v,l])=>`<button type="button" class="pe-chip ${k===v?'sel':''}" data-peshape="${v}">${l}</button>`).join('')}<span class="sigrow">${peColorDots(PE_TXT_COLORS,pe.shape.color,'peshapecolor')}</span><button type="button" class="pe-chip ${pe.shape.width===1.5?'sel':''}" data-peshapew="1.5">Thin line</button><button type="button" class="pe-chip ${pe.shape.width===3?'sel':''}" data-peshapew="3">Thick line</button></div><p class="pm-hint">Drag on the page to draw the shape. Tap a shape to move it, or use Duplicate / Delete above it.</p>`;
+    bar.querySelectorAll('[data-peshape]').forEach(b=>b.addEventListener('click',()=>{pe.shape.kind=b.dataset.peshape;peRenderModeBar()}));
+    bar.querySelectorAll('[data-peshapew]').forEach(b=>b.addEventListener('click',()=>{pe.shape.width=parseFloat(b.dataset.peshapew);peRenderModeBar()}));
+    peWireDots(bar,'peshapecolor',i=>{pe.shape.color=i});return}
+  if(m==='draw'){
+    bar.innerHTML=`<div class="pe-row"><span class="sigrow">${peColorDots(PE_TXT_COLORS,pe.draw.color,'pedrawcolor')}</span><button type="button" class="pe-chip ${pe.draw.width===2?'sel':''}" data-pedraww="2">Thin line</button><button type="button" class="pe-chip ${pe.draw.width===4?'sel':''}" data-pedraww="4">Thick line</button></div><p class="pm-hint">Draw on the page with your finger or mouse — a signature flourish, a circle around a figure, an arrow by hand.</p>`;
+    bar.querySelectorAll('[data-pedraww]').forEach(b=>b.addEventListener('click',()=>{pe.draw.width=parseFloat(b.dataset.pedraww);peRenderModeBar()}));
+    peWireDots(bar,'pedrawcolor',i=>{pe.draw.color=i});return}
+  if(m==='cover'){bar.innerHTML='<p class="pm-hint">Drag a box over anything to cover it — the box takes the page\'s own background colour. Covering HIDES what is underneath; it does not erase it from the file. For sensitive text, use the Redact PDF tool instead.</p>';return}
+  if(m==='stamps'){
+    bar.innerHTML=`<div class="pe-row">${PE_STAMPS.map((s,i)=>`<button type="button" class="pe-chip pe-stampchip ${i===pe.stamp?'sel':''}" data-pestamp="${i}" style="color:${s.css};border-color:${s.css}">${s.text}</button>`).join('')}</div><p class="pm-hint">Pick a stamp, then tap the page to place it. Drag to move it; resize it from the corner dot.</p>`;
+    bar.querySelectorAll('[data-pestamp]').forEach(b=>b.addEventListener('click',()=>{pe.stamp=parseInt(b.dataset.pestamp);peRenderModeBar()}));return}
+  if(m==='find'){
+    bar.innerHTML=`<div class="pe-row"><div class="field grow"><label for="peFindText">Find</label><input id="peFindText" type="text" placeholder="Words to find, exactly as written"></div><div class="field grow"><label for="peReplaceText">Replace with</label><input id="peReplaceText" type="text" placeholder="New wording"></div><button type="button" class="btn sm" id="peFindGo">Replace all</button></div><p class="pm-hint">Searches the words on every page and re-types each line that contains them — every changed line counts as one edit, and Undo can take them back. Exact match, case-sensitive. <span id="peFindResult" style="font-weight:700"></span></p>`;
+    $('peFindGo').addEventListener('click',peFindReplace);return}
+  bar.innerHTML='';
+}
+async function peRenderPage(){
+  if(!pe)return;const seq=++peSeq;const pageIdx=pe.page;
+  const info=$('pePageInfo');if(info)info.textContent='Page '+(pageIdx+1)+' of '+pe.count;
+  const pv=$('pePrev'),nx=$('peNext');if(pv)pv.disabled=pageIdx<=0;if(nx)nx.disabled=pageIdx>=pe.count-1;
+  let pg;try{pg=await pe.pdf.getPage(pageIdx+1)}catch(e){return}
+  if(!pe||seq!==peSeq)return;
+  const base=pg.getViewport({scale:1});pe.pageW=base.width;pe.pageH=base.height;
+  const wrap=$('visualWrap');const targetW=Math.min(960,Math.max(280,(wrap?wrap.clientWidth:960)-16))*pe.zoom;const dpr=Math.min(2,window.devicePixelRatio||1);const vp=pg.getViewport({scale:(targetW/base.width)*dpr});
+  const c=$('peCanvas');if(!c)return;c.width=vp.width;c.height=vp.height;c.style.width=(vp.width/dpr)+'px';c.style.height=(vp.height/dpr)+'px';
+  try{await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise}catch(e){}
+  if(!pe||seq!==peSeq)return;
+  await peBuildLines(pg,pageIdx);
+  if(!pe||seq!==peSeq)return;
+  peDrawOverlay();if(pe.mode==='edit'||pe.mode==='text')peRenderModeBar();
+}
+/* Lines for one page: PDF.js text items grouped by baseline proximity.
+   Each line keeps its rect + baseline as page fractions, its detected
+   size and font name; the cover colour is sampled separately. */
+function peComputeLines(tc){
+  const raw=[];
+  tc.items.forEach(it=>{if(typeof it.str!=='string')return;const size=Math.hypot(it.transform[1],it.transform[3])||Math.abs(it.transform[0])||10;raw.push({str:it.str,x:it.transform[4],base:it.transform[5],w:it.width||0,size,fontName:it._fontName||''})});
+  const grouped=[];
+  raw.forEach(r=>{if(!r.str.trim()&&!r.w)return;let line=grouped.find(l=>Math.abs(l.base-r.base)<=Math.max(2,r.size*.4));if(!line){line={base:r.base,size:r.size,fontName:r.fontName,items:[]};grouped.push(line)}line.items.push(r);if(r.size>line.size){line.size=r.size;line.fontName=r.fontName}});
+  const lines=[];
+  grouped.forEach(l=>{l.items.sort((a,b)=>a.x-b.x);let text='',endX=null;l.items.forEach(r=>{if(endX!==null&&r.x-endX>l.size*.25&&!/\s$/.test(text)&&!/^\s/.test(r.str))text+=' ';text+=r.str;if(endX===null||r.x+r.w>endX)endX=r.x+r.w});
+    if(!text.trim())return;const x0=Math.min(...l.items.map(r=>r.x)),x1=Math.max(...l.items.map(r=>r.x+r.w));const top=l.base+l.size*.85,bot=l.base-l.size*.3;
+    lines.push({text,base:l.base,size:l.size,fontName:l.fontName,fx:x0/pe.pageW,fw:Math.max(.008,(x1-x0)/pe.pageW),fTop:(pe.pageH-top)/pe.pageH,fh:(top-bot)/pe.pageH,fBase:(pe.pageH-l.base)/pe.pageH,cover:null})});
+  lines.sort((a,b)=>b.base-a.base);
+  return lines;
+}
+function peMostSize(lines){if(!lines.length)return 12;const freq={};lines.forEach(l=>{const s=Math.max(6,Math.round(l.size));freq[s]=(freq[s]||0)+1});let best=12,n=0;Object.keys(freq).forEach(s=>{if(freq[s]>n){n=freq[s];best=parseInt(s)}});return best}
+async function peBuildLines(pg,pageIdx){
+  if(!pe)return;const cached=pe.lineCache[pageIdx];if(cached){pe.lines=cached.lines;pe.hasText=cached.hasText;pe.mostSize=cached.mostSize;return}
+  let lines=[],hasText=false,mostSize=12;
+  try{const tc=await pg.getTextContent();tc.items.forEach(it=>{it._fontName=peFontName(pg,it)});lines=peComputeLines(tc);hasText=lines.length>0;mostSize=peMostSize(lines);
+    if(hasText){const cv=$('peCanvas');if(cv)lines.forEach(l=>{l.cover=peSampleFrom(cv,l.fx,l.fTop,l.fw,l.fh,pe.pageW,pe.pageH)})}
+  }catch(e){lines=[];hasText=false}
+  if(pe){pe.lineCache[pageIdx]={lines,hasText,mostSize};if(pe.page===pageIdx){pe.lines=lines;pe.hasText=hasText;pe.mostSize=mostSize}}
+}
+/* Lines for any page (Find & Replace): renders that page offscreen at
+   scale 1.5 so its cover colours are sampled from the right page. */
+async function peLinesForPage(i){
+  if(!pe)return[];if(i===pe.page)return pe.lines;const cached=pe.lineCache[i];if(cached)return cached.lines;
+  const pg=await pe.pdf.getPage(i+1);const vp=pg.getViewport({scale:1});const save={w:pe.pageW,h:pe.pageH};pe.pageW=vp.width;pe.pageH=vp.height;
+  let lines=[];
+  try{const tc=await pg.getTextContent();tc.items.forEach(it=>{it._fontName=peFontName(pg,it)});lines=peComputeLines(tc);
+    if(lines.length){const v2=pg.getViewport({scale:1.5});const cv=document.createElement('canvas');cv.width=v2.width;cv.height=v2.height;try{await pg.render({canvasContext:cv.getContext('2d'),viewport:v2}).promise;lines.forEach(l=>{l.cover=peSampleFrom(cv,l.fx,l.fTop,l.fw,l.fh,vp.width,vp.height)})}catch(e){lines.forEach(l=>{l.cover=[1,1,1]})}}
+  }catch(e){lines=[]}
+  pe.pageW=save.w;pe.pageH=save.h;
+  if(pe)pe.lineCache[i]={lines,hasText:lines.length>0,mostSize:peMostSize(lines)};
+  return lines;
+}
+function peMakeEditOp(pageIdx,l,lineIdx,newText,fmt){
+  const fam=peFontFam(l.fontName);const bold=fmt?fmt.bold:/bold/i.test(l.fontName||'');const ital=fmt?fmt.italic:/italic|oblique/i.test(l.fontName||'');const col=fmt?PE_TXT_COLORS[fmt.color]:PE_TXT_COLORS[0];
+  return {type:'edit',page:pageIdx,lineIdx,fx:l.fx,fTop:l.fTop,fw:l.fw,fh:l.fh,fBase:l.fBase,size:fmt?fmt.size:Math.round(l.size*10)/10,fontName:l.fontName,fontStd:peFontStd(fam,bold,ital),bold,italic:ital,cover:l.cover||[1,1,1],css:col.css,color:col.rgb,oldText:l.text,newText};
+}
+function peSelectLine(li){if(!pe)return;const l=pe.lines[li];if(!l)return;pe.editLine=li;const oi=pe.ops.findIndex(o=>o.type==='edit'&&o.page===pe.page&&o.lineIdx===li);const ex=oi>=0?pe.ops[oi]:null;
+  pe.editFmt={size:ex?ex.size:Math.max(6,Math.round(l.size)),bold:ex?ex.bold:/bold/i.test(l.fontName||''),italic:ex?ex.italic:/italic|oblique/i.test(l.fontName||''),color:ex?Math.max(0,PE_TXT_COLORS.findIndex(c=>c.css===ex.css)):0};
+  peRenderModeBar();peDrawOverlay()}
+function peUseEdit(){if(!pe||pe.editLine<0||!pe.editFmt)return;const l=pe.lines[pe.editLine];if(!l)return;const inp=$('peEditInput');const nt=(inp?inp.value:'').replace(/\s*\n\s*/g,' ').trim();if(!nt){toast('Type the new wording — or choose “Remove this edit” / Cancel.');return}
+  const oi=pe.ops.findIndex(o=>o.type==='edit'&&o.page===pe.page&&o.lineIdx===pe.editLine);
+  const op=peMakeEditOp(pe.page,l,pe.editLine,nt,pe.editFmt);
+  if(oi>=0){pe.ops[oi]=op;pe.redo=[]}else pe.ops.push(op);
+  pe.editLine=-1;peRenderModeBar();peDrawOverlay();peSyncCount()}
+async function peFindReplace(){
+  if(!pe)return;const fEl=$('peFindText'),rEl=$('peReplaceText'),res=$('peFindResult');const find=fEl?fEl.value:'';const repl=rEl?rEl.value:'';
+  if(!find){toast('Type the words to find first.');return}
+  let updated=0;
+  for(let i=0;i<pe.count;i++){const lines=await peLinesForPage(i);if(!pe)return;
+    lines.forEach((l,li)=>{if(!l.text.includes(find))return;const nt=l.text.split(find).join(repl);if(nt===l.text)return;
+      const oi=pe.ops.findIndex(o=>o.type==='edit'&&o.page===i&&o.lineIdx===li);
+      const op=peMakeEditOp(i,l,li,nt,null);
+      if(oi>=0)pe.ops[oi]=op;else pe.ops.push(op);updated++})}
+  pe.redo=[];pe.sel=-1;peDrawOverlay();peSyncCount();
+  if(res)res.textContent=updated?updated+' line'+(updated===1?'':'s')+' updated.':'No matches found.';
+  toast(updated?('Find & Replace: '+updated+' line'+(updated===1?'':'s')+' updated.'):'Find & Replace: no matches found.')}
+function peOpBBox(op){
+  if(op.type==='text')return{fx:op.fx,fy:op.fBase-(op.size/Math.max(1,pe.pageH))*1.05,fw:.2,fh:(op.size/Math.max(1,pe.pageH))*1.3};
+  if(op.type==='draw'){let x0=1,y0=1,x1=0,y1=0;op.points.forEach(p=>{x0=Math.min(x0,p[0]);y0=Math.min(y0,p[1]);x1=Math.max(x1,p[0]);y1=Math.max(y1,p[1])});return{fx:x0,fy:y0,fw:Math.max(.01,x1-x0),fh:Math.max(.01,y1-y0)}}
+  if(op.type==='shape'&&op.fx2!==undefined)return{fx:Math.min(op.fx,op.fx2),fy:Math.min(op.fy,op.fy2),fw:Math.max(.01,Math.abs(op.fx2-op.fx)),fh:Math.max(.01,Math.abs(op.fy2-op.fy))};
+  return{fx:op.fx,fy:op.fy!==undefined?op.fy:op.fTop,fw:op.fw,fh:op.fh};
+}
+function peSvgEl(tag,attrs){const el=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const k in attrs)el.setAttribute(k,attrs[k]);return el}
+function peDrawOverlay(){
+  if(!pe)return;const ov=$('peOverlay');if(!ov)return;ov.innerHTML='';
+  const cvs=$('peCanvas');const stageW=ov.clientWidth||(cvs?cvs.clientWidth:0),stageH=ov.clientHeight||(cvs?cvs.clientHeight:0);
+  const sx=pe.pageW?stageW/pe.pageW:1;
+  /* Shapes + freehand live on one SVG layer (vector-effect keeps the
+     stroke width honest at any page aspect). */
+  const svg=peSvgEl('svg',{viewBox:'0 0 1000 1000',preserveAspectRatio:'none','class':'pe-svg'});
+  const shapeOps=[];
+  pe.ops.forEach((op,i)=>{if(op.page!==pe.page)return;
+    if(op.type==='shape'){const col=PE_TXT_COLORS[op.color];let el=null;const bb=peOpBBox(op);
+      if(op.kind==='rect')el=peSvgEl('rect',{x:bb.fx*1000,y:bb.fy*1000,width:bb.fw*1000,height:bb.fh*1000,fill:'none',stroke:col.css,'stroke-width':op.width,'vector-effect':'non-scaling-stroke'});
+      else if(op.kind==='ellipse')el=peSvgEl('ellipse',{cx:(bb.fx+bb.fw/2)*1000,cy:(bb.fy+bb.fh/2)*1000,rx:bb.fw*500,ry:bb.fh*500,fill:'none',stroke:col.css,'stroke-width':op.width,'vector-effect':'non-scaling-stroke'});
+      else{el=peSvgEl('g',{});el.appendChild(peSvgEl('line',{x1:op.fx*1000,y1:op.fy*1000,x2:op.fx2*1000,y2:op.fy2*1000,stroke:col.css,'stroke-width':op.width,'vector-effect':'non-scaling-stroke'}));
+        if(op.kind==='arrow'){const dx=(op.fx2-op.fx)*1000,dy=(op.fy2-op.fy)*1000;const len=Math.max(1,Math.hypot(dx,dy));const hx=Math.min(26,len*.3),a=Math.atan2(dy,dx);[[a+2.6],[a-2.6]].forEach(([ang])=>{el.appendChild(peSvgEl('line',{x1:op.fx2*1000,y1:op.fy2*1000,x2:op.fx2*1000+hx*Math.cos(ang),y2:op.fy2*1000+hx*Math.sin(ang),stroke:col.css,'stroke-width':op.width,'vector-effect':'non-scaling-stroke'}))})}}
+      if(el){el.dataset.op=i;svg.appendChild(el);shapeOps.push(i)}}
+    else if(op.type==='draw'){const col=PE_TXT_COLORS[op.color];const pl=peSvgEl('polyline',{points:op.points.map(p=>(p[0]*1000)+','+(p[1]*1000)).join(' '),fill:'none',stroke:col.css,'stroke-width':op.width,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':'round'});pl.dataset.op=i;svg.appendChild(pl);shapeOps.push(i)}
+  });
+  ov.appendChild(svg);
+  pe.ops.forEach((op,i)=>{if(op.page!==pe.page)return;const d=document.createElement('div');d.dataset.op=i;
+    if(op.type==='edit'){d.className='pe-opedit';d.style.left=(op.fx*100)+'%';d.style.top=(op.fTop*100)+'%';d.style.width=(op.fw*100)+'%';d.style.height=(op.fh*100)+'%';d.style.background='rgb('+op.cover.map(v=>Math.round(v*255)).join(',')+')';const s=document.createElement('span');s.textContent=op.newText;s.style.fontSize=(op.size*sx)+'px';s.style.fontFamily=peFontCss(op.fontName);if(op.bold)s.style.fontWeight='700';if(op.italic)s.style.fontStyle='italic';s.style.color=op.css;s.style.top=((op.fBase-op.fTop)*stageH-op.size*sx*.84)+'px';d.appendChild(s)}
+    else if(op.type==='text'){d.className='pe-optext';d.style.left=(op.fx*100)+'%';d.style.top=(op.fBase*100)+'%';d.style.fontSize=(op.size*sx)+'px';d.style.color=op.css;if(op.bold)d.style.fontWeight='700';d.textContent=op.text;peWireObject(d,i,null)}
+    else if(op.type==='image'){d.className='pe-opimg';const img=document.createElement('img');img.src=op.url;img.alt=op.sign?'Your signature':'Added image';d.appendChild(img);d.style.left=(op.fx*100)+'%';d.style.top=(op.fy*100)+'%';d.style.width=(op.fw*100)+'%';d.style.height=(op.fh*100)+'%';const h=document.createElement('div');h.className='pe-handle';h.title='Drag to resize';d.appendChild(h);peWireObject(d,i,null);peWireHandle(h,d,i)}
+    else if(op.type==='mark'){d.className='pe-opmark';const col=op.style==='highlight'?PE_HL_COLORS[op.color]:[PE_TXT_COLORS[0],PE_TXT_COLORS[3],PE_TXT_COLORS[1]][op.color];if(op.style==='highlight'){d.style.background=col.css}else{const ln=document.createElement('div');ln.className='pe-markline '+(op.style==='strike'?'strike':'under');ln.style.background=col.css;d.appendChild(ln)}d.style.left=(op.fx*100)+'%';d.style.top=(op.fy*100)+'%';d.style.width=(op.fw*100)+'%';d.style.height=(op.fh*100)+'%';peWireObject(d,i,null)}
+    else if(op.type==='cover'){d.className='pe-cover';d.style.background='rgb('+op.cover.map(v=>Math.round(v*255)).join(',')+')';d.style.left=(op.fx*100)+'%';d.style.top=(op.fy*100)+'%';d.style.width=(op.fw*100)+'%';d.style.height=(op.fh*100)+'%';peWireObject(d,i,null)}
+    else if(op.type==='stamp'){const st=PE_STAMPS[op.preset];d.className='pe-stamp';d.style.left=(op.fx*100)+'%';d.style.top=(op.fy*100)+'%';d.style.width=(op.fw*100)+'%';d.style.height=(op.fh*100)+'%';d.style.color=st.css;d.style.borderColor=st.css;d.style.fontSize=((op.fs0*(op.fw/op.fw0))*sx)+'px';d.textContent=st.text;const h=document.createElement('div');h.className='pe-handle';h.title='Drag to resize';d.appendChild(h);peWireObject(d,i,null);peWireHandle(h,d,i)}
+    else if(op.type==='shape'||op.type==='draw'){const bb=peOpBBox(op);d.className='pe-hit';d.style.left=(bb.fx*100)+'%';d.style.top=(bb.fy*100)+'%';d.style.width=(bb.fw*100)+'%';d.style.height=(bb.fh*100)+'%';const node=svg.querySelector('[data-op="'+i+'"]');peWireObject(d,i,node)}
+    else return;
+    if(op.type!=='edit'&&pe.sel===i)d.classList.add('sel');
+    ov.appendChild(d)});
+  /* Floating actions for the selected object (Sejda/Smallpdf pattern). */
+  if(pe.sel>=0&&pe.ops[pe.sel]&&pe.ops[pe.sel].page===pe.page&&pe.ops[pe.sel].type!=='edit'){
+    const op=pe.ops[pe.sel];const bb=peOpBBox(op);const bar=document.createElement('div');bar.className='pe-actions';
+    const above=bb.fy>.09;bar.style.left=Math.min(92,Math.max(0,bb.fx*100))+'%';bar.style.top=(above?(bb.fy*100-6.5):(bb.fy+bb.fh)*100+1.2)+'%';if(above)bar.style.transform='translateY(-100%)';
+    const dup=document.createElement('button');dup.type='button';dup.innerHTML=icon('layers',14)+' Duplicate';dup.addEventListener('pointerdown',e=>e.stopPropagation());dup.addEventListener('click',e=>{e.stopPropagation();peDuplicate(pe.sel)});
+    const del=document.createElement('button');del.type='button';del.innerHTML=icon('trash-2',14)+' Delete';del.addEventListener('pointerdown',e=>e.stopPropagation());del.addEventListener('click',e=>{e.stopPropagation();if(!pe)return;pe.ops.splice(pe.sel,1);pe.redo=[];pe.sel=-1;peDrawOverlay();peSyncCount()});
+    bar.appendChild(dup);bar.appendChild(del);ov.appendChild(bar)}
+  if(pe.mode==='edit'&&pe.hasText){pe.lines.forEach((l,li)=>{const h=document.createElement('div');h.className='pe-line'+(pe.editLine===li?' sel':'');h.style.left=(l.fx*100)+'%';h.style.top=(l.fTop*100)+'%';h.style.width=(l.fw*100)+'%';h.style.height=(l.fh*100)+'%';h.title='Tap to edit this line';h.addEventListener('pointerdown',e=>{e.stopPropagation();peSelectLine(li)});ov.appendChild(h)})}
+}
+function peDuplicate(i){if(!pe||!pe.ops[i])return;const src=pe.ops[i];const c=JSON.parse(JSON.stringify(src));if(src.type==='image'){c.bytes=src.bytes;c.url=src.url}
+  if(c.type==='draw'){c.points=c.points.map(p=>[Math.min(1,p[0]+.03),Math.min(1,p[1]+.03)])}
+  else if(c.type==='text'){c.fx=Math.min(.95,c.fx+.03);c.fBase=Math.min(1,c.fBase+.03)}
+  else{c.fx=Math.min(1-(c.fw||0),c.fx+.03);if(c.fy!==undefined)c.fy=Math.min(1-(c.fh||0),c.fy+.03);if(c.fTop!==undefined)c.fTop=Math.min(1,c.fTop+.03);if(c.fBase!==undefined)c.fBase=Math.min(1,c.fBase+.03);if(c.fx2!==undefined){c.fx2=Math.min(1,c.fx2+.03);c.fy2=Math.min(1,c.fy2+.03)}}
+  pePushOp(c,true);toast('Duplicated.')}
+/* Placed objects: tap selects (class-only, no redraw), drag moves at
+   pointer speed by mutating style; the op commits live and the overlay
+   re-syncs once on release. `linked` is an SVG node (shapes/draw) that
+   follows the drag through a CSS transform. */
+function peWireObject(d,i,linked){
+  d.addEventListener('pointerdown',e=>{
+    if(e.target.closest('.pe-handle')||e.target.closest('.pe-actions'))return;
+    e.stopPropagation();if(!pe)return;const op=pe.ops[i];if(!op)return;
+    if(pe.sel!==i){pe.sel=i;peDrawOverlay();return}
+    const start=peFrac(e);const orig=JSON.parse(JSON.stringify(op));const bb0=peOpBBox(op);
+    try{d.setPointerCapture(e.pointerId)}catch(_){}
+    const move=ev=>{const p=peFrac(ev);const dx=p.fx-start.fx,dy=p.fy-start.fy;
+      if(op.type==='text'){op.fx=Math.min(1,Math.max(0,orig.fx+dx));op.fBase=Math.min(1,Math.max(.02,orig.fBase+dy));d.style.left=(op.fx*100)+'%';d.style.top=(op.fBase*100)+'%'}
+      else if(op.type==='draw'){d.style.left=((bb0.fx+dx)*100)+'%';d.style.top=((bb0.fy+dy)*100)+'%';if(linked)linked.style.transform=`translate(${dx*1000}px,${dy*1000}px)`}
+      else if(op.type==='shape'&&orig.fx2!==undefined){op.fx=orig.fx+dx;op.fy=orig.fy+dy;op.fx2=orig.fx2+dx;op.fy2=orig.fy2+dy;d.style.left=((bb0.fx+dx)*100)+'%';d.style.top=((bb0.fy+dy)*100)+'%';if(linked)linked.style.transform=`translate(${dx*1000}px,${dy*1000}px)`}
+      else{op.fx=Math.min(1-op.fw,Math.max(0,orig.fx+dx));op.fy=Math.min(1-op.fh,Math.max(0,orig.fy+dy));d.style.left=(op.fx*100)+'%';d.style.top=(op.fy*100)+'%';if(linked)linked.style.transform=`translate(${dx*1000}px,${dy*1000}px)`}};
+    const up=ev=>{d.removeEventListener('pointermove',move);d.removeEventListener('pointerup',up);d.removeEventListener('pointercancel',up);
+      if(op.type==='draw'){const p=peFrac(ev);const dx=p.fx-start.fx,dy=p.fy-start.fy;op.points=orig.points.map(pt=>[Math.min(1,Math.max(0,pt[0]+dx)),Math.min(1,Math.max(0,pt[1]+dy))])}
+      if(linked)linked.style.transform='';peDrawOverlay()};
+    d.addEventListener('pointermove',move);d.addEventListener('pointerup',up);d.addEventListener('pointercancel',up)});
+}
+function peWireHandle(h,d,i){
+  h.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();if(!pe)return;const op=pe.ops[i];if(!op)return;const start=peFrac(e);const ofw=op.fw;
+    try{h.setPointerCapture(e.pointerId)}catch(_){}
+    const move=ev=>{const p=peFrac(ev);op.fw=Math.min(1-op.fx,Math.max(.04,ofw+(p.fx-start.fx)));op.fh=op.fw*pe.pageW/(op.aspect*pe.pageH);if(op.fh>1-op.fy){op.fh=1-op.fy;op.fw=op.fh*op.aspect*pe.pageH/pe.pageW}d.style.width=(op.fw*100)+'%';d.style.height=(op.fh*100)+'%';if(op.type==='stamp')d.style.fontSize=((op.fs0*(op.fw/op.fw0))*(($('peCanvas')?$('peCanvas').clientWidth:0)/Math.max(1,pe.pageW)))+'px'};
+    const up=()=>{h.removeEventListener('pointermove',move);h.removeEventListener('pointerup',up);h.removeEventListener('pointercancel',up);peDrawOverlay()};
+    h.addEventListener('pointermove',move);h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up)});
+}
+/* Drag-create on the empty page: cb receives the normalized rect (or
+   the raw start/end for lines) once, on release. */
+function peDragCreate(e,makeGhost,onDone){
+  const ov=$('peOverlay');const start=peFrac(e);try{ov.setPointerCapture(e.pointerId)}catch(_){}
+  const ghost=makeGhost(start);if(ghost)ov.appendChild(ghost);let last={fx:start.fx,fy:start.fy};
+  const move=ev=>{last=peFrac(ev);if(ghost&&ghost._upd)ghost._upd(start,last)};
+  const up=()=>{ov.removeEventListener('pointermove',move);ov.removeEventListener('pointerup',up);ov.removeEventListener('pointercancel',up);if(ghost)ghost.remove();onDone(start,last)};
+  ov.addEventListener('pointermove',move);ov.addEventListener('pointerup',up);ov.addEventListener('pointercancel',up);
+}
+function peRectGhost(cls){const g=rectDiv({fx:0,fy:0,fw:0,fh:0},cls);g._upd=(a,b)=>{const r={fx:Math.min(a.fx,b.fx),fy:Math.min(a.fy,b.fy),fw:Math.abs(b.fx-a.fx),fh:Math.abs(b.fy-a.fy)};g.style.left=(r.fx*100)+'%';g.style.top=(r.fy*100)+'%';g.style.width=(r.fw*100)+'%';g.style.height=(r.fh*100)+'%';g._r=r};return g}
+function peNormRect(a,b){return{fx:Math.min(a.fx,b.fx),fy:Math.min(a.fy,b.fy),fw:Math.abs(b.fx-a.fx),fh:Math.abs(b.fy-a.fy)}}
+function peAttachStage(){
+  const ov=$('peOverlay');if(!ov)return;
+  ov.addEventListener('pointerdown',e=>{
+    if(!pe||e.target!==ov)return;
+    if(pe.mode==='text'){const t=pe.txt.text.trim();if(!t){toast('Type the text in the bar above first.');return}const p=peFrac(e);const col=PE_TXT_COLORS[pe.txt.color];pePushOp({type:'text',page:pe.page,fx:p.fx,fBase:p.fy,text:t,size:pe.txt.size,color:col.rgb,css:col.css,bold:pe.txt.bold},true);return}
+    if(pe.mode==='stamps'){pePlaceStamp(peFrac(e));return}
+    if(pe.mode==='mark'){const st=pe.mark.style;peDragCreate(e,()=>peRectGhost(st==='highlight'?'pe-opmark ghost':'pe-hit ghost'),(a,b)=>{const r=peNormRect(a,b);if(r.fw>.008&&r.fh>.006){r.type='mark';r.page=pe.page;r.style=st;r.color=st==='highlight'?pe.mark.hl:pe.mark.line;pePushOp(r,true)}else{peDrawOverlay()}});return}
+    if(pe.mode==='cover'){peDragCreate(e,()=>peRectGhost('pe-cover ghost'),(a,b)=>{const r=peNormRect(a,b);if(r.fw>.008&&r.fh>.006){const cv=$('peCanvas');r.type='cover';r.page=pe.page;r.cover=cv?peSampleFrom(cv,r.fx,r.fy,r.fw,r.fh,pe.pageW,pe.pageH):[1,1,1];pePushOp(r,true)}else{peDrawOverlay()}});return}
+    if(pe.mode==='shapes'){const kind=pe.shape.kind;const col=PE_TXT_COLORS[pe.shape.color];
+      peDragCreate(e,s=>{const svg=peSvgEl('svg',{viewBox:'0 0 1000 1000',preserveAspectRatio:'none','class':'pe-svg'});let el=null;
+        if(kind==='rect'){el=peSvgEl('rect',{fill:'none',stroke:col.css,'stroke-width':pe.shape.width,'vector-effect':'non-scaling-stroke'})}
+        else if(kind==='ellipse'){el=peSvgEl('ellipse',{fill:'none',stroke:col.css,'stroke-width':pe.shape.width,'vector-effect':'non-scaling-stroke'})}
+        else{el=peSvgEl('line',{stroke:col.css,'stroke-width':pe.shape.width,'vector-effect':'non-scaling-stroke'})}
+        svg.appendChild(el);svg._upd=(a,b)=>{if(kind==='rect'){const r=peNormRect(a,b);el.setAttribute('x',r.fx*1000);el.setAttribute('y',r.fy*1000);el.setAttribute('width',r.fw*1000);el.setAttribute('height',r.fh*1000)}else if(kind==='ellipse'){const r=peNormRect(a,b);el.setAttribute('cx',(r.fx+r.fw/2)*1000);el.setAttribute('cy',(r.fy+r.fh/2)*1000);el.setAttribute('rx',r.fw*500);el.setAttribute('ry',r.fh*500)}else{el.setAttribute('x1',a.fx*1000);el.setAttribute('y1',a.fy*1000);el.setAttribute('x2',b.fx*1000);el.setAttribute('y2',b.fy*1000)}};return svg},
+      (a,b)=>{if(kind==='line'||kind==='arrow'){if(Math.hypot(b.fx-a.fx,b.fy-a.fy)>.01)pePushOp({type:'shape',kind,page:pe.page,fx:a.fx,fy:a.fy,fx2:b.fx,fy2:b.fy,color:pe.shape.color,width:pe.shape.width},true);else peDrawOverlay()}
+        else{const r=peNormRect(a,b);if(r.fw>.008&&r.fh>.008){r.type='shape';r.kind=kind;r.page=pe.page;r.color=pe.shape.color;r.width=pe.shape.width;pePushOp(r,true)}else peDrawOverlay()}});return}
+    if(pe.mode==='draw'){const col=PE_TXT_COLORS[pe.draw.color];const pts=[[peFrac(e).fx,peFrac(e).fy]];
+      const svg=peSvgEl('svg',{viewBox:'0 0 1000 1000',preserveAspectRatio:'none','class':'pe-svg'});const pl=peSvgEl('polyline',{fill:'none',stroke:col.css,'stroke-width':pe.draw.width,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':'round'});svg.appendChild(pl);ov.appendChild(svg);
+      try{ov.setPointerCapture(e.pointerId)}catch(_){}
+      const move=ev=>{const p=peFrac(ev);const last=pts[pts.length-1];if(Math.hypot(p.fx-last[0],p.fy-last[1])>.0035){pts.push([p.fx,p.fy]);pl.setAttribute('points',pts.map(q=>(q[0]*1000)+','+(q[1]*1000)).join(' '))}};
+      const up=()=>{ov.removeEventListener('pointermove',move);ov.removeEventListener('pointerup',up);ov.removeEventListener('pointercancel',up);svg.remove();if(pts.length>2)pePushOp({type:'draw',page:pe.page,points:pts,color:pe.draw.color,width:pe.draw.width},true);else peDrawOverlay()};
+      ov.addEventListener('pointermove',move);ov.addEventListener('pointerup',up);ov.addEventListener('pointercancel',up);return}
+    if(pe.sel!==-1){pe.sel=-1;peDrawOverlay()}
+  });
+}
+async function peAddImageFile(f){if(!pe)return;try{const buf=new Uint8Array(await f.arrayBuffer());const isPng=/\.png$/i.test(f.name)||/png/.test(f.type);const url=URL.createObjectURL(f);const img=new Image();await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=url});const aspect=img.width/Math.max(1,img.height);let fw=.34,fh=fw*pe.pageW/(aspect*pe.pageH);if(fh>.9){fh=.9;fw=fh*aspect*pe.pageH/pe.pageW}pePushOp({type:'image',page:pe.page,fx:Math.max(0,(1-fw)/2),fy:Math.max(0,(1-fh)/2),fw,fh,bytes:buf,format:isPng?'png':'jpg',url,aspect,sign:false},true);toast('Image placed — drag it into position.')}catch(e){toast('That image could not be read — try a PNG or JPG.')}}
+async function pePlaceSig(){if(!pe)return;if(!sigDrawn||!sigArt){peShowSig();toast('Create your signature first — draw it, type it, or upload a picture.');return}
+  try{const blob=await new Promise(r=>sigArt.toBlob(r,'image/png'));const buf=new Uint8Array(await blob.arrayBuffer());const aspect=sigArt.width/Math.max(1,sigArt.height);let fw=.38,fh=fw*pe.pageW/(aspect*pe.pageH);if(fh>.9){fh=.9;fw=fh*aspect*pe.pageH/pe.pageW}pePushOp({type:'image',page:pe.page,fx:Math.min(.6,.52),fy:Math.min(.85,.7),fw,fh,bytes:buf,format:'png',url:sigArt.toDataURL('image/png'),aspect,sign:true},true);toast('Signature placed — drag it into position.')}catch(e){toast('The signature could not be placed — try creating it again.')}}
+function pePlaceStamp(p){if(!pe)return;const st=PE_STAMPS[pe.stamp];const meas=document.createElement('canvas').getContext('2d');let fs=17;meas.font='800 '+fs+'px Helvetica,Arial,sans-serif';let tw=meas.measureText(st.text).width;let bw=tw+24,bh=32;if(bw>pe.pageW*.82){const sc=pe.pageW*.82/bw;fs=Math.max(9,Math.round(fs*sc));bw*=sc;bh*=sc;tw*=sc}
+  const fw=bw/pe.pageW,fh=bh/pe.pageH;const fx=Math.min(1-fw,Math.max(0,p.fx-fw/2)),fy=Math.min(1-fh,Math.max(0,p.fy-fh/2));
+  pePushOp({type:'stamp',page:pe.page,preset:pe.stamp,fx,fy,fw,fh,aspect:bw/bh,fs0:fs,fw0:fw},true);toast('Stamp placed — drag it into position.')}
+
 /* ================= Processing ================= */
 const ocrState={page:1};
 let metaLoaded=false;
@@ -528,7 +858,6 @@ async function zipOut(items,name){if(items.length===1){download(items[0].blob,it
 async function processTool(){
   const id=current.id, f=files[0];
   if(id==='merge'){const out=await PDFDocument.create();for(let fi=0;fi<files.length;fi++){const src=await PDFDocument.load(await bytes(files[fi]));(await out.copyPages(src,src.getPageIndices())).forEach(p=>out.addPage(p));tick(fi+1,files.length,'Merging PDFs')}await saveDoc(out,'pdfstow-merged.pdf');return done('Merged '+files.length+' PDFs into one file.')}
-  if(id==='text-to-pdf'){const doc=await textToPdfDoc(await f.text(),baseName(f));await saveDoc(doc,baseName(f)+'.pdf');return done('Text converted to PDF.')}
   if(id==='html-to-pdf'){const html=await f.text();const div=document.createElement('div');div.innerHTML=html;const doc=await textToPdfDoc(div.innerText||div.textContent,baseName(f));await saveDoc(doc,baseName(f)+'.pdf');return done('HTML text converted to PDF (Beta — layout simplified).')}
   if(id==='word-to-pdf'){await loadLib('mammoth');if(!window.mammoth)throw new Error('Word library failed to load — check connection and retry.');const r=await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});const doc=await textToPdfDoc(r.value,baseName(f));await saveDoc(doc,baseName(f)+'.pdf');return done('Word document converted (text-based Beta — layout simplified).')}
   if(id==='images-to-pdf'){const doc=await PDFDocument.create();const margin=parseFloat(opt('margin'))||0;const sizes={A4:[595,842],Letter:[612,792]};for(let fi=0;fi<files.length;fi++){const file=files[fi];const b=await bytes(file);const img=file.type.includes('png')||/\.png$/i.test(file.name)?await doc.embedPng(b):await doc.embedJpg(b);let pw,ph;if(opt('size')==='Fit image'){pw=img.width+margin*2;ph=img.height+margin*2}else{[pw,ph]=sizes[opt('size')]||sizes.A4}const page=doc.addPage([pw,ph]);const s=Math.min((pw-margin*2)/img.width,(ph-margin*2)/img.height);const w=img.width*s,h=img.height*s;page.drawImage(img,{x:(pw-w)/2,y:(ph-h)/2,width:w,height:h});tick(fi+1,files.length,'Building your PDF')}await saveDoc(doc,'pdfstow-images.pdf');return done(files.length+' image(s) converted to one PDF.')}
@@ -593,6 +922,30 @@ async function processTool(){
   // pdf-lib tools
   let doc;try{doc=await PDFDocument.load(raw,{ignoreEncryption:id==='repair'})}catch(e){if(id==='repair')throw new Error('This file is too damaged to fix in the browser — your original file is unchanged.');throw e}
   const total=doc.getPageCount();
+  if(id==='pdf-editor'){
+    if(!pe)throw new Error('The editor preview did not open — choose the PDF again and wait for the preview before saving.');
+    if(!pe.ops.length&&!pe.pn.on)throw new Error('Make at least one change first — edit a line, add text, an image, a signature or a highlight — or turn on page numbers.');
+    const fontCache={};const getFont=async key=>{if(!fontCache[key])fontCache[key]=await doc.embedFont(StandardFonts[key]);return fontCache[key]};
+    for(const op of pe.ops){const p=doc.getPage(op.page);const {width:W,height:H}=p.getSize();
+      if(op.type==='edit'){const font=await getFont(op.fontStd);const pad=op.size*.14;p.drawRectangle({x:op.fx*W,y:H-(op.fTop+op.fh)*H-pad,width:op.fw*W,height:op.fh*H+pad*2,color:rgb(op.cover[0],op.cover[1],op.cover[2])});p.drawText(op.newText,{x:op.fx*W,y:H-op.fBase*H,size:op.size,font,color:rgb(op.color[0],op.color[1],op.color[2])})}
+      else if(op.type==='text'){const font=await getFont(op.bold?'HelveticaBold':'Helvetica');p.drawText(op.text,{x:op.fx*W,y:H-op.fBase*H,size:op.size,font,color:rgb(op.color[0],op.color[1],op.color[2])})}
+      else if(op.type==='image'){const img=op.format==='png'?await doc.embedPng(op.bytes):await doc.embedJpg(op.bytes);p.drawImage(img,{x:op.fx*W,y:H-(op.fy+op.fh)*H,width:op.fw*W,height:op.fh*H})}
+      else if(op.type==='mark'){if(op.style==='highlight'){const c=PE_HL_COLORS[op.color].rgb;p.drawRectangle({x:op.fx*W,y:H-(op.fy+op.fh)*H,width:op.fw*W,height:op.fh*H,color:rgb(c[0],c[1],c[2]),opacity:.35})}
+        else{const c=[PE_TXT_COLORS[0],PE_TXT_COLORS[3],PE_TXT_COLORS[1]][op.color].rgb;const y=op.style==='underline'?H-(op.fy+op.fh)*H+1:H-(op.fy+op.fh/2)*H;p.drawLine({start:{x:op.fx*W,y},end:{x:(op.fx+op.fw)*W,y},thickness:Math.max(1.1,op.fh*H*.07),color:rgb(c[0],c[1],c[2])})}}
+      else if(op.type==='shape'){const c=PE_TXT_COLORS[op.color].rgb;const col=rgb(c[0],c[1],c[2]);
+        if(op.kind==='rect')p.drawRectangle({x:op.fx*W,y:H-(op.fy+op.fh)*H,width:op.fw*W,height:op.fh*H,borderColor:col,borderWidth:op.width});
+        else if(op.kind==='ellipse')p.drawEllipse({x:(op.fx+op.fw/2)*W,y:H-(op.fy+op.fh/2)*H,xScale:op.fw*W/2,yScale:op.fh*H/2,borderColor:col,borderWidth:op.width});
+        else{const s={x:op.fx*W,y:H-op.fy*H},e2={x:op.fx2*W,y:H-op.fy2*H};p.drawLine({start:s,end:e2,thickness:op.width,color:col});
+          if(op.kind==='arrow'){const dx=e2.x-s.x,dy=e2.y-s.y;const len=Math.max(1,Math.hypot(dx,dy));const hl=Math.min(16,len*.3+4),a=Math.atan2(dy,dx);[a+2.6,a-2.6].forEach(ang=>{p.drawLine({start:e2,end:{x:e2.x+hl*Math.cos(ang),y:e2.y+hl*Math.sin(ang)},thickness:op.width,color:col})})}}}
+      else if(op.type==='draw'){const c=PE_TXT_COLORS[op.color].rgb;const col=rgb(c[0],c[1],c[2]);for(let k=1;k<op.points.length;k++){p.drawLine({start:{x:op.points[k-1][0]*W,y:H-op.points[k-1][1]*H},end:{x:op.points[k][0]*W,y:H-op.points[k][1]*H},thickness:op.width,color:col})}}
+      else if(op.type==='cover'){p.drawRectangle({x:op.fx*W,y:H-(op.fy+op.fh)*H,width:op.fw*W,height:op.fh*H,color:rgb(op.cover[0],op.cover[1],op.cover[2])})}
+      else if(op.type==='stamp'){const st=PE_STAMPS[op.preset];const col=rgb(st.rgb[0],st.rgb[1],st.rgb[2]);const font=await getFont('HelveticaBold');const fs=op.fs0*(op.fw/op.fw0);const Wpt=op.fw*W,Hpt=op.fh*H,px=op.fx*W,py=H-(op.fy+op.fh)*H,rot=degrees(-8);
+        p.drawRectangle({x:px,y:py,width:Wpt,height:Hpt,rotate:rot,borderColor:col,borderWidth:2.4});
+        const tw=font.widthOfTextAtSize(st.text,fs);const ox=(Wpt-tw)/2,oy=(Hpt-fs)/2+fs*.34,rad=-8*Math.PI/180;
+        p.drawText(st.text,{x:px+ox*Math.cos(rad)-oy*Math.sin(rad),y:py+ox*Math.sin(rad)+oy*Math.cos(rad),size:fs,font,color:col,rotate:rot})}
+    }
+    if(pe.pn.on){const font=await getFont('Helvetica');doc.getPages().forEach((p,i)=>{const {width:W}=p.getSize();const label=String(pe.pn.start+i);const tw=font.widthOfTextAtSize(label,10);let x=(W-tw)/2;if(pe.pn.pos==='bottom-left')x=36;if(pe.pn.pos==='bottom-right')x=W-tw-36;p.drawText(label,{x,y:24,size:10,font,color:rgb(.25,.25,.25)})})}
+    const nChanges=pe.ops.length+(pe.pn.on?1:0);await saveDoc(doc,baseName(f)+'-edited.pdf');return done('Your edited PDF is ready — '+nChanges+' change'+(nChanges===1?'':'s')+' applied.')}
   if(id==='split'){const items=[];if(opt('mode')==='pick'){if(!(pm&&pm.mode==='pick'&&pm.sel.size))throw new Error('Tap at least one page in the preview above first.');const idx=[...pm.sel].sort((a,b)=>a-b);const d=await PDFDocument.create();(await d.copyPages(doc,idx)).forEach(p=>d.addPage(p));await saveDoc(d,baseName(f)+'-picked.pdf');return done('Extracted '+idx.length+' picked page(s) as one PDF.')}if(opt('mode')==='each'){for(let i=0;i<total;i++){const d=await PDFDocument.create();const [p]=await d.copyPages(doc,[i]);d.addPage(p);items.push({blob:new Blob([await d.save()],{type:'application/pdf'}),name:baseName(f)+'-page-'+(i+1)+'.pdf'});tick(i+1,total,'Splitting PDF')}}else{const ranges=opt('ranges').split(',').map(s=>s.trim()).filter(Boolean);for(let r=0;r<ranges.length;r++){const idx=parseRanges(ranges[r],total);if(!idx)continue;const d=await PDFDocument.create();(await d.copyPages(doc,idx)).forEach(p=>d.addPage(p));items.push({blob:new Blob([await d.save()],{type:'application/pdf'}),name:baseName(f)+'-part-'+(r+1)+'.pdf'})}}if(!items.length)throw new Error('No valid ranges — check the ranges under Advanced options (e.g. 1-3, 4-6).');await zipOut(items,baseName(f)+'-split.zip');return done('Split into '+items.length+' file(s)'+(items.length>1?' — downloaded as one ZIP file.':'.'))}
   if(id==='remove-pages'){const rm=new Set((pm&&pm.mode==='remove'&&pm.sel.size)?[...pm.sel]:(parseRanges(opt('pages'),total)||[]));if(!rm.size)throw new Error('Tap pages in the preview above to mark them for removal — or type page numbers under Advanced options.');if(rm.size>=total)throw new Error('You cannot remove every page — keep at least one.');const keep=doc.getPageIndices().filter(i=>!rm.has(i));const nd=await PDFDocument.create();(await nd.copyPages(doc,keep)).forEach(p=>nd.addPage(p));await saveDoc(nd,baseName(f)+'-trimmed.pdf');return done('Removed '+rm.size+' page(s). '+keep.length+' remain.')}
   if(id==='extract-pages'){let idx=null;if(pm&&pm.mode==='extract'&&pm.sel.size)idx=[...pm.sel].sort((a,b)=>a-b);else if(opt('pages').trim())idx=parseRanges(opt('pages'),total);if(!idx||!idx.length)throw new Error('Tap at least one page in the preview above first — or type page numbers under Advanced options.');const d=await PDFDocument.create();(await d.copyPages(doc,idx)).forEach(p=>d.addPage(p));await saveDoc(d,baseName(f)+'-extract.pdf');return done('Extracted '+idx.length+' page(s) into a new PDF.')}
