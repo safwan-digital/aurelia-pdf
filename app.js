@@ -630,7 +630,7 @@ function peFrac(e){const r=$('peOverlay').getBoundingClientRect();return{fx:Math
 let peSeq=0;
 /* Median of the edge pixels of a page-fraction rect, sampled from a
    rendered canvas of the page — the colour covers blend with. */
-function peSampleFrom(cv,fx,fy,fw,fh,pw,ph){try{const g=cv.getContext('2d');const sx=cv.width/pw,sy=cv.height/ph;const x0=Math.max(0,Math.round(fx*pw*sx)),y0=Math.max(0,Math.round(fy*ph*sy)),w=Math.min(cv.width-x0,Math.max(2,Math.round(fw*pw*sx))),h=Math.min(cv.height-y0,Math.max(2,Math.round(fh*ph*sy)));if(w<2||h<2)return[1,1,1];const data=g.getImageData(x0,y0,w,h).data;const pts=[];const ring=(x,y)=>{const o=(y*w+x)*4;pts.push([data[o],data[o+1],data[o+2]])};
+function peSampleFrom(cv,fx,fy,fw,fh,pw,ph){try{const g=cv.getContext('2d',{willReadFrequently:true});const sx=cv.width/pw,sy=cv.height/ph;const x0=Math.max(0,Math.round(fx*pw*sx)),y0=Math.max(0,Math.round(fy*ph*sy)),w=Math.min(cv.width-x0,Math.max(2,Math.round(fw*pw*sx))),h=Math.min(cv.height-y0,Math.max(2,Math.round(fh*ph*sy)));if(w<2||h<2)return[1,1,1];const data=g.getImageData(x0,y0,w,h).data;const pts=[];const ring=(x,y)=>{const o=(y*w+x)*4;pts.push([data[o],data[o+1],data[o+2]])};
   for(let x=0;x<w;x++){ring(x,0);if(h>2)ring(x,h-1)}for(let y=1;y<h-1;y++){ring(0,y);if(w>2)ring(w-1,y)}
   if(!pts.length)return[1,1,1];const med=ch=>{const a=pts.map(p=>p[ch]).sort((a,b)=>a-b);return a[a.length>>1]/255};return[med(0),med(1),med(2)]}catch(e){return[1,1,1]}}
 function buildPdfEditor(pdf){
@@ -734,7 +734,7 @@ async function peRenderPage(){
   const base=pg.getViewport({scale:1});pe.pageW=base.width;pe.pageH=base.height;
   const wrap=$('visualWrap');const targetW=Math.min(960,Math.max(280,(wrap?wrap.clientWidth:960)-16))*pe.zoom;const dpr=Math.min(2,window.devicePixelRatio||1);const vp=pg.getViewport({scale:(targetW/base.width)*dpr});
   const c=$('peCanvas');if(!c)return;c.width=vp.width;c.height=vp.height;c.style.width=(vp.width/dpr)+'px';c.style.height=(vp.height/dpr)+'px';
-  try{await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise}catch(e){}
+  try{await pg.render({canvasContext:c.getContext('2d',{willReadFrequently:true}),viewport:vp}).promise}catch(e){}
   if(!pe||seq!==peSeq)return;
   await peBuildLines(pg,pageIdx);
   if(!pe||seq!==peSeq)return;
@@ -816,7 +816,7 @@ async function peLinesForPage(i){
   const vp=pg.getViewport({scale:1});const save={w:pe.pageW,h:pe.pageH};pe.pageW=vp.width;pe.pageH=vp.height;
   let lines=[];
   try{const tc=await pg.getTextContent();tc.items.forEach(it=>{it._fontName=peFontName(pg,it)});lines=peComputeLines(tc);
-    if(lines.length){const v2=pg.getViewport({scale:1.5});const cv=document.createElement('canvas');cv.width=v2.width;cv.height=v2.height;try{await pg.render({canvasContext:cv.getContext('2d'),viewport:v2}).promise;lines.forEach(l=>{l.cover=peSampleFrom(cv,l.fx,l.fTop,l.fw,l.fh,vp.width,vp.height)})}catch(e){lines.forEach(l=>{l.cover=[1,1,1]})}}
+    if(lines.length){const v2=pg.getViewport({scale:1.5});const cv=document.createElement('canvas');cv.width=v2.width;cv.height=v2.height;try{await pg.render({canvasContext:cv.getContext('2d',{willReadFrequently:true}),viewport:v2}).promise;lines.forEach(l=>{l.cover=peSampleFrom(cv,l.fx,l.fTop,l.fw,l.fh,vp.width,vp.height)})}catch(e){lines.forEach(l=>{l.cover=[1,1,1]})}}
   }catch(e){lines=[]}
   pe.pageW=save.w;pe.pageH=save.h;
   if(pe)pe.lineCache[i]={lines,hasText:lines.length>0,mostSize:peMostSize(lines),rot:0};

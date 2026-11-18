@@ -1,4 +1,4 @@
-/* PDFStow service worker — v4.7.3 offline support.
+/* PDFStow service worker — v4.7.4 offline support.
    v4.7.2: the libraries are ALL lazy now (app.js injects them on first
    use of a tool), so the eager CDN precache list is gone — each library
    still lands in the cache on its first fetch via the cross-origin
@@ -15,11 +15,11 @@
      are bypassed entirely: the fetch handler returns without respondWith,
      so analytics traffic is never cached and never stale-served.
    Only GET requests are handled; range requests are left to the network. */
-const CACHE = 'pdfstow-v4.7.3';
+const CACHE = 'pdfstow-v4.7.4';
 const SHELL = [
   './', 'index.html',
-  'app.js?v=54', 'app.js',
-  'styles.css?v=54', 'styles.css',
+  'app.js?v=55', 'app.js',
+  'styles.css?v=55', 'styles.css',
   'trust.html', 'about/', 'privacy/', 'terms/', 'contact/', 'manifest.json',
   'favicon.ico', 'favicon-32.png', 'apple-touch-icon.png',
   'icon-192.png', 'icon-512.png', 'logo-icon-sm.webp',

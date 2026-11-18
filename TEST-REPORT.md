@@ -1026,3 +1026,38 @@ Version pins: v4.7.3 · ?v=54 · SW cache 'pdfstow-v4.7.3'. Changed files only (
 
 ## AFTER (post-publish): LIVE-VERIFIED 2026-11-18 (commit 682c161)
 Direct fetch of the live homepage confirms the shipped policy: script-src now ends `… https://www.clarity.ms https://*.clarity.ms …` and img-src is `'self' data: blob: file: https://*.clarity.ms`. Live pins: app.js?v=54, SW 'pdfstow-v4.7.3'. The recorder itself (https://scripts.clarity.ms/0.8.77/clarity.js) returns 200 (73,892 B) and is now permitted by the live policy — the block that silently killed every recording since launch is gone. Remaining proof is traffic-side only: Clarity recordings/dashboard unlock once real sessions arrive and process (Clarity states a few hours); to be confirmed on the dashboard after Safwan's next visits.
+
+# V4.7.4 — One-warning fix: Canvas2D readback contexts flagged willReadFrequently (2026-11-18)
+
+**Symptom:** after the PDF Editor opened a file during the Chrome extension's live gate test on Safwan's Mac, chrome://extensions showed an "Errors" entry for PDFStow: *"Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true"* — context `pdf-editor/index.html`, stack `app.js (peSampleFrom)`. A performance warning, not a failure: the Editor worked fully. (Safwan spotted the Errors button and asked for the fix.)
+
+**Root cause:** `peSampleFrom` samples the page colour around every text line (once per line, plus once per Cover drag) via `getImageData`. The three canvases it reads from had their 2D contexts created without `{willReadFrequently:true}`, so Chrome kept them GPU-backed and warned on the repeated readbacks.
+
+**The fix (exactly three context creations, all on the sampling chain):**
+1. `peSampleFrom` itself — `cv.getContext('2d',{willReadFrequently:true})`.
+2. The Editor page render into `#peCanvas` — same flag, so the visible page canvas (rendered once, read dozens of times) is created readback-friendly.
+3. The offscreen scale-1.5 cover-sampling render in `peBuildLines` — same flag.
+Drawing-only contexts (thumbnails, page exports, signature pad, stamps) are deliberately NOT flagged: the attribute trades write performance for readback speed, and those paths write far more than they read. No other app.js logic changes.
+
+**Versioning.** v4.7.4 · ?v=55 · SW cache 'pdfstow-v4.7.4'. styles.css is byte-identical to v4.7.3 and is NOT republished; only the ?v=55 references to it (pages + SW shell) change. app.js IS republished (the fix).
+
+## Legitimate test adaptations (pin updates only — counts unchanged)
+- **qc-v473 (b):** defer pin ?v=54 → ?v=55.
+- **qc-v43 (b):** SW cache name 'pdfstow-v4.7.3' → 'pdfstow-v4.7.4'; shell pins ?v=54 → ?v=55.
+- **qc-v44 (e):** SW cache name pin → 'pdfstow-v4.7.4'.
+- **qc-v471 (static):** SW cache name pin → 'pdfstow-v4.7.4'; asset pins ?v=54 → ?v=55.
+- **qc-v474 (d)** now fails BY DESIGN (it pins the v4.7.3 constants); its checks (a)–(c) still pass and are carried into qc-v475 unchanged.
+
+## Suite results (final tree)
+- **tests/qc-v475.js (NEW — v4.7.4 guard): 5/5 PASS** — (a)–(c) the Clarity CSP guard carried over (one identical policy on home + 31 tool pages; Clarity hosts allowed; policy differs from v4.7.2 only by the two wildcard tokens); (d) ?v=55 + 'pdfstow-v4.7.4' pins everywhere, no stale ?v=54 / 'pdfstow-v4.7.3'; (e) exactly 3 willReadFrequently contexts, at the sampler, the peCanvas render and the offscreen cover render.
+- **qc-v471: 30/30 PASS** — the PDF Editor receipt suite (segment editing, pinned undo/redo, typing guards), no page errors.
+- **qc-v473: 8/8 PASS** — lazy-load behaviour unchanged; Merge end-to-end with on-demand libraries.
+- **qc-v43: 6/6 PASS** — SW installs under 'pdfstow-v4.7.4', shell precache populated, offline flows work.
+- **qc-v44: 7/7 PASS** — analytics behaviour unchanged.
+- **qc-v472** (Editor matrix): not re-run — its known sandbox EPERM on fixture writes is unchanged and unrelated to this release (last full run 116/117, failing line uncaptured; still open).
+
+## Publish set
+Version pins: v4.7.4 · ?v=55 · SW cache 'pdfstow-v4.7.4'. Changed files only (41): index.html (?v=55), app.js (the fix + ?v=55 references are in pages, app.js itself carries the 3 flagged contexts), the 31 tool pages (regenerated: ?v=55), the 4 trust pages (regenerated: ?v=55 stylesheet reference only), 404.html (?v=55), sw.js (cache name + shell pins), build/generate.js (generator pins + version comment), TEST-REPORT.md. NOT in the set (byte-identical to v4.7.3): styles.css, build/tools-data.js, sitemap.xml, llms.txt, trust.html, the text-to-pdf stub, logo-icon-sm.webp. tests/ and test-materials/ stay unpublished, as before.
+
+## Extension follow-through
+The Chrome extension package is rebuilt from this tree (its app.js carries the same fix), re-validated, and the copy installed on Safwan's Mac is updated in place and reloaded; the live proof is the same IRS Form W-9 right-click flow that produced the warning — after the update it must load the Editor with NO new entry in the extension's Errors view.
