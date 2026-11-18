@@ -1061,3 +1061,9 @@ Version pins: v4.7.4 · ?v=55 · SW cache 'pdfstow-v4.7.4'. Changed files only (
 
 ## Extension follow-through
 The Chrome extension package is rebuilt from this tree (its app.js carries the same fix), re-validated, and the copy installed on Safwan's Mac is updated in place and reloaded; the live proof is the same IRS Form W-9 right-click flow that produced the warning — after the update it must load the Editor with NO new entry in the extension's Errors view.
+
+## AFTER (post-publish): LIVE-VERIFIED 2026-11-18
+- **Pushed:** commit **039a6db** (41 files) to safwan-digital/pdfstow main.
+- **Live fetch proof:** homepage serves app.js?v=55; live app.js contains exactly 3 willReadFrequently contexts; live sw.js cache = 'pdfstow-v4.7.4'; CSP unchanged from v4.7.3.
+- **Extension:** rebuilt from the v4.7.4 tree (validation 446/446), zip re-made, the copy installed on Safwan's Mac updated in place (same registered folder) and **Reloaded**.
+- **Live proof on his Mac:** IRS 'Form W-9 PDF' link → Open in PDFStow → PDF Editor → fw9.pdf loaded (137.5 KB · 6 pages, editable lines built — the exact path that logged the warning). The extension card afterwards shows **Details / Remove / Reload only — NO Errors button**: the Canvas2D warning does not recur. Test tabs closed; browser left tidy.
