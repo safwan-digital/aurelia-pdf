@@ -982,5 +982,10 @@ Safwan ran PageSpeed Insights on the live site and said "Check And Solve". This 
 ## Publish set
 Version pins: v4.7.2 · ?v=53 · SW cache 'pdfstow-v4.7.2'. Changed files only (43): index.html, app.js, styles.css, sw.js, 404.html, build/generate.js, TEST-REPORT.md, **logo-icon-sm.webp (NEW — one binary file)**, the 4 trust pages (about, contact, privacy, terms) and the 31 tool pages (regenerated: deferred app.js, ?v=53, small header logo). build/tools-data.js unchanged. sitemap.xml, llms.txt, trust.html and the text-to-pdf stub are byte-identical and NOT in the set. tests/ and test-materials/ stay unpublished, as before.
 
-## AFTER (post-publish PageSpeed): pending parent verification
-Not yet measured — this build is local-only. After publish, re-run PageSpeed Insights (mobile + desktop) on https://pdfstow.safwan.digital/ and record here: Performance scores, FCP/LCP, CLS (expect the desktop 0.252 gone), and confirmation that the render-blocking list no longer contains pdf-lib / pdf.js / JSZip / app.js. Also spot-check one tool end-to-end on the live site in a FRESH browser profile (the v4.7.1 service-worker lesson) to prove the lazy load works in production.
+## AFTER (post-publish PageSpeed): MEASURED 2026-11-18 — v4.7.2 LIVE (commits ae3af1d logo via website upload + ec0ddc8)
+Fresh PageSpeed run (Lighthouse 13.6.0, Nov 18 2026, 12:44 Dubai; report x8rsxbartc), verified in a FRESH browser profile (deleted after):
+- **MOBILE: Performance 72 → 100** · Accessibility 100 · Best Practices 92 · SEO 100. FCP 4.4 s → 0.9 s · LCP 4.4 s → 1.2 s · TBT 30 ms · CLS 0 · Speed Index 5.4 s → 2.6 s.
+- **DESKTOP: Performance 87 → 100** · FCP 0.7 s → 0.2 s · LCP 0.7 s → 0.3 s · **CLS 0.252 → 0**.
+- Remaining flags are residual only: render-blocking est. 140 ms mobile / 40 ms desktop (was 3,950 ms — now just styles.css + the deferred shell), unused JS 119 KiB (was 291 KiB — now mostly the after-load analytics). "Improve image delivery" no longer appears on either form factor.
+- Live spot-check in the fresh profile PASSED: home rendered with the small logo, and a real Merge of two fixture PDFs on the live site produced pdfstow-merged.pdf (4,237 B, valid %PDF-1.7) — on-demand library loading proven in production.
+- Still open: the qc-v472 re-run (sandbox EPERM, see above) — Editor coverage stands on qc-v47 + qc-v471 + qc-v473, all green.
