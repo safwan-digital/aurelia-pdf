@@ -1,4 +1,8 @@
-/* PDFStow service worker — v4.7.1 offline support.
+/* PDFStow service worker — v4.7.2 offline support.
+   v4.7.2: the libraries are ALL lazy now (app.js injects them on first
+   use of a tool), so the eager CDN precache list is gone — each library
+   still lands in the cache on its first fetch via the cross-origin
+   cache-first handler below, and works offline from its second use on.
    Strategy:
    - Install: precache the same-origin shell (each file added individually,
      so one failure never fails the whole install).
@@ -11,30 +15,21 @@
      are bypassed entirely: the fetch handler returns without respondWith,
      so analytics traffic is never cached and never stale-served.
    Only GET requests are handled; range requests are left to the network. */
-const CACHE = 'pdfstow-v4.7.1';
+const CACHE = 'pdfstow-v4.7.2';
 const SHELL = [
   './', 'index.html',
-  'app.js?v=52', 'app.js',
-  'styles.css?v=52', 'styles.css',
+  'app.js?v=53', 'app.js',
+  'styles.css?v=53', 'styles.css',
   'trust.html', 'about/', 'privacy/', 'terms/', 'contact/', 'manifest.json',
   'favicon.ico', 'favicon-32.png', 'apple-touch-icon.png',
-  'icon-192.png', 'icon-512.png', 'logo-icon.webp',
-  'og-image.png', 'xlsx.full.min.js', '404.html'
-];
-/* Eager CDN libraries + the pdf.js worker. These load before the worker
-   controls the page, so they are precached at install (all four hosts send
-   CORS headers; each add is caught individually like the shell files). */
-const CDN = [
-  'https://unpkg.com/pdf-lib-plus-encrypt@1.1.0/dist/pdf-lib-plus-encrypt.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'
+  'icon-192.png', 'icon-512.png', 'logo-icon-sm.webp',
+  'og-image.png', '404.html'
 ];
 
 self.addEventListener('install', e => {
   e.waitUntil((async () => {
     const c = await caches.open(CACHE);
-    await Promise.all(SHELL.concat(CDN).map(u => c.add(u).catch(() => {})));
+    await Promise.all(SHELL.map(u => c.add(u).catch(() => {})));
     await self.skipWaiting();
   })());
 });

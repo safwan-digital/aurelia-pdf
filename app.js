@@ -1,26 +1,50 @@
 /* PDFStow — 100% client-side PDF tools. No uploads. */
 'use strict';
-if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-/* Boot guard (deep-audit #3): if a core library failed to load (CDN outage,
-   blocked network), say so plainly instead of leaving a dead page. */
-const LIBS_OK=!!(window.PDFLib&&window.JSZip&&window.pdfjsLib);
+/* Performance (v4.7.2): NO library loads with the page any more. pdf-lib,
+   PDF.js and JSZip moved from eager <head> tags into LAZY_LIBS below and
+   are injected by loadLib() the first time a tool needs them — the home
+   page used to wait on ~360 KB of tool stack before it could paint.
+   pdf-lib's helpers are bound lazily by bindPdfLib() once it arrives;
+   a library that FAILS to load is reported by loadLib itself, in context
+   (the old boot-time LIBS_OK check is gone — "not loaded yet" is now the
+   normal state until a tool starts). */
 let PDFDocument, StandardFonts, rgb, degrees;
-if (window.PDFLib) ({ PDFDocument, StandardFonts, rgb, degrees } = PDFLib);
+function bindPdfLib(){if(window.PDFLib&&!PDFDocument)({PDFDocument, StandardFonts, rgb, degrees} = PDFLib)}
 function showLibFailure(what){let p=document.getElementById('libFail');if(!p){p=document.createElement('div');p.id='libFail';p.className='libfail glass';p.setAttribute('role','alert');const m=document.querySelector('main');if(m)m.prepend(p);else document.body.prepend(p)}p.innerHTML='<strong>A library failed to load.</strong> '+(what||'Part of PDFStow')+' could not be loaded — check your connection and reload the page. <button type="button" class="btn sm" onclick="location.reload()">Reload</button>';p.classList.remove('hidden')}
 /* pdf.js is only ever called through GD, which sets isEvalSupported:false
    on every call (deep-audit #1 — the switch that closes the CVE-2024-4367
    code path in pdf.js 3.11.174). */
 const GD=opts=>pdfjsLib.getDocument({isEvalSupported:false,...opts});
 /* Lazy libraries (deep-audit #20–22): SheetJS is vendored same-origin at a
-   current 0.20.3 (vendor/ — fixes the frozen-0.18.5 CVEs of #21); Mammoth
-   and Tesseract.js load from their pinned CDNs. All three load on first
-   use of their tool, with SRI integrity set on the injected tag. */
+   current 0.20.3 (vendor/ — fixes the frozen-0.18.5 CVEs of #21); the
+   rest load from their pinned CDNs. EVERY library is lazy since v4.7.2:
+   pdf-lib, PDF.js and JSZip joined this registry and load on first use
+   of a tool that needs them, each with the same SRI integrity hash its
+   old eager <head> tag carried. loadLib dedupes concurrent calls
+   through libPromises; a failed load surfaces the plain failure panel
+   and rejects, so the calling tool stops with a clear message instead
+   of running half-equipped. */
+const PDFJS_WORKER='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 const LAZY_LIBS={
+ pdflib:{url:'https://unpkg.com/pdf-lib-plus-encrypt@1.1.0/dist/pdf-lib-plus-encrypt.min.js',integrity:'sha384-3Vtx+d/EbRfd0HOhIWT43lRjbbmpzXlIjVW9jorWQoodg/CiZLtori41Pt0Klz5P',global:'PDFLib',label:'The PDF library'},
+ pdfjs:{url:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',integrity:'sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e',global:'pdfjsLib',label:'The PDF viewer library',after:()=>{if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS_WORKER}},
+ jszip:{url:'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',integrity:'sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG',global:'JSZip',label:'The ZIP library'},
  xlsx:{url:'xlsx.full.min.js',integrity:'sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT',global:'XLSX',label:'The spreadsheet library'},
  mammoth:{url:'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',integrity:'sha384-nFoSjZIoH3CCp8W639jJyQkuPHinJ2NHe7on1xvlUA7SuGfJAfvMldrsoAVm6ECz',global:'mammoth',label:'The Word library'},
  tesseract:{url:'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js',integrity:'sha384-Ptw8HCYAWF6vIop6WuGxfSCiDCIzUWqjrHYfx8Vd0S4CMBaicAdBh2y+Ufle664A',global:'Tesseract',label:'The OCR library'}};
 const libPromises={};
-function loadLib(key){const L=LAZY_LIBS[key];if(!L)return Promise.resolve();if(window[L.global])return Promise.resolve();if(libPromises[key])return libPromises[key];libPromises[key]=new Promise((res,rej)=>{const s=document.createElement('script');s.src=L.url;if(L.integrity){s.integrity=L.integrity;s.crossOrigin='anonymous'}s.onload=()=>res();s.onerror=()=>{delete libPromises[key];showLibFailure(L.label);rej(new Error(L.label+' failed to load — check your connection and reload the page.'))};document.head.appendChild(s)});return libPromises[key]}
+function loadLib(key){const L=LAZY_LIBS[key];if(!L)return Promise.resolve();if(window[L.global]){if(L.after)L.after();return Promise.resolve()}if(libPromises[key])return libPromises[key];libPromises[key]=new Promise((res,rej)=>{const s=document.createElement('script');s.src=L.url;if(L.integrity){s.integrity=L.integrity;s.crossOrigin='anonymous'}s.onload=()=>{if(L.after)L.after();res()};s.onerror=()=>{delete libPromises[key];showLibFailure(L.label);rej(new Error(L.label+' failed to load — check your connection and reload the page.'))};document.head.appendChild(s)});return libPromises[key]}
+/* Per-tool library needs (v4.7.2). processTool() awaits ensureToolLibs()
+   before dispatching; the preview paths (buildVisual, probePdf) await
+   ensurePdfJs() themselves; openTool() prefetches the set in the
+   background so a library is usually already here when it is needed;
+   zipOut() self-ensures JSZip. A tool missing from the map gets the
+   safe default of both core libraries. */
+async function ensurePdfLib(){await loadLib('pdflib');bindPdfLib()}
+async function ensurePdfJs(){await loadLib('pdfjs')}
+async function ensureZip(){await loadLib('jszip')}
+const TOOL_LIBS={'merge':['pdflib'],'split':['pdflib','jszip'],'remove-pages':['pdflib'],'extract-pages':['pdflib'],'organize':['pdflib'],'rotate':['pdflib'],'crop':['pdflib'],'compress':['pdflib','pdfjs'],'repair':['pdflib'],'ocr':['pdflib','pdfjs'],'images-to-pdf':['pdflib'],'html-to-pdf':['pdflib'],'word-to-pdf':['pdflib'],'pdf-to-jpg':['pdfjs','jszip'],'pdf-to-png':['pdfjs','jszip'],'pdf-to-text':['pdfjs'],'pdf-to-word':['pdfjs','jszip'],'pdf-to-excel':['pdfjs'],'pdf-to-markdown':['pdfjs'],'pdf-editor':['pdflib','pdfjs'],'edit-pdf':['pdflib','pdfjs'],'annotate':['pdflib','pdfjs'],'page-numbers':['pdflib'],'watermark':['pdflib'],'sign-pdf':['pdflib','pdfjs'],'redact':['pdflib','pdfjs'],'protect':['pdflib'],'unlock':['pdflib','pdfjs'],'metadata':['pdflib'],'compare':['pdfjs'],'summarize':['pdfjs']};
+async function ensureToolLibs(id){const needs=TOOL_LIBS[id]||['pdflib','pdfjs'];await Promise.all(needs.map(k=>k==='pdflib'?ensurePdfLib():k==='pdfjs'?ensurePdfJs():loadLib(k)))}
 /* Analytics (v4.4.0, DEC-2; v4.5.0: GA fires via Tag Manager):
    Google Tag Manager + Microsoft Clarity. Loaded ONLY on http(s) —
    on file:// (the test suites, local previews) this stays completely
@@ -34,7 +58,11 @@ function loadLib(key){const L=LAZY_LIBS[key];if(!L)return Promise.resolve();if(w
    What is collected is disclosed on the Privacy page: visits and
    usage only — analytics never receives files or anything inside
    them. */
-(function loadAnalytics(){
+/* v4.7.2: analytics no longer competes with first paint. GTM + Clarity
+   start only after the window load event, on an idle callback with a
+   bounded timeout (plain-timer fallback), so measurement still fires
+   on every page — just never before the page itself has rendered. */
+function startAnalytics(){
   try{
     if(!/^https?:$/.test(location.protocol))return;
     const add=u=>{const s=document.createElement('script');s.async=true;s.src=u;document.head.appendChild(s)};
@@ -42,6 +70,14 @@ function loadLib(key){const L=LAZY_LIBS[key];if(!L)return Promise.resolve();if(w
     window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
     add('https://www.googletagmanager.com/gtm.js?id=GTM-MDP3TXXV');
     add('https://www.clarity.ms/tag/zf09zdj8dk');
+  }catch(e){}
+}
+(function scheduleAnalytics(){
+  try{
+    if(!/^https?:$/.test(location.protocol))return;
+    const kick=()=>{if('requestIdleCallback' in window)requestIdleCallback(()=>startAnalytics(),{timeout:2000});else setTimeout(startAnalytics,1200)};
+    if(document.readyState==='complete')kick();
+    else addEventListener('load',kick);
   }catch(e){}
 })();
 /* Service worker registration (v4.3.0; moved here from the index.html
@@ -245,7 +281,7 @@ function openTool(id){current=TOOLS.find(t=>t.id===id);files=[];metaLoaded=false
      its standalone page — never a hash. file:// (local QC harness only)
      cannot change path via the History API, so it keeps the legacy hash
      write there; production is https-only. */
-    try{if(/^https?:$/.test(location.protocol))history.replaceState(null,'','/'+SLUGS[id]+'/');else history.replaceState(null,'','#/'+id)}catch(e){}}if(LAZY_FOR[id])loadLib(LAZY_FOR[id]).catch(()=>{});$('homeView').classList.add('hidden');$('toolView').classList.remove('hidden');
+    try{if(/^https?:$/.test(location.protocol))history.replaceState(null,'','/'+SLUGS[id]+'/');else history.replaceState(null,'','#/'+id)}catch(e){}}if(LAZY_FOR[id])loadLib(LAZY_FOR[id]).catch(()=>{});ensureToolLibs(id).catch(()=>{});/* v4.7.2: also prefetch this tool's core libraries in the background — opening a tool is the earliest signal of intent, and the fetch then overlaps choosing a file instead of blocking the run. */$('homeView').classList.add('hidden');$('toolView').classList.remove('hidden');
   $('toolTitle').innerHTML='<span class="title-ic">'+icon(current.icon,24)+'</span>'+esc(current.name);$('toolDesc').innerHTML=expandDesc(current.desc);
   const n=$('toolNote'); if(current.note){n.textContent=current.note;n.classList.toggle('tag',current.note.trim().split(/\s+/).length<=3);n.classList.remove('hidden')}else n.classList.add('hidden');
   $('fileInput').accept=current.accept;$('fileInput').multiple=!!current.multiple;
@@ -281,7 +317,7 @@ function addFiles(list){if(!list||!list.length)return;const acc=((current&&curre
   files=current&&current.multiple?files.concat(good):good.slice(0,1);renderFileList();onFilesChanged()}
 /* ---------- File cards: real first-page thumbnail + page count (benchmark A) ---------- */
 const probeCache=new WeakMap();
-function probePdf(f){if(probeCache.has(f))return probeCache.get(f);const p=(async()=>{try{const raw=await bytes(f);const pdf=await GD({data:raw.slice()}).promise;let thumb='';try{const pg=await pdf.getPage(1);const base=pg.getViewport({scale:1});const vp=pg.getViewport({scale:176/base.width});const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;thumb=c.toDataURL('image/jpeg',.82)}catch(e){}return{pages:pdf.numPages,thumb}}catch(e){return{pages:0,thumb:''}}})();probeCache.set(f,p);return p}
+function probePdf(f){if(probeCache.has(f))return probeCache.get(f);const p=(async()=>{try{await ensurePdfJs();const raw=await bytes(f);const pdf=await GD({data:raw.slice()}).promise;let thumb='';try{const pg=await pdf.getPage(1);const base=pg.getViewport({scale:1});const vp=pg.getViewport({scale:176/base.width});const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;thumb=c.toDataURL('image/jpeg',.82)}catch(e){}return{pages:pdf.numPages,thumb}}catch(e){return{pages:0,thumb:''}}})();probeCache.set(f,p);return p}
 function renderFileList(){const el=$('fileList');if(!el)return;if(!files.length){el.innerHTML='';return}const multi=current&&current.multiple;
   el.innerHTML=files.map((f,i)=>{const isImg=/\.(jpe?g|png)$/i.test(f.name)||/^image\//.test(f.type);const isPdf=/\.pdf$/i.test(f.name);
     return `<div class="fileitem" data-idx="${i}">${isPdf?`<img class="fthumb" data-thumb alt="">`:isImg?`<img class="fthumb" data-thumb src="${URL.createObjectURL(f)}" alt="">`:`<span class="fthumb-ic">${icon(current?current.icon:'file-text',24)}</span>`}<span class="fname" title="${esc(f.name)}">${i+1}. ${esc(f.name)}<span class="fmeta" data-meta>${fmt(f.size)}</span></span><span class="fbtns">${multi&&files.length>1?`<button type="button" class="chipbtn" title="Move up" onclick="moveFile(${i},-1)">${icon('arrow-up',15)}</button><button type="button" class="chipbtn" title="Move down" onclick="moveFile(${i},1)">${icon('arrow-down',15)}</button>`:''}<button type="button" class="chipbtn rm" title="Remove file" onclick="removeFile(${i})">${icon('x',15)}</button></span></div>`}).join('')
@@ -360,7 +396,7 @@ let pm=null, ed=null, pe=null, peFail=null, visualSeq=0;
 function clearVisual(){visualSeq++;pm=null;ed=null;pe=null;peFail=null;const w=$('visualWrap');if(w){w.innerHTML='';w.classList.add('hidden')}updateActionLabel()}
 function onFilesChanged(){if(!current)return;const needs=VISUAL_PM[current.id]||current.id==='split'||EDITOR_TOOLS.includes(current.id);if(needs&&files.length&&/\.pdf$/i.test(files[0].name))buildVisual();else if(!files.length)clearVisual();
   if(current.id==='metadata'&&files.length)loadMetadataView();refreshToolInfo()}
-async function loadMetadataView(){const view=$('metaView');if(!view||!files.length)return;metaLoaded=false;try{const doc=await PDFDocument.load(await bytes(files[0]));const cur={title:doc.getTitle()||'',author:doc.getAuthor()||'',subject:doc.getSubject()||'',keywords:doc.getKeywords()||''};metaLoaded=true;
+async function loadMetadataView(){const view=$('metaView');if(!view||!files.length)return;metaLoaded=false;try{await ensurePdfLib();const doc=await PDFDocument.load(await bytes(files[0]));const cur={title:doc.getTitle()||'',author:doc.getAuthor()||'',subject:doc.getSubject()||'',keywords:doc.getKeywords()||''};metaLoaded=true;
   view.innerHTML='<strong>Currently stored in this PDF:</strong><br>Title: '+(esc(cur.title)||'<em>— empty —</em>')+'<br>Author: '+(esc(cur.author)||'<em>— empty —</em>')+'<br>Subject: '+(esc(cur.subject)||'<em>— empty —</em>')+'<br>Keywords: '+(esc(cur.keywords)||'<em>— empty —</em>')+'<br><span style="color:var(--muted)">The fields below are filled in with these values — edit them, blank a field to clear it, then save.</span>';
   const set=(k,v)=>{const el=$('opt_'+k);if(el)el.value=v};set('title',cur.title);set('author',cur.author);set('subject',cur.subject);set('keywords',cur.keywords)}catch(e){view.textContent='Could not read this PDF\'s metadata — it may be damaged or password-protected.'}}
 function refreshToolInfo(){const el=$('toolInfo');if(!el||!current)return;let txt='';
@@ -394,6 +430,7 @@ function updateActionLabel(){const btn=$('processBtn');if(!btn||!current||busy)r
   btn.textContent=label;btn.classList.toggle('pulse',n>0);if(current.id!=='pdf-editor')btn.disabled=false;const pfh=$('preFileHint');if(pfh)pfh.classList.toggle('hidden',n>0)}
 async function buildVisual(){
   const seq=++visualSeq;pm=null;ed=null;pe=null;peFail=null;const w=$('visualWrap');if(!w)return;const wasHidden=w.classList.contains('hidden');w.classList.remove('hidden');w.innerHTML='<p class="vload">Rendering page previews…</p>';
+  try{await ensurePdfJs()}catch(e){if(seq===visualSeq)w.innerHTML='<p class="vload">The preview library could not be loaded — check your connection and reload the page.</p>';return}
   let pdf;try{const raw=await bytes(files[0]);pdf=await GD({data:raw.slice()}).promise}catch(e){if(seq===visualSeq){const pwErr=e&&(e.name==='PasswordException'||/password/i.test(e.message||''));
     if(current&&current.id==='pdf-editor'){peFail=pwErr?'password':'render';w.innerHTML='<p class="vload">'+(pwErr?'This PDF is password-protected, so the editor can\u2019t open it. If you know the password, take the protection off with the Unlock PDF tool first — then editing works as normal.':'Could not render a preview of this file, so the editor can\u2019t open it. The file may be damaged — the Repair PDF tool may help.')+'</p>'}
     else w.innerHTML='<p class="vload">'+(pwErr?'This PDF is password-protected. If the tool has a password field, enter it there — or take the protection off first with the Unlock PDF tool.':'Could not render previews for this file. The options below still work.')+'</p>'}return}
@@ -988,9 +1025,10 @@ $('processBtn').addEventListener('click',async()=>{
   finally{ endJob(); }
 });
 async function saveDoc(doc,name){download(new Blob([await doc.save()],{type:'application/pdf'}),name)}
-async function zipOut(items,name){if(items.length===1){download(items[0].blob,items[0].name)}else{const zip=new JSZip();items.forEach(i=>zip.file(i.name,i.blob));download(await zip.generateAsync({type:'blob'}),name)}}
+async function zipOut(items,name){await ensureZip();if(items.length===1){download(items[0].blob,items[0].name)}else{const zip=new JSZip();items.forEach(i=>zip.file(i.name,i.blob));download(await zip.generateAsync({type:'blob'}),name)}}
 async function processTool(){
   const id=current.id, f=files[0];
+  await ensureToolLibs(id);
   if(id==='merge'){const out=await PDFDocument.create();for(let fi=0;fi<files.length;fi++){const src=await PDFDocument.load(await bytes(files[fi]));(await out.copyPages(src,src.getPageIndices())).forEach(p=>out.addPage(p));tick(fi+1,files.length,'Merging PDFs')}await saveDoc(out,'pdfstow-merged.pdf');return done('Merged '+files.length+' PDFs into one file.')}
   if(id==='html-to-pdf'){const html=await f.text();const div=document.createElement('div');div.innerHTML=html;const doc=await textToPdfDoc(div.innerText||div.textContent,baseName(f));await saveDoc(doc,baseName(f)+'.pdf');return done('HTML text converted to PDF (Beta — layout simplified).')}
   if(id==='word-to-pdf'){await loadLib('mammoth');if(!window.mammoth)throw new Error('Word library failed to load — check connection and retry.');const r=await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});const doc=await textToPdfDoc(r.value,baseName(f));await saveDoc(doc,baseName(f)+'.pdf');return done('Word document converted (text-based Beta — layout simplified).')}
@@ -1154,7 +1192,10 @@ renderTools();
    needed: every in-app URL write uses replaceState, so the SPA adds no
    history entries and Back/Forward only traverse real documents — the
    restored document re-runs this same boot normalization. */
-if(!LIBS_OK)showLibFailure('A core library');
+/* (v4.7.2: the old boot-time LIBS_OK check is gone — with every library
+   lazy, "not loaded yet" is the normal state at boot. A library that
+   FAILS to load is reported by loadLib itself, in context, the moment a
+   tool actually needs it.) */
 function cleanUrl(p){try{if(/^https?:$/.test(location.protocol))history.replaceState(null,'',p);else history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
 function goTools(){$('toolView').classList.add('hidden');$('homeView').classList.remove('hidden');cleanUrl('/');const t=$('tools');if(t)t.scrollIntoView({behavior:'smooth'})}
 function routeFromHash(){if(PAGE_TOOL)return;const h=location.hash||'';const m=/^#\/([\w-]+)$/.exec(h);if(m&&TOOLS.some(t=>t.id===m[1])){if(!current||current.id!==m[1])openTool(m[1]);else cleanUrl('/'+SLUGS[m[1]]+'/')}else if(h==='#tools')goTools();else if(current&&(h===''||h==='#'))showHome()}
