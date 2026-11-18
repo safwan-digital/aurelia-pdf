@@ -1024,5 +1024,5 @@ Fresh PageSpeed run (Lighthouse 13.6.0, Nov 18 2026, 12:44 Dubai; report x8rsxba
 ## Publish set
 Version pins: v4.7.3 · ?v=54 · SW cache 'pdfstow-v4.7.3'. Changed files only (40): index.html (CSP + ?v=54), the 31 tool pages (regenerated: CSP + ?v=54), the 4 trust pages (regenerated: ?v=54 stylesheet reference only — they carry no CSP), 404.html (?v=54), sw.js (cache name + shell pins), build/generate.js (generator pins), TEST-REPORT.md. NOT in the set (byte-identical to v4.7.2): app.js, styles.css, build/tools-data.js, sitemap.xml, llms.txt, trust.html, the text-to-pdf stub, logo-icon-sm.webp. tests/ and test-materials/ stay unpublished, as before.
 
-## AFTER (post-publish): pending parent verification
-Post-publish: parent verifies the live CSP by direct fetch; Clarity recordings can only be proven by real traffic over the following hours.
+## AFTER (post-publish): LIVE-VERIFIED 2026-11-18 (commit 682c161)
+Direct fetch of the live homepage confirms the shipped policy: script-src now ends `… https://www.clarity.ms https://*.clarity.ms …` and img-src is `'self' data: blob: file: https://*.clarity.ms`. Live pins: app.js?v=54, SW 'pdfstow-v4.7.3'. The recorder itself (https://scripts.clarity.ms/0.8.77/clarity.js) returns 200 (73,892 B) and is now permitted by the live policy — the block that silently killed every recording since launch is gone. Remaining proof is traffic-side only: Clarity recordings/dashboard unlock once real sessions arrive and process (Clarity states a few hours); to be confirmed on the dashboard after Safwan's next visits.
