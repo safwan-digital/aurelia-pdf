@@ -216,6 +216,7 @@ function friendlyError(e){const m=(e&&e.message)||'';
   if(e&&e.__cancelled)return 'Cancelled — nothing was changed.';
   if(!m.trim())return 'Something went wrong with that file. Please try a different PDF — or a smaller, simpler one.';
   if(/Incorrect password|PasswordException|Invalid password/i.test(m))return 'That password didn\'t work. Check it and try again.';
+  if(/is encrypted|EncryptedPDF/i.test(m))return 'This PDF is password-protected. If you know the password, the Unlock PDF tool can take the protection off first.';
   if(/No password given/i.test(m))return 'This PDF needs its password — enter it above and try again.';
   if(m.length<140&&!/TypeError|Cannot read|Cannot access|undefined is|null is|is not a function|NetworkError|Failed to fetch|Failed to parse|Invalid PDF|No PDF header|offset|line:\s?\d|col:\s?\d|pdf-lib|EncryptedPDF|stack|https?:\/\/|fake worker|load script|importScripts/i.test(m))return m;
   return 'Something went wrong with that file. Please try a different PDF — or a smaller, simpler one.'}
@@ -350,13 +351,13 @@ function clearSig(){const c=$('sigpad');sigCtx&&sigCtx.clearRect(0,0,c.width,c.h
    pages with existing rotation are an edge limit (noted in TEST-REPORT). */
 const VISUAL_PM={'remove-pages':'remove','extract-pages':'extract','organize':'organize','rotate':'rotate'};
 const EDITOR_TOOLS=['crop','sign-pdf','edit-pdf','annotate','redact','pdf-editor'];
-let pm=null, ed=null, pe=null, visualSeq=0;
+let pm=null, ed=null, pe=null, peFail=null, visualSeq=0;
 /* clearVisual is the chokepoint where pm/ed state dies — Reset and
    last-file removal both pass through here, and renderFileList's empty
    branch never refreshes the label. Recompute the action label from the
    cleared state, or state-dependent labels (Redact's "Cover N area(s)",
    Merge's "Merge N PDFs", selection counts…) keep their stale text. */
-function clearVisual(){visualSeq++;pm=null;ed=null;pe=null;const w=$('visualWrap');if(w){w.innerHTML='';w.classList.add('hidden')}updateActionLabel()}
+function clearVisual(){visualSeq++;pm=null;ed=null;pe=null;peFail=null;const w=$('visualWrap');if(w){w.innerHTML='';w.classList.add('hidden')}updateActionLabel()}
 function onFilesChanged(){if(!current)return;const needs=VISUAL_PM[current.id]||current.id==='split'||EDITOR_TOOLS.includes(current.id);if(needs&&files.length&&/\.pdf$/i.test(files[0].name))buildVisual();else if(!files.length)clearVisual();
   if(current.id==='metadata'&&files.length)loadMetadataView();refreshToolInfo()}
 async function loadMetadataView(){const view=$('metaView');if(!view||!files.length)return;metaLoaded=false;try{const doc=await PDFDocument.load(await bytes(files[0]));const cur={title:doc.getTitle()||'',author:doc.getAuthor()||'',subject:doc.getSubject()||'',keywords:doc.getKeywords()||''};metaLoaded=true;
@@ -392,8 +393,10 @@ function updateActionLabel(){const btn=$('processBtn');if(!btn||!current||busy)r
   else if(current.id==='compare')label='Compare the 2 PDFs';
   btn.textContent=label;btn.classList.toggle('pulse',n>0);if(current.id!=='pdf-editor')btn.disabled=false;const pfh=$('preFileHint');if(pfh)pfh.classList.toggle('hidden',n>0)}
 async function buildVisual(){
-  const seq=++visualSeq;pm=null;ed=null;pe=null;const w=$('visualWrap');if(!w)return;const wasHidden=w.classList.contains('hidden');w.classList.remove('hidden');w.innerHTML='<p class="vload">Rendering page previews…</p>';
-  let pdf;try{const raw=await bytes(files[0]);pdf=await GD({data:raw.slice()}).promise}catch(e){if(seq===visualSeq)w.innerHTML='<p class="vload">Could not render previews for this file. The options below still work.</p>';return}
+  const seq=++visualSeq;pm=null;ed=null;pe=null;peFail=null;const w=$('visualWrap');if(!w)return;const wasHidden=w.classList.contains('hidden');w.classList.remove('hidden');w.innerHTML='<p class="vload">Rendering page previews…</p>';
+  let pdf;try{const raw=await bytes(files[0]);pdf=await GD({data:raw.slice()}).promise}catch(e){if(seq===visualSeq){const pwErr=e&&(e.name==='PasswordException'||/password/i.test(e.message||''));
+    if(current&&current.id==='pdf-editor'){peFail=pwErr?'password':'render';w.innerHTML='<p class="vload">'+(pwErr?'This PDF is password-protected, so the editor can\u2019t open it. If you know the password, take the protection off with the Unlock PDF tool first — then editing works as normal.':'Could not render a preview of this file, so the editor can\u2019t open it. The file may be damaged — the Repair PDF tool may help.')+'</p>'}
+    else w.innerHTML='<p class="vload">'+(pwErr?'This PDF is password-protected. If the tool has a password field, enter it there — or take the protection off first with the Unlock PDF tool.':'Could not render previews for this file. The options below still work.')+'</p>'}return}
   if(seq!==visualSeq||!current)return;
   if(VISUAL_PM[current.id])buildPageManager(pdf,VISUAL_PM[current.id]);
   else if(current.id==='split'){buildPageManager(pdf,'pick');const m=$('opt_mode');if(m)m.addEventListener('change',updateActionLabel)}
@@ -513,7 +516,7 @@ function attachStageHandlers(){
       ov.addEventListener('pointermove',move);ov.addEventListener('pointerup',up);ov.addEventListener('pointercancel',up)});return}
 }
 
-/* ================= PDF Editor (v4.7.0) =================
+/* ================= PDF Editor (v4.7.0; v4.7.1 segment edits, pinned header, keyboard) =================
    One workspace over one PDF, modelled on the big editors (Sejda,
    iLovePDF, Smallpdf, Adobe, Xodo) but with their paid walls removed:
    editing existing text is free here (it is Pro at Smallpdf, trial-
@@ -564,6 +567,28 @@ function peFontFam(fontName){const n=(fontName||'').toLowerCase();if(/courier|mo
 function peFontStd(fam,bold,ital){if(fam==='TimesRoman')return 'TimesRoman'+(bold?'Bold':'')+(ital?'Italic':'');return fam+(bold?'Bold':'')+(ital?'Oblique':'')}
 function peFontCss(fontName){const n=(fontName||'').toLowerCase();if(/courier|mono/.test(n))return "'Courier New',monospace";if(/times|roman|serif|georgia|garamond/.test(n))return "'Times New Roman',Times,serif";return 'Helvetica,Arial,sans-serif'}
 function peFontName(pg,it){try{const o=pg.commonObjs.get(it.fontName);if(o&&o.name)return o.name}catch(e){}return ''}
+/* pdf-lib's standard fonts print WinAnsi (CP1252) characters only.
+   Words in scripts outside it (Arabic, Chinese, most emoji…) cannot
+   be re-typed: drawing them would throw at save time and lose every
+   change in that save. The editor checks BEFORE an op is made and
+   says so in plain words instead (v4.7.1 matrix find). */
+const PE_WINANSI_EXTRA='€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ';
+function peEncodable(s){if(!s)return true;for(const ch of s){const c=ch.codePointAt(0);if(c===9||c===10||c===13)continue;if(c>=0x20&&c<=0x7E)continue;if(c>=0xA0&&c<=0xFF)continue;if(PE_WINANSI_EXTRA.indexOf(ch)>=0)continue;return false}return true}
+/* Right-to-left scripts (Hebrew, Arabic and their presentation forms).
+   PDFs usually store RTL text as glyphs in VISUAL order, often as
+   Arabic presentation-form code points, so a naive left-to-right read
+   scrambles the words and search words typed normally never match.
+   peComputeLines assembles RTL fields in reading order (mirrored x),
+   and peLogical maps presentation forms back to plain letters (NFKC)
+   so Find & Replace and the field editor work with the words as a
+   person reads them. Re-typing the result is still gated by
+   peEncodable: an edit that keeps any RTL wording is
+   skipped/reported, never drawn broken. */
+const PE_RTL_RE=/[\u0590-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+/* peComputeLines assembles RTL fields in reading order (below); what
+   remains non-plain about them is the presentation-form code points,
+   which NFKC maps back to ordinary letters for reading and search. */
+function peLogical(t){return String(t).normalize('NFKC')}
 function peFrac(e){const r=$('peOverlay').getBoundingClientRect();return{fx:Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),fy:Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))}}
 let peSeq=0;
 /* Median of the edge pixels of a page-fraction rect, sampled from a
@@ -572,12 +597,15 @@ function peSampleFrom(cv,fx,fy,fw,fh,pw,ph){try{const g=cv.getContext('2d');cons
   for(let x=0;x<w;x++){ring(x,0);if(h>2)ring(x,h-1)}for(let y=1;y<h-1;y++){ring(0,y);if(w>2)ring(w-1,y)}
   if(!pts.length)return[1,1,1];const med=ch=>{const a=pts.map(p=>p[ch]).sort((a,b)=>a-b);return a[a.length>>1]/255};return[med(0),med(1),med(2)]}catch(e){return[1,1,1]}}
 function buildPdfEditor(pdf){
-  pe={pdf,count:pdf.numPages,page:0,pageW:0,pageH:0,mode:'edit',ops:[],redo:[],sel:-1,lines:[],hasText:false,mostSize:12,lineCache:{},zoom:1,pn:{on:false,pos:'bottom-center',start:1},txt:{text:'',size:18,color:0,bold:false,sizeTouched:false},mark:{style:'highlight',hl:0,line:0},shape:{kind:'rect',color:0,width:1.5},draw:{color:0,width:2},stamp:0,editLine:-1,editFmt:null};
+  pe={pdf,count:pdf.numPages,page:0,pageW:0,pageH:0,mode:'edit',ops:[],redo:[],sel:-1,lines:[],hasText:false,mostSize:12,lineCache:{},zoom:1,rot:0,rotCache:{},pn:{on:false,pos:'bottom-center',start:1},txt:{text:'',size:18,color:0,bold:false,sizeTouched:false},mark:{style:'highlight',hl:0,line:0},shape:{kind:'rect',color:0,width:1.5},draw:{color:0,width:2},stamp:0,editLine:-1,editFmt:null};
   const modes=PE_MODES.map(m=>`<button type="button" class="pe-tool${m.id==='edit'?' sel':''}" data-pemode="${m.id}" aria-pressed="${m.id==='edit'}">${icon(m.icon,17)} ${m.label}</button>`).join('');
-  $('visualWrap').innerHTML=`<div class="pm pe"><div class="pe-tools" role="toolbar" aria-label="Editor tools">${modes}<button type="button" class="pe-tool" id="pePnBtn" aria-pressed="false">${icon('hash',17)} Page numbers</button><span class="pe-spacer"></span><button type="button" class="pe-tool" id="peUndo">${icon('rotate-ccw',17)} Undo</button><button type="button" class="pe-tool" id="peRedo">${icon('rotate-cw',17)} Redo</button><span class="pe-count" id="peCount">0 changes</span></div><div class="pe-modebar" id="peModeBar"></div><div class="pe-pn hidden" id="pePn"></div><div class="pm-toolbar"><strong>Page preview</strong><span class="pm-nav"><button type="button" class="chipbtn wide" id="peZoomOut" aria-label="Zoom out">${icon('minimize-2',15)}</button><span id="peZoomPct" class="pm-info">100%</span><button type="button" class="chipbtn wide" id="peZoomIn" aria-label="Zoom in">${icon('plus',15)}</button></span><span class="pm-nav"><button type="button" class="chipbtn wide" id="pePrev">${icon('chevron-left',15)} Prev</button><span id="pePageInfo" class="pm-info"></span><button type="button" class="chipbtn wide" id="peNext">Next ${icon('chevron-right',15)}</button></span></div><div class="pe-zoomwrap"><div class="stage" id="peStage"><canvas id="peCanvas"></canvas><div id="peOverlay"></div></div></div><input type="file" id="peImgFile" accept="image/png,image/jpeg" class="hidden"></div>`;
+  $('visualWrap').innerHTML=`<div class="pm pe"><div class="pe-head"><button type="button" class="pe-tool" id="peUndoH">${icon('rotate-ccw',17)} Undo</button><button type="button" class="pe-tool" id="peRedoH">${icon('rotate-cw',17)} Redo</button><span class="pe-count" id="peCountH">0 changes</span><span class="pe-spacer"></span><button type="button" class="btn sm" id="peSaveH">Save edited PDF</button></div><div class="pe-rotwarn hidden" id="peRotWarn">${icon('triangle-alert',15)}<span>This page is rotated — editing and placing are paused on rotated pages, so nothing can land in the wrong place. Other pages work as normal.</span></div><div class="pe-tools" role="toolbar" aria-label="Editor tools">${modes}<button type="button" class="pe-tool" id="pePnBtn" aria-pressed="false">${icon('hash',17)} Page numbers</button><span class="pe-spacer"></span><button type="button" class="pe-tool" id="peUndo">${icon('rotate-ccw',17)} Undo</button><button type="button" class="pe-tool" id="peRedo">${icon('rotate-cw',17)} Redo</button><span class="pe-count" id="peCount">0 changes</span></div><p class="pm-hint pe-keys">${icon('keyboard',14)}<span>Shortcuts: Ctrl+Z undo · Ctrl+Shift+Z redo · Ctrl+C / Ctrl+V copy &amp; paste · Delete removes the selected item</span></p><div class="pe-modebar" id="peModeBar"></div><div class="pe-pn hidden" id="pePn"></div><div class="pm-toolbar"><strong>Page preview</strong><span class="pm-nav"><button type="button" class="chipbtn wide" id="peZoomOut" aria-label="Zoom out">${icon('minimize-2',15)}</button><span id="peZoomPct" class="pm-info">100%</span><button type="button" class="chipbtn wide" id="peZoomIn" aria-label="Zoom in">${icon('plus',15)}</button></span><span class="pm-nav"><button type="button" class="chipbtn wide" id="pePrev">${icon('chevron-left',15)} Prev</button><span id="pePageInfo" class="pm-info"></span><button type="button" class="chipbtn wide" id="peNext">Next ${icon('chevron-right',15)}</button></span></div><div class="pe-zoomwrap"><div class="stage" id="peStage"><canvas id="peCanvas"></canvas><div id="peOverlay"></div></div></div><input type="file" id="peImgFile" accept="image/png,image/jpeg" class="hidden"></div>`;
   document.querySelectorAll('[data-pemode]').forEach(b=>b.addEventListener('click',()=>peSetMode(b.dataset.pemode)));
-  $('peUndo').addEventListener('click',()=>{if(!pe||!pe.ops.length)return;pe.redo.push(pe.ops.pop());pe.sel=-1;pe.editLine=-1;peDrawOverlay();if(pe.mode==='edit')peRenderModeBar();peSyncCount()});
-  $('peRedo').addEventListener('click',()=>{if(!pe||!pe.redo.length)return;pe.ops.push(pe.redo.pop());pe.sel=-1;peDrawOverlay();peSyncCount()});
+  $('peUndo').addEventListener('click',peDoUndo);
+  $('peRedo').addEventListener('click',peDoRedo);
+  $('peUndoH').addEventListener('click',peDoUndo);
+  $('peRedoH').addEventListener('click',peDoRedo);
+  $('peSaveH').addEventListener('click',()=>{const b=$('processBtn');if(b&&!b.disabled)b.click()});
   $('pePnBtn').addEventListener('click',()=>{const p=$('pePn');if(!p)return;const opening=p.classList.contains('hidden');p.classList.toggle('hidden',!opening);$('pePnBtn').classList.toggle('sel',opening);if(opening)peRenderPn()});
   $('pePrev').addEventListener('click',()=>peNav(-1));$('peNext').addEventListener('click',()=>peNav(1));
   $('peZoomIn').addEventListener('click',()=>peSetZoom(pe.zoom+.25));$('peZoomOut').addEventListener('click',()=>peSetZoom(pe.zoom-.25));
@@ -588,7 +616,16 @@ function peShowSig(){const sw=$('sigWrap'),vw=$('visualWrap');if(sw&&vw&&vw.pare
 function peSetMode(m){if(!pe)return;pe.mode=m;pe.editLine=-1;document.querySelectorAll('[data-pemode]').forEach(b=>{const on=b.dataset.pemode===m;b.classList.toggle('sel',on);b.setAttribute('aria-pressed',on?'true':'false')});if(m==='sign')peShowSig();peRenderModeBar();peDrawOverlay()}
 function peNav(d){if(!pe)return;const np=Math.min(pe.count-1,Math.max(0,pe.page+d));if(np===pe.page)return;pe.page=np;pe.editLine=-1;pe.sel=-1;peRenderPage()}
 function peSetZoom(z){if(!pe)return;const nz=Math.min(2,Math.max(.5,Math.round(z*4)/4));if(nz===pe.zoom)return;pe.zoom=nz;const el=$('peZoomPct');if(el)el.textContent=Math.round(nz*100)+'%';peRenderPage()}
-function peSyncCount(){if(!pe)return;const n=pe.ops.length+(pe.pn.on?1:0);const el=$('peCount');if(el)el.textContent=pe.ops.length+' change'+(pe.ops.length===1?'':'s')+(pe.pn.on?' · page numbers on':'');const u=$('peUndo'),r=$('peRedo');if(u)u.disabled=!pe.ops.length;if(r)r.disabled=!pe.redo.length;const pb=$('processBtn');if(pb)pb.disabled=n===0}
+/* Undo/Redo live in TWO places (v4.7.1): the pinned header row —
+   always visible, even on a phone — and the end of the scrolling
+   toolbar. In v4.7.0 they existed ONLY at the toolbar's end, off-
+   screen on phones, so users reasonably concluded they did not
+   exist. Both copies call these functions, and peSyncCount keeps
+   every copy (and both Save buttons) in sync. Undo/Redo cover EVERY
+   op type uniformly, text edits included. */
+function peDoUndo(){if(!pe||!pe.ops.length)return;pe.redo.push(pe.ops.pop());pe.sel=-1;pe.editLine=-1;peDrawOverlay();if(pe.mode==='edit')peRenderModeBar();peSyncCount()}
+function peDoRedo(){if(!pe||!pe.redo.length)return;pe.ops.push(pe.redo.pop());pe.sel=-1;pe.editLine=-1;peDrawOverlay();if(pe.mode==='edit')peRenderModeBar();peSyncCount()}
+function peSyncCount(){if(!pe)return;const n=pe.ops.length+(pe.pn.on?1:0);const label=pe.ops.length+' change'+(pe.ops.length===1?'':'s')+(pe.pn.on?' · page numbers on':'');const el=$('peCount');if(el)el.textContent=label;const elh=$('peCountH');if(elh)elh.textContent=label;const u=$('peUndo'),r=$('peRedo'),uh=$('peUndoH'),rh=$('peRedoH');if(u)u.disabled=!pe.ops.length;if(r)r.disabled=!pe.redo.length;if(uh)uh.disabled=!pe.ops.length;if(rh)rh.disabled=!pe.redo.length;const sh=$('peSaveH');if(sh)sh.disabled=n===0;const pb=$('processBtn');if(pb)pb.disabled=n===0}
 function pePushOp(op,select){if(!pe)return;pe.ops.push(op);pe.redo=[];pe.sel=select===false?-1:pe.ops.length-1;peDrawOverlay();peSyncCount()}
 function peRenderPn(){if(!pe)return;const p=$('pePn');if(!p)return;
   p.innerHTML=`<div class="pe-row"><div class="field"><label class="checkline"><input type="checkbox" id="pePnOn" ${pe.pn.on?'checked':''}> Add page numbers when saving</label></div><div class="field"><label for="pePnPos">Position</label><select id="pePnPos"><option value="bottom-center" ${pe.pn.pos==='bottom-center'?'selected':''}>Bottom center</option><option value="bottom-left" ${pe.pn.pos==='bottom-left'?'selected':''}>Bottom left</option><option value="bottom-right" ${pe.pn.pos==='bottom-right'?'selected':''}>Bottom right</option></select></div><div class="field"><label for="pePnStart">Start at</label><input type="number" id="pePnStart" min="0" max="9999" value="${pe.pn.start}"></div></div><p class="pm-hint">Numbers are stamped on every page when you save — they are not placed by hand.</p>`;
@@ -600,8 +637,9 @@ function peWireDots(bar,attr,fn){bar.querySelectorAll('[data-'+attr+']').forEach
 function peRenderModeBar(){
   if(!pe)return;const bar=$('peModeBar');if(!bar)return;const m=pe.mode;
   if(m==='edit'){
-    if(pe.editLine>=0&&pe.lines[pe.editLine]&&pe.editFmt){const l=pe.lines[pe.editLine];const f=pe.editFmt;const oi=pe.ops.findIndex(o=>o.type==='edit'&&o.page===pe.page&&o.lineIdx===pe.editLine);const cur=oi>=0?pe.ops[oi].newText:l.text;
-      bar.innerHTML=`<div class="pe-row"><div class="field grow"><label for="peEditInput">Change this line <span class="pm-hint">— font: ${esc(l.fontName||'standard')}, matched as closely as possible</span></label><input id="peEditInput" type="text" value="${esc(cur).replace(/"/g,'&quot;')}"></div><button type="button" class="btn sm" id="peEditUse">Use new text</button>${oi>=0?'<button type="button" class="btn secondary sm" id="peEditRemove">Remove this edit</button>':''}<button type="button" class="btn secondary sm" id="peEditCancel">Cancel</button></div><div class="pe-row" style="margin-top:8px"><span class="pe-step"><button type="button" class="pe-stepbtn" id="peSizeDown" aria-label="Smaller text">−</button><span class="pm-info" id="peSizeVal">${f.size} pt</span><button type="button" class="pe-stepbtn" id="peSizeUp" aria-label="Bigger text">+</button></span><button type="button" class="pe-chip ${f.bold?'sel':''}" id="peFmtBold" aria-pressed="${f.bold}">Bold</button><button type="button" class="pe-chip ${f.italic?'sel':''}" id="peFmtItalic" aria-pressed="${f.italic}">Italic</button><span class="sigrow">${peColorDots(PE_TXT_COLORS,f.color,'pefmtcolor')}</span></div>`;
+    if(pe.rot){bar.innerHTML='<p class="pm-hint">This page is rotated '+pe.rot+'&deg;. Editing and placing are paused on rotated pages, so nothing can land in the wrong place — the other pages of this file work as normal.</p>';return}
+    if(pe.editLine>=0&&pe.lines[pe.editLine]&&pe.editFmt){const l=pe.lines[pe.editLine];const f=pe.editFmt;const oi=pe.ops.findIndex(o=>o.type==='edit'&&o.page===pe.page&&o.lineIdx===pe.editLine);const cur=oi>=0?pe.ops[oi].newText:(PE_RTL_RE.test(l.text)?peLogical(l.text):l.text);
+      bar.innerHTML=`<div class="pe-row"><div class="field grow"><label for="peEditInput">Change this field <span class="pm-hint">— font: ${esc(l.fontName||'standard')}, matched as closely as possible</span></label><input id="peEditInput" type="text" value="${esc(cur).replace(/"/g,'&quot;')}"></div><button type="button" class="btn sm" id="peEditUse">Use new text</button>${oi>=0?'<button type="button" class="btn secondary sm" id="peEditRemove">Remove this edit</button>':''}<button type="button" class="btn secondary sm" id="peEditCancel">Cancel</button></div><div class="pe-row" style="margin-top:8px"><span class="pe-step"><button type="button" class="pe-stepbtn" id="peSizeDown" aria-label="Smaller text">−</button><span class="pm-info" id="peSizeVal">${f.size} pt</span><button type="button" class="pe-stepbtn" id="peSizeUp" aria-label="Bigger text">+</button></span><button type="button" class="pe-chip ${f.bold?'sel':''}" id="peFmtBold" aria-pressed="${f.bold}">Bold</button><button type="button" class="pe-chip ${f.italic?'sel':''}" id="peFmtItalic" aria-pressed="${f.italic}">Italic</button><span class="sigrow">${peColorDots(PE_TXT_COLORS,f.color,'pefmtcolor')}</span></div>${!peEncodable(l.text)?'<p class="pm-hint" style="margin-top:8px">This field is in a script the editor\u2019s standard fonts can\u2019t re-type (such as Arabic). You can replace it with Latin-letter wording, or Cancel and cover it instead.</p>':''}`;
       $('peEditUse').addEventListener('click',peUseEdit);
       const rm=$('peEditRemove');if(rm)rm.addEventListener('click',()=>{const ix=pe.ops.findIndex(o=>o.type==='edit'&&o.page===pe.page&&o.lineIdx===pe.editLine);if(ix>=0){pe.ops.splice(ix,1);pe.redo=[]}pe.editLine=-1;peRenderModeBar();peDrawOverlay();peSyncCount()});
       $('peEditCancel').addEventListener('click',()=>{pe.editLine=-1;peRenderModeBar();peDrawOverlay()});
@@ -612,7 +650,7 @@ function peRenderModeBar(){
       $('peFmtItalic').addEventListener('click',e=>{f.italic=!f.italic;e.currentTarget.classList.toggle('sel',f.italic);e.currentTarget.setAttribute('aria-pressed',f.italic?'true':'false')});
       peWireDots(bar,'pefmtcolor',i=>{f.color=i});
       return}
-    bar.innerHTML=pe.hasText?'<p class="pm-hint">Tap a line to change its words. Editing is line by line — everything else on the page stays exactly as it is. Edits cover the old words: hidden, not erased. To remove sensitive text for good, use the Redact PDF tool.</p>':'<p class="pm-hint">This page is a scanned picture, so its words can\'t be edited. Add text, images, highlights and signatures still work on it.</p>';return}
+    bar.innerHTML=pe.hasText?'<p class="pm-hint">Tap a field to change its words. Editing is field by field — everything else on the page stays exactly as it is. Edits cover the old words: hidden, not erased. To remove sensitive text for good, use the Redact PDF tool.</p>':'<p class="pm-hint">This page is a scanned picture, so its words can\'t be edited. Add text, images, highlights and signatures still work on it.</p>';return}
   if(m==='text'){
     if(!pe.txt.sizeTouched)pe.txt.size=pe.mostSize||12;
     bar.innerHTML=`<div class="pe-row"><div class="field grow"><label for="peTxtInput">Text to add</label><input id="peTxtInput" type="text" placeholder="Type the text, then tap the page" value="${esc(pe.txt.text).replace(/"/g,'&quot;')}"></div><div class="field"><label for="peTxtSize">Size</label><select id="peTxtSize">${[10, 12, 14, 18, 24, 30, 36].map(s=>`<option value="${s}" ${s===pe.txt.size?'selected':''}>${s} pt</option>`).join('')}</select></div><div class="field"><label>Color</label><div class="sigrow" style="margin-top:2px">${peColorDots(PE_TXT_COLORS,pe.txt.color,'pecolor')}</div></div><div class="field"><label class="checkline"><input type="checkbox" id="peTxtBold" ${pe.txt.bold?'checked':''}> Bold</label></div></div><p class="pm-hint">Type the text, then tap the page where it should start — one tap places it. The starting size matches this page's own text. Tap placed text to move it, or use Duplicate / Delete above it.</p>`;
@@ -640,7 +678,7 @@ function peRenderModeBar(){
     bar.innerHTML=`<div class="pe-row">${PE_STAMPS.map((s,i)=>`<button type="button" class="pe-chip pe-stampchip ${i===pe.stamp?'sel':''}" data-pestamp="${i}" style="color:${s.css};border-color:${s.css}">${s.text}</button>`).join('')}</div><p class="pm-hint">Pick a stamp, then tap the page to place it. Drag to move it; resize it from the corner dot.</p>`;
     bar.querySelectorAll('[data-pestamp]').forEach(b=>b.addEventListener('click',()=>{pe.stamp=parseInt(b.dataset.pestamp);peRenderModeBar()}));return}
   if(m==='find'){
-    bar.innerHTML=`<div class="pe-row"><div class="field grow"><label for="peFindText">Find</label><input id="peFindText" type="text" placeholder="Words to find, exactly as written"></div><div class="field grow"><label for="peReplaceText">Replace with</label><input id="peReplaceText" type="text" placeholder="New wording"></div><button type="button" class="btn sm" id="peFindGo">Replace all</button></div><p class="pm-hint">Searches the words on every page and re-types each line that contains them — every changed line counts as one edit, and Undo can take them back. Exact match, case-sensitive. <span id="peFindResult" style="font-weight:700"></span></p>`;
+    bar.innerHTML=`<div class="pe-row"><div class="field grow"><label for="peFindText">Find</label><input id="peFindText" type="text" placeholder="Words to find, exactly as written"></div><div class="field grow"><label for="peReplaceText">Replace with</label><input id="peReplaceText" type="text" placeholder="New wording"></div><button type="button" class="btn sm" id="peFindGo">Replace all</button></div><p class="pm-hint">Searches the words on every page and re-types each field that contains them — every changed field counts as one edit, and Undo can take them back. Exact match, case-sensitive. <span id="peFindResult" style="font-weight:700"></span></p>`;
     $('peFindGo').addEventListener('click',peFindReplace);return}
   bar.innerHTML='';
 }
@@ -650,6 +688,12 @@ async function peRenderPage(){
   const pv=$('pePrev'),nx=$('peNext');if(pv)pv.disabled=pageIdx<=0;if(nx)nx.disabled=pageIdx>=pe.count-1;
   let pg;try{pg=await pe.pdf.getPage(pageIdx+1)}catch(e){return}
   if(!pe||seq!==peSeq)return;
+  /* Rotated pages (v4.7.1): placement math assumes rotation 0 — on a
+     rotated page, edits would land in the wrong place SILENTLY. The
+     editor now detects the rotation, shows a banner, and pauses
+     editing/placing on that page instead of guessing. */
+  pe.rot=pg.rotate||0;pe.rotCache[pageIdx]=pe.rot;
+  const rw=$('peRotWarn');if(rw)rw.classList.toggle('hidden',pe.rot===0);
   const base=pg.getViewport({scale:1});pe.pageW=base.width;pe.pageH=base.height;
   const wrap=$('visualWrap');const targetW=Math.min(960,Math.max(280,(wrap?wrap.clientWidth:960)-16))*pe.zoom;const dpr=Math.min(2,window.devicePixelRatio||1);const vp=pg.getViewport({scale:(targetW/base.width)*dpr});
   const c=$('peCanvas');if(!c)return;c.width=vp.width;c.height=vp.height;c.style.width=(vp.width/dpr)+'px';c.style.height=(vp.height/dpr)+'px';
@@ -667,10 +711,52 @@ function peComputeLines(tc){
   tc.items.forEach(it=>{if(typeof it.str!=='string')return;const size=Math.hypot(it.transform[1],it.transform[3])||Math.abs(it.transform[0])||10;raw.push({str:it.str,x:it.transform[4],base:it.transform[5],w:it.width||0,size,fontName:it._fontName||''})});
   const grouped=[];
   raw.forEach(r=>{if(!r.str.trim()&&!r.w)return;let line=grouped.find(l=>Math.abs(l.base-r.base)<=Math.max(2,r.size*.4));if(!line){line={base:r.base,size:r.size,fontName:r.fontName,items:[]};grouped.push(line)}line.items.push(r);if(r.size>line.size){line.size=r.size;line.fontName=r.fontName}});
+  /* V4.7.1 — SEGMENTS: each baseline group is split into separately
+     editable FIELDS wherever the layout itself separates them: a
+     horizontal gap wider than 1.0x the font size (a column gap —
+     normal word spaces are ~0.3em, well clear of the threshold), or
+     a font-size change over 20% between neighbours. A receipt row
+     like "Student Name | Abu Mohammed Safwan | Mobile No | +91..." is
+     therefore four tappable fields, not one line, and editing one
+     field covers and re-types only that field's own rectangle — the
+     rest of the row is never redrawn. (In this codebase a "line"
+     object IS one segment; lineIdx indexes segments.) */
   const lines=[];
-  grouped.forEach(l=>{l.items.sort((a,b)=>a.x-b.x);let text='',endX=null;l.items.forEach(r=>{if(endX!==null&&r.x-endX>l.size*.25&&!/\s$/.test(text)&&!/^\s/.test(r.str))text+=' ';text+=r.str;if(endX===null||r.x+r.w>endX)endX=r.x+r.w});
-    if(!text.trim())return;const x0=Math.min(...l.items.map(r=>r.x)),x1=Math.max(...l.items.map(r=>r.x+r.w));const top=l.base+l.size*.85,bot=l.base-l.size*.3;
-    lines.push({text,base:l.base,size:l.size,fontName:l.fontName,fx:x0/pe.pageW,fw:Math.max(.008,(x1-x0)/pe.pageW),fTop:(pe.pageH-top)/pe.pageH,fh:(top-bot)/pe.pageH,fBase:(pe.pageH-l.base)/pe.pageH,cover:null})});
+  grouped.forEach(l=>{
+    /* RTL fields (Arabic, Hebrew): the text layer stores glyphs in
+       visual order, so reading order is x DESCENDING. Mirror the x
+       axis for RTL-dominant groups and the whole segment pipeline —
+       sorting, gap splits, space rebuilding — works unchanged in
+       reading order; geometry is un-mirrored when the line is built.
+       Without this, an Arabic field's words come out scrambled and
+       Find & Replace can never match words as a person types them. */
+    const joinedAll=l.items.map(r=>r.str).join('');let rc=0;for(const ch of joinedAll)if(PE_RTL_RE.test(ch))rc++;
+    const rtl=joinedAll.length>0&&rc/joinedAll.length>.3;
+    const items=rtl?l.items.map(r=>({str:r.str,x:-r.x-r.w,w:r.w,size:r.size,fontName:r.fontName,base:r.base})):l.items;
+    items.sort((a,b)=>a.x-b.x);
+    const segs=[];let cur=null;
+    const flush=()=>{if(cur)segs.push(cur);cur=null};
+    items.forEach(r=>{
+      /* Whitespace-only items are layout filler, never field content:
+         wkhtmltopdf emits space runs whose width SPANS the column gap
+         (one measured 120pt wide), so counting them would bridge every
+         field back into one line. They never start, extend or split a
+         segment; word spaces inside a segment are rebuilt from the ink
+         items' geometry when the segment text is joined. */
+      if(!r.str.trim())return;
+      if(cur){const gap=r.x-cur.end;const ref=Math.max(cur.size,r.size);
+        if(gap>ref||Math.abs(r.size-cur.size)/ref>.2)flush()}
+      if(!cur)cur={base:l.base,size:r.size,fontName:r.fontName,items:[],end:r.x+r.w};
+      cur.items.push(r);if(r.x+r.w>cur.end)cur.end=r.x+r.w;
+      if(r.size>cur.size){cur.size=r.size;cur.fontName=r.fontName}});
+    flush();
+    segs.forEach(sg=>{let text='',endX=null;sg.items.forEach(r=>{if(endX!==null&&r.x-endX>sg.size*.25&&!/\s$/.test(text)&&!/^\s/.test(r.str))text+=' ';text+=r.str;if(endX===null||r.x+r.w>endX)endX=r.x+r.w});
+      /* Invisible bidi / zero-width controls (Chromium-printed RTL
+         files embed them) are formatting, not words — never re-type
+         them into the saved file. */
+      text=text.replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g,'');
+      if(!text.trim())return;const mx0=Math.min(...sg.items.map(r=>r.x)),mx1=Math.max(...sg.items.map(r=>r.x+r.w));const x0=rtl?-mx1:mx0,x1=rtl?-mx0:mx1;const top=sg.base+sg.size*.85,bot=sg.base-sg.size*.3;
+      lines.push({text,base:sg.base,size:sg.size,fontName:sg.fontName,fx:x0/pe.pageW,fw:Math.max(.008,(x1-x0)/pe.pageW),fTop:(pe.pageH-top)/pe.pageH,fh:(top-bot)/pe.pageH,fBase:(pe.pageH-sg.base)/pe.pageH,cover:null})})});
   lines.sort((a,b)=>b.base-a.base);
   return lines;
 }
@@ -678,6 +764,7 @@ function peMostSize(lines){if(!lines.length)return 12;const freq={};lines.forEac
 async function peBuildLines(pg,pageIdx){
   if(!pe)return;const cached=pe.lineCache[pageIdx];if(cached){pe.lines=cached.lines;pe.hasText=cached.hasText;pe.mostSize=cached.mostSize;return}
   let lines=[],hasText=false,mostSize=12;
+  if((pg.rotate||0)!==0){if(pe){pe.lineCache[pageIdx]={lines:[],hasText:false,mostSize:12,rot:pg.rotate};if(pe.page===pageIdx){pe.lines=[];pe.hasText=false;pe.mostSize=12}}return}
   try{const tc=await pg.getTextContent();tc.items.forEach(it=>{it._fontName=peFontName(pg,it)});lines=peComputeLines(tc);hasText=lines.length>0;mostSize=peMostSize(lines);
     if(hasText){const cv=$('peCanvas');if(cv)lines.forEach(l=>{l.cover=peSampleFrom(cv,l.fx,l.fTop,l.fw,l.fh,pe.pageW,pe.pageH)})}
   }catch(e){lines=[];hasText=false}
@@ -686,15 +773,17 @@ async function peBuildLines(pg,pageIdx){
 /* Lines for any page (Find & Replace): renders that page offscreen at
    scale 1.5 so its cover colours are sampled from the right page. */
 async function peLinesForPage(i){
-  if(!pe)return[];if(i===pe.page)return pe.lines;const cached=pe.lineCache[i];if(cached)return cached.lines;
-  const pg=await pe.pdf.getPage(i+1);const vp=pg.getViewport({scale:1});const save={w:pe.pageW,h:pe.pageH};pe.pageW=vp.width;pe.pageH=vp.height;
+  if(!pe)return{lines:[],rotated:false};if(i===pe.page)return{lines:pe.lines,rotated:pe.rot!==0};const cached=pe.lineCache[i];if(cached)return{lines:cached.lines,rotated:!!cached.rot};
+  const pg=await pe.pdf.getPage(i+1);const rot=pg.rotate||0;if(pe)pe.rotCache[i]=rot;
+  if(rot){if(pe)pe.lineCache[i]={lines:[],hasText:false,mostSize:12,rot};return{lines:[],rotated:true}}
+  const vp=pg.getViewport({scale:1});const save={w:pe.pageW,h:pe.pageH};pe.pageW=vp.width;pe.pageH=vp.height;
   let lines=[];
   try{const tc=await pg.getTextContent();tc.items.forEach(it=>{it._fontName=peFontName(pg,it)});lines=peComputeLines(tc);
     if(lines.length){const v2=pg.getViewport({scale:1.5});const cv=document.createElement('canvas');cv.width=v2.width;cv.height=v2.height;try{await pg.render({canvasContext:cv.getContext('2d'),viewport:v2}).promise;lines.forEach(l=>{l.cover=peSampleFrom(cv,l.fx,l.fTop,l.fw,l.fh,vp.width,vp.height)})}catch(e){lines.forEach(l=>{l.cover=[1,1,1]})}}
   }catch(e){lines=[]}
   pe.pageW=save.w;pe.pageH=save.h;
-  if(pe)pe.lineCache[i]={lines,hasText:lines.length>0,mostSize:peMostSize(lines)};
-  return lines;
+  if(pe)pe.lineCache[i]={lines,hasText:lines.length>0,mostSize:peMostSize(lines),rot:0};
+  return{lines,rotated:false};
 }
 function peMakeEditOp(pageIdx,l,lineIdx,newText,fmt){
   const fam=peFontFam(l.fontName);const bold=fmt?fmt.bold:/bold/i.test(l.fontName||'');const ital=fmt?fmt.italic:/italic|oblique/i.test(l.fontName||'');const col=fmt?PE_TXT_COLORS[fmt.color]:PE_TXT_COLORS[0];
@@ -704,6 +793,7 @@ function peSelectLine(li){if(!pe)return;const l=pe.lines[li];if(!l)return;pe.edi
   pe.editFmt={size:ex?ex.size:Math.max(6,Math.round(l.size)),bold:ex?ex.bold:/bold/i.test(l.fontName||''),italic:ex?ex.italic:/italic|oblique/i.test(l.fontName||''),color:ex?Math.max(0,PE_TXT_COLORS.findIndex(c=>c.css===ex.css)):0};
   peRenderModeBar();peDrawOverlay()}
 function peUseEdit(){if(!pe||pe.editLine<0||!pe.editFmt)return;const l=pe.lines[pe.editLine];if(!l)return;const inp=$('peEditInput');const nt=(inp?inp.value:'').replace(/\s*\n\s*/g,' ').trim();if(!nt){toast('Type the new wording — or choose “Remove this edit” / Cancel.');return}
+  if(!peEncodable(nt)){toast('That wording uses characters the editor\u2019s standard fonts can\u2019t print — scripts like Arabic or Chinese can\u2019t be re-typed here. Latin-letter wording works.');return}
   const oi=pe.ops.findIndex(o=>o.type==='edit'&&o.page===pe.page&&o.lineIdx===pe.editLine);
   const op=peMakeEditOp(pe.page,l,pe.editLine,nt,pe.editFmt);
   if(oi>=0){pe.ops[oi]=op;pe.redo=[]}else pe.ops.push(op);
@@ -711,15 +801,20 @@ function peUseEdit(){if(!pe||pe.editLine<0||!pe.editFmt)return;const l=pe.lines[
 async function peFindReplace(){
   if(!pe)return;const fEl=$('peFindText'),rEl=$('peReplaceText'),res=$('peFindResult');const find=fEl?fEl.value:'';const repl=rEl?rEl.value:'';
   if(!find){toast('Type the words to find first.');return}
-  let updated=0;
-  for(let i=0;i<pe.count;i++){const lines=await peLinesForPage(i);if(!pe)return;
-    lines.forEach((l,li)=>{if(!l.text.includes(find))return;const nt=l.text.split(find).join(repl);if(nt===l.text)return;
+  let updated=0,skipped=0,rotSkipped=0;
+  for(let i=0;i<pe.count;i++){const got=await peLinesForPage(i);if(!pe)return;if(got.rotated){rotSkipped++;continue}
+    got.lines.forEach((l,li)=>{const rtl=PE_RTL_RE.test(l.text);const hay=rtl?peLogical(l.text):l.text;const ndl=rtl?find.normalize('NFKC'):find;if(!hay.includes(ndl))return;const nt=hay.split(ndl).join(repl);if(nt===hay)return;
+      /* A hit whose RESULT still can't be printed by the standard
+         fonts (e.g. one word replaced inside an Arabic field) is
+         skipped and reported — never saved as a broken edit. */
+      if(!peEncodable(nt)){skipped++;return}
       const oi=pe.ops.findIndex(o=>o.type==='edit'&&o.page===i&&o.lineIdx===li);
       const op=peMakeEditOp(i,l,li,nt,null);
       if(oi>=0)pe.ops[oi]=op;else pe.ops.push(op);updated++})}
   pe.redo=[];pe.sel=-1;peDrawOverlay();peSyncCount();
-  if(res)res.textContent=updated?updated+' line'+(updated===1?'':'s')+' updated.':'No matches found.';
-  toast(updated?('Find & Replace: '+updated+' line'+(updated===1?'':'s')+' updated.'):'Find & Replace: no matches found.')}
+  const notes=[];if(skipped)notes.push(skipped+' field'+(skipped===1?'':'s')+' skipped — that script can\u2019t be re-typed');if(rotSkipped)notes.push('rotated pages are not searched');
+  if(res)res.textContent=updated?updated+' field'+(updated===1?'':'s')+' updated.'+(notes.length?' ('+notes.join('; ')+')':''):(notes.length?'No fields updated ('+notes.join('; ')+').':'No matches found.');
+  toast(updated?('Find & Replace: '+updated+' field'+(updated===1?'':'s')+' updated.'):'Find & Replace: no fields updated.')}
 function peOpBBox(op){
   if(op.type==='text')return{fx:op.fx,fy:op.fBase-(op.size/Math.max(1,pe.pageH))*1.05,fw:.2,fh:(op.size/Math.max(1,pe.pageH))*1.3};
   if(op.type==='draw'){let x0=1,y0=1,x1=0,y1=0;op.points.forEach(p=>{x0=Math.min(x0,p[0]);y0=Math.min(y0,p[1]);x1=Math.max(x1,p[0]);y1=Math.max(y1,p[1])});return{fx:x0,fy:y0,fw:Math.max(.01,x1-x0),fh:Math.max(.01,y1-y0)}}
@@ -765,11 +860,49 @@ function peDrawOverlay(){
     bar.appendChild(dup);bar.appendChild(del);ov.appendChild(bar)}
   if(pe.mode==='edit'&&pe.hasText){pe.lines.forEach((l,li)=>{const h=document.createElement('div');h.className='pe-line'+(pe.editLine===li?' sel':'');h.style.left=(l.fx*100)+'%';h.style.top=(l.fTop*100)+'%';h.style.width=(l.fw*100)+'%';h.style.height=(l.fh*100)+'%';h.title='Tap to edit this line';h.addEventListener('pointerdown',e=>{e.stopPropagation();peSelectLine(li)});ov.appendChild(h)})}
 }
-function peDuplicate(i){if(!pe||!pe.ops[i])return;const src=pe.ops[i];const c=JSON.parse(JSON.stringify(src));if(src.type==='image'){c.bytes=src.bytes;c.url=src.url}
+/* Deep-copy an op (image bytes/URL ride along by reference, as they
+   always have here) + the shared slight-offset placement used by
+   Duplicate and by Copy/Paste. */
+function peCloneOp(src){const c=JSON.parse(JSON.stringify(src));if(src.type==='image'){c.bytes=src.bytes;c.url=src.url}return c}
+function peOffsetOp(c){
   if(c.type==='draw'){c.points=c.points.map(p=>[Math.min(1,p[0]+.03),Math.min(1,p[1]+.03)])}
   else if(c.type==='text'){c.fx=Math.min(.95,c.fx+.03);c.fBase=Math.min(1,c.fBase+.03)}
-  else{c.fx=Math.min(1-(c.fw||0),c.fx+.03);if(c.fy!==undefined)c.fy=Math.min(1-(c.fh||0),c.fy+.03);if(c.fTop!==undefined)c.fTop=Math.min(1,c.fTop+.03);if(c.fBase!==undefined)c.fBase=Math.min(1,c.fBase+.03);if(c.fx2!==undefined){c.fx2=Math.min(1,c.fx2+.03);c.fy2=Math.min(1,c.fy2+.03)}}
-  pePushOp(c,true);toast('Duplicated.')}
+  else{c.fx=Math.min(1-(c.fw||0),c.fx+.03);if(c.fy!==undefined)c.fy=Math.min(1-(c.fh||0),c.fy+.03);if(c.fTop!==undefined)c.fTop=Math.min(1,c.fTop+.03);if(c.fBase!==undefined)c.fBase=Math.min(1,c.fBase+.03);if(c.fx2!==undefined){c.fx2=Math.min(1,c.fx2+.03);c.fy2=Math.min(1,c.fy2+.03)}}}
+function peDuplicate(i){if(!pe||!pe.ops[i])return;const c=peCloneOp(pe.ops[i]);peOffsetOp(c);pePushOp(c,true);toast('Duplicated.')}
+function peDeleteSel(){if(!pe||pe.sel<0||!pe.ops[pe.sel])return;pe.ops.splice(pe.sel,1);pe.redo=[];pe.sel=-1;peDrawOverlay();peSyncCount()}
+let peClip=null;
+function peNudge(dx,dy){if(!pe||pe.sel<0)return;const op=pe.ops[pe.sel];if(!op||op.type==='edit')return;const cx=v=>Math.min(1,Math.max(0,v));
+  if(op.type==='text'){op.fx=cx(op.fx+dx);op.fBase=Math.min(1,Math.max(.02,op.fBase+dy))}
+  else if(op.type==='draw'){op.points=op.points.map(p=>[cx(p[0]+dx),cx(p[1]+dy)])}
+  else if(op.type==='shape'&&op.fx2!==undefined){op.fx+=dx;op.fy+=dy;op.fx2+=dx;op.fy2+=dy}
+  else if(op.fx!==undefined&&op.fw!==undefined){op.fx=Math.min(1-op.fw,Math.max(0,op.fx+dx));if(op.fy!==undefined)op.fy=Math.min(1-op.fh,Math.max(0,op.fy+dy))}
+  peDrawOverlay()}
+/* Keyboard control (v4.7.1): Ctrl/Cmd+Z undo, Ctrl+Shift+Z and
+   Ctrl+Y redo, Ctrl/Cmd+C / X / V copy, cut and paste the selected
+   object (internal clipboard), Ctrl/Cmd+D duplicate, Delete /
+   Backspace removes the selection, arrow keys nudge it by one
+   screen pixel (Shift = 10x), Esc cancels an open line edit, then
+   deselects, then closes the page-numbers panel. The typing guard
+   is absolute: while any input, textarea, select or contentEditable
+   has focus — the inline field editor included — native behaviour
+   wins (native Ctrl+Z text undo, native Ctrl+C/V for text) and
+   this handler does nothing at all. */
+document.addEventListener('keydown',e=>{
+  if(!pe||!current||current.id!=='pdf-editor')return;
+  const t=e.target;
+  if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable))return;
+  const mod=e.ctrlKey||e.metaKey;const k=(e.key||'').toLowerCase();
+  if(mod&&k==='z'&&!e.shiftKey){e.preventDefault();peDoUndo();return}
+  if(mod&&((k==='z'&&e.shiftKey)||k==='y')){e.preventDefault();peDoRedo();return}
+  if(mod&&k==='c'){const op=pe.sel>=0?pe.ops[pe.sel]:null;if(op&&op.type!=='edit'){e.preventDefault();peClip=peCloneOp(op);toast('Copied — paste with Ctrl+V.')}return}
+  if(mod&&k==='x'){const op=pe.sel>=0?pe.ops[pe.sel]:null;if(op&&op.type!=='edit'){e.preventDefault();peClip=peCloneOp(op);peDeleteSel();toast('Cut — paste with Ctrl+V.')}return}
+  if(mod&&k==='v'){if(peClip){e.preventDefault();const c=peCloneOp(peClip);c.page=pe.page;peOffsetOp(c);pePushOp(c,true)}return}
+  if(mod&&k==='d'){if(pe.sel>=0){e.preventDefault();peDuplicate(pe.sel)}return}
+  if(mod)return;
+  if(e.key==='Delete'||e.key==='Backspace'){if(pe.sel>=0){e.preventDefault();peDeleteSel()}return}
+  if(e.key==='Escape'){if(pe.editLine>=0){pe.editLine=-1;peRenderModeBar();peDrawOverlay()}else if(pe.sel>=0){pe.sel=-1;peDrawOverlay()}else{const p=$('pePn');if(p&&!p.classList.contains('hidden')){p.classList.add('hidden');const b=$('pePnBtn');if(b)b.classList.remove('sel')}}return}
+  if(e.key.indexOf('Arrow')===0&&pe.sel>=0){const cvs=$('peCanvas');if(!cvs)return;const st=e.shiftKey?10:1;const dx=(e.key==='ArrowRight'?st:e.key==='ArrowLeft'?-st:0)/Math.max(1,cvs.clientWidth);const dy=(e.key==='ArrowDown'?st:e.key==='ArrowUp'?-st:0)/Math.max(1,cvs.clientHeight);if(dx||dy){e.preventDefault();peNudge(dx,dy)}return}
+});
 /* Placed objects: tap selects (class-only, no redraw), drag moves at
    pointer speed by mutating style; the op commits live and the overlay
    re-syncs once on release. `linked` is an SVG node (shapes/draw) that
@@ -813,7 +946,8 @@ function peAttachStage(){
   const ov=$('peOverlay');if(!ov)return;
   ov.addEventListener('pointerdown',e=>{
     if(!pe||e.target!==ov)return;
-    if(pe.mode==='text'){const t=pe.txt.text.trim();if(!t){toast('Type the text in the bar above first.');return}const p=peFrac(e);const col=PE_TXT_COLORS[pe.txt.color];pePushOp({type:'text',page:pe.page,fx:p.fx,fBase:p.fy,text:t,size:pe.txt.size,color:col.rgb,css:col.css,bold:pe.txt.bold},true);return}
+    if(pe.rot){toast('This page is rotated — editing and placing are paused on rotated pages.');return}
+    if(pe.mode==='text'){const t=pe.txt.text.trim();if(!t){toast('Type the text in the bar above first.');return}if(!peEncodable(t)){toast('That text uses characters the editor\u2019s standard fonts can\u2019t print — scripts like Arabic or Chinese can\u2019t be added as text here.');return}const p=peFrac(e);const col=PE_TXT_COLORS[pe.txt.color];pePushOp({type:'text',page:pe.page,fx:p.fx,fBase:p.fy,text:t,size:pe.txt.size,color:col.rgb,css:col.css,bold:pe.txt.bold},true);return}
     if(pe.mode==='stamps'){pePlaceStamp(peFrac(e));return}
     if(pe.mode==='mark'){const st=pe.mark.style;peDragCreate(e,()=>peRectGhost(st==='highlight'?'pe-opmark ghost':'pe-hit ghost'),(a,b)=>{const r=peNormRect(a,b);if(r.fw>.008&&r.fh>.006){r.type='mark';r.page=pe.page;r.style=st;r.color=st==='highlight'?pe.mark.hl:pe.mark.line;pePushOp(r,true)}else{peDrawOverlay()}});return}
     if(pe.mode==='cover'){peDragCreate(e,()=>peRectGhost('pe-cover ghost'),(a,b)=>{const r=peNormRect(a,b);if(r.fw>.008&&r.fh>.006){const cv=$('peCanvas');r.type='cover';r.page=pe.page;r.cover=cv?peSampleFrom(cv,r.fx,r.fy,r.fw,r.fh,pe.pageW,pe.pageH):[1,1,1];pePushOp(r,true)}else{peDrawOverlay()}});return}
@@ -920,10 +1054,10 @@ async function processTool(){
     return infoDone('This PDF isn\'t password-protected — there is nothing to unlock. Your file was left unchanged.')}
 
   // pdf-lib tools
-  let doc;try{doc=await PDFDocument.load(raw,{ignoreEncryption:id==='repair'})}catch(e){if(id==='repair')throw new Error('This file is too damaged to fix in the browser — your original file is unchanged.');throw e}
+  let doc;try{doc=await PDFDocument.load(raw,{ignoreEncryption:id==='repair'})}catch(e){if(id==='repair')throw new Error('This file is too damaged to fix in the browser — your original file is unchanged.');if(id==='pdf-editor'&&peFail==='password')throw new Error('This PDF is password-protected — take the protection off first (the Unlock PDF tool can help if you know the password), then edit it.');throw e}
   const total=doc.getPageCount();
   if(id==='pdf-editor'){
-    if(!pe)throw new Error('The editor preview did not open — choose the PDF again and wait for the preview before saving.');
+    if(!pe)throw new Error(peFail==='password'?'This PDF is password-protected — take the protection off first (the Unlock PDF tool can help if you know the password), then edit it.':'The editor preview did not open — choose the PDF again and wait for the preview before saving.');
     if(!pe.ops.length&&!pe.pn.on)throw new Error('Make at least one change first — edit a line, add text, an image, a signature or a highlight — or turn on page numbers.');
     const fontCache={};const getFont=async key=>{if(!fontCache[key])fontCache[key]=await doc.embedFont(StandardFonts[key]);return fontCache[key]};
     for(const op of pe.ops){const p=doc.getPage(op.page);const {width:W,height:H}=p.getSize();
