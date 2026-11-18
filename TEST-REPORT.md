@@ -989,3 +989,40 @@ Fresh PageSpeed run (Lighthouse 13.6.0, Nov 18 2026, 12:44 Dubai; report x8rsxba
 - Remaining flags are residual only: render-blocking est. 140 ms mobile / 40 ms desktop (was 3,950 ms — now just styles.css + the deferred shell), unused JS 119 KiB (was 291 KiB — now mostly the after-load analytics). "Improve image delivery" no longer appears on either form factor.
 - Live spot-check in the fresh profile PASSED: home rendered with the small logo, and a real Merge of two fixture PDFs on the live site produced pdfstow-merged.pdf (4,237 B, valid %PDF-1.7) — on-demand library loading proven in production.
 - Still open: the qc-v472 re-run (sandbox EPERM, see above) — Editor coverage stands on qc-v47 + qc-v471 + qc-v473, all green.
+
+# V4.7.3 — One-bug fix: the CSP was blocking Microsoft Clarity's recorder (2026-11-18)
+
+**Symptom:** Microsoft Clarity recorded ZERO sessions from launch (2026-11-17) through 2026-11-18, even though the tag loaded and Clarity's own dashboard reported "CLARITY SUCCESSFULLY INSTALLED USING GOOGLE TAG MANAGER". The site owner tested on his phone — still nothing.
+
+**Root cause (diagnosed and proven by direct fetch of the tag script):** Clarity's tag is a two-stage loader. Stage one, `https://www.clarity.ms/tag/zf09zdj8dk` (744 B), was allowed by our Content Security Policy and loaded fine — which is exactly why the dashboard said "installed". But stage one injects the actual recorder from **`https://scripts.clarity.ms/0.8.77/clarity.js`**, and our CSP's script-src named only `https://www.clarity.ms` — `scripts.clarity.ms` was NOT allowed, so every browser blocked the recorder before it could run. The tag also references a tracking pixel at `https://c.clarity.ms/c.gif`, which img-src (`'self' data: blob: file:`) blocked as well. The data endpoints were never the problem: connect-src already allowed `https://*.clarity.ms` (o.clarity.ms/collect, s.clarity.ms). Net effect: tag loads, recorder never executes, nothing ever records — silently, on every page, since v4.4.0 introduced the policy + analytics together.
+
+**Where the policy lives (the single source):** `index.html` line 5, the CSP meta tag. `build/generate.js` slices index.html's head (lines 1–38) as the template for all 31 tool pages, so the fix was made in index.html and the pages were regenerated — no generated page was hand-edited. (build/tools-data.js does not contain the policy.) The trust pages, 404 and the stubs carry no CSP meta — unchanged, as before.
+
+**The exact CSP diff (two tokens added, nothing else):**
+- script-src: `… https://www.googletagmanager.com https://www.clarity.ms http://127.0.0.1:* …` → `… https://www.googletagmanager.com https://www.clarity.ms https://*.clarity.ms http://127.0.0.1:* …`
+- img-src: `img-src 'self' data: blob: file:;` → `img-src 'self' data: blob: file: https://*.clarity.ms;`
+- Every other directive is byte-identical — this is machine-proven by the new guard (below): removing just those two tokens from the shipped policy reproduces the v4.7.2 policy byte-for-byte. The wildcard form matches Microsoft's own CSP guidance and also covers future recorder versions/subdomains.
+
+**Versioning.** v4.7.3 · ?v=54 · SW cache 'pdfstow-v4.7.3'. app.js logic, styles.css and all content are untouched — app.js and styles.css are byte-identical to v4.7.2 and are therefore NOT republished; only the ?v=54 references to them (pages + SW shell) change.
+
+## Legitimate test adaptations (pin updates only — counts unchanged)
+- **qc-v473 (b):** defer pin ?v=53 → ?v=54.
+- **qc-v43 (b):** SW cache name 'pdfstow-v4.7.2' → 'pdfstow-v4.7.3'; shell pins ?v=53 → ?v=54.
+- **qc-v44 (e):** SW cache name pin → 'pdfstow-v4.7.3'.
+- **qc-v471 (static):** SW cache name pin → 'pdfstow-v4.7.3'; asset pins ?v=53 → ?v=54.
+
+## Suite results (final tree — the sandbox browser launched normally; nothing was environment-blocked)
+- **tests/qc-v474.js (NEW — the Clarity CSP regression guard): 4/4 PASS** — (a) CSP present on home + all 31 tool pages, absent where it never was, one identical policy across all 32 pages; (b) script-src allows scripts.clarity.ms via the wildcard with the explicit www.clarity.ms entry kept, img-src allows c.clarity.ms; (c) the policy differs from v4.7.2 ONLY by the two added wildcard tokens (byte-for-byte strip test against the verbatim v4.7.2 policy); (d) ?v=54 + 'pdfstow-v4.7.3' pins everywhere, no stale ?v=53 / 'pdfstow-v4.7.2' pin in any page, sw.js or the generator.
+- **qc-v473: 8/8 PASS** — including the behavioural run: home issued 29 requests with ZERO library requests pre-tool; Merge loaded pdf-lib + pdf.js + worker on demand and produced a validated 2-page download; zero page errors.
+- **qc-v44: 7/7 PASS** — GTM + Clarity tag loads attempted on https, silent on file://, analytics bypass the SW (cache present under the new name 'pdfstow-v4.7.3').
+- **qc-v45: 9/9 PASS** — sitemap/pages integrity, sampled tool pages, live Merge on /merge-pdf/, GTM + Clarity attempted on https pages.
+- **qc-v452: 29/29 PASS** — the full UI/UX regression set, unchanged.
+- **qc-v43: 6/6 PASS** — SW installs under 'pdfstow-v4.7.3', shell precache populated (?v=54 pins), offline home + offline Merge both work.
+- **qc-v471: 30/30 PASS** — the PDF Editor receipt suite, unchanged.
+- **ui-test: 20/20 PASS** — the core tool flows, unchanged.
+
+## Publish set
+Version pins: v4.7.3 · ?v=54 · SW cache 'pdfstow-v4.7.3'. Changed files only (40): index.html (CSP + ?v=54), the 31 tool pages (regenerated: CSP + ?v=54), the 4 trust pages (regenerated: ?v=54 stylesheet reference only — they carry no CSP), 404.html (?v=54), sw.js (cache name + shell pins), build/generate.js (generator pins), TEST-REPORT.md. NOT in the set (byte-identical to v4.7.2): app.js, styles.css, build/tools-data.js, sitemap.xml, llms.txt, trust.html, the text-to-pdf stub, logo-icon-sm.webp. tests/ and test-materials/ stay unpublished, as before.
+
+## AFTER (post-publish): pending parent verification
+Post-publish: parent verifies the live CSP by direct fetch; Clarity recordings can only be proven by real traffic over the following hours.
