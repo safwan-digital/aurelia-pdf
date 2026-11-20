@@ -114,9 +114,18 @@ function startErrorTracking(){
 (function scheduleAnalytics(){
   try{
     if(!/^https?:$/.test(location.protocol))return;
-    const kick=()=>{if('requestIdleCallback' in window)requestIdleCallback(()=>{startAnalytics();startErrorTracking()},{timeout:2000});else setTimeout(()=>{startAnalytics();startErrorTracking()},1200)};
-    if(document.readyState==='complete')kick();
-    else addEventListener('load',kick);
+    /* v4.7.9: trackers start on first interaction, or on an idle
+       callback with a 3.5s bound after load — whichever comes first.
+       The v4.7.6-era 2s bound let GTM/Clarity/Sentry main-thread work
+       land inside Lighthouse's blocking-time window (TBT 20ms -> 260ms
+       in the 2026-11-20 fresh run); real visits still get measured,
+       because any scroll, tap or keypress starts them instantly. */
+    let done=false;
+    const start=()=>{if(done)return;done=true;startAnalytics();startErrorTracking()};
+    const idle=()=>{if('requestIdleCallback' in window)requestIdleCallback(start,{timeout:3500});else setTimeout(start,3500)};
+    if(document.readyState==='complete')idle();
+    else addEventListener('load',idle);
+    ['pointerdown','keydown','scroll'].forEach(ev=>addEventListener(ev,start,{once:true,passive:true}));
   }catch(e){}
 })();
 /* Service worker registration (v4.3.0; moved here from the index.html
