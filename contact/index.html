@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Contact — PDFStow</title>
-<meta name="description" content="Questions, feedback or a bug to report? Reach PDFStow on Instagram at @safwan.digital, or open an issue on GitHub — the full source code is public.">
+<meta name="description" content="Questions, feedback or a bug to report? Email PDFStow at info@safwan.digital, reach out on Instagram at @safwan.digital, or open an issue on GitHub — the full source code is public.">
 <link rel="canonical" href="https://pdfstow.safwan.digital/contact/">
 <meta name="theme-color" content="#1A365D">
 <meta property="og:title" content="Contact — PDFStow">
-<meta property="og:description" content="Questions, feedback or a bug to report? Reach PDFStow on Instagram at @safwan.digital, or open an issue on GitHub — the full source code is public.">
+<meta property="og:description" content="Questions, feedback or a bug to report? Email PDFStow at info@safwan.digital, reach out on Instagram at @safwan.digital, or open an issue on GitHub — the full source code is public.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pdfstow.safwan.digital/contact/">
 <meta property="og:image" content="https://pdfstow.safwan.digital/og-image.png">
 <meta property="og:image:alt" content="PDFStow — free online PDF tools that keep your files private">
 <meta name="twitter:image:alt" content="PDFStow — free online PDF tools that keep your files private">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebPage","name":"Contact — PDFStow","description":"Questions, feedback or a bug to report? Reach PDFStow on Instagram at @safwan.digital, or open an issue on GitHub — the full source code is public.","url":"https://pdfstow.safwan.digital/contact/","isPartOf":{"@type":"WebSite","name":"PDFStow","url":"https://pdfstow.safwan.digital/"},"publisher":{"@type":"Organization","name":"Safwan.Digital","url":"https://safwan.digital","logo":"https://pdfstow.safwan.digital/icon-512.png"}}
+{"@context":"https://schema.org","@type":"WebPage","name":"Contact — PDFStow","description":"Questions, feedback or a bug to report? Email PDFStow at info@safwan.digital, reach out on Instagram at @safwan.digital, or open an issue on GitHub — the full source code is public.","url":"https://pdfstow.safwan.digital/contact/","isPartOf":{"@type":"WebSite","name":"PDFStow","url":"https://pdfstow.safwan.digital/"},"publisher":{"@type":"Organization","name":"Safwan.Digital","url":"https://safwan.digital","logo":"https://pdfstow.safwan.digital/icon-512.png"}}
 </script>
 <script>try{if(/^https?:$/.test(location.protocol)&&/\/index\.html$/.test(location.pathname)){history.replaceState(null,'',location.pathname.replace(/\/index\.html$/,'/')+location.search+location.hash)}}catch(e){}try{localStorage.removeItem('aurelia-palette');var _t=localStorage.getItem('aurelia-theme');if(_t==='dark'||(_t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.dataset.theme='dark'}catch(e){}</script>
 <link rel="stylesheet" href="/styles.css?v=58">
@@ -36,11 +36,6 @@
 .backlink{display:inline-flex;align-items:center;gap:7px;min-height:44px;color:var(--accent);font-weight:600;text-decoration:none}
 .backlink:hover{text-decoration:underline}
 </style>
-</head>
-<body>
-     PDF.js, JSZip, SheetJS, Mammoth and Tesseract.js are all injected
-     by app.js on first use of a tool that needs them (see LAZY_LIBS in
-     app.js) — first paint no longer waits on the tool stack. -->
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -99,23 +94,39 @@
 <symbol id="i-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /> <path d="m15 5 4 4" /></symbol>
 <symbol id="i-arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /></symbol>
 </defs></svg>
+<header class="glass">
+  <a class="logo" href="/"><img class="logo-icon" src="/logo-icon-sm.webp" alt="PDFStow — free PDF tools online" width="38" height="49">PDF<span>Stow</span></a>
+  <nav><a href="/#tools">Tools</a><a href="/privacy/">Privacy</a><a href="/about/">About</a></nav>
+  <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode"><svg class="ic" width="16" height="16" aria-hidden="true"><use href="#i-moon"/></svg> Dark</button>
+</header>
 <main>
   <div class="backrow"><a class="backlink" href="/"><svg class="ic" width="16" height="16" aria-hidden="true"><use href="#i-arrow-left"/></svg> Back to the tools</a></div>
   <div class="trust">
     <section class="glass" id="contact">
       <h1>Contact</h1>
-      <p>Questions, feedback, or a bug to report? Reach out on Instagram, or open an issue on GitHub — where you can also read every line of code and suggest a tool:</p>
+      <p>Questions, feedback, or a bug to report? Email us at <a href="mailto:info@safwan.digital">info@safwan.digital</a>, reach out on Instagram, or open an issue on GitHub — where you can also read every line of code and suggest a tool:</p>
       <p><a href="https://www.instagram.com/safwan.digital" target="_blank" rel="noopener">@safwan.digital on Instagram</a></p>
       <p><a href="https://github.com/safwan-digital/pdfstow" target="_blank" rel="noopener">PDFStow on GitHub</a></p>
+      <h2>Send a message</h2>
+      <form id="contactForm">
+        <p><label>Your name<br><input name="name" type="text" autocomplete="name" style="width:100%;margin-top:6px;padding:10px 12px;border-radius:10px;border:1px solid var(--stroke);background:var(--glass2);color:var(--ink)"></label></p>
+        <p><label>Subject<br><input name="subject" type="text" required style="width:100%;margin-top:6px;padding:10px 12px;border-radius:10px;border:1px solid var(--stroke);background:var(--glass2);color:var(--ink)"></label></p>
+        <p><label>Message<br><textarea name="message" rows="5" required style="width:100%;margin-top:6px;padding:10px 12px;border-radius:10px;border:1px solid var(--stroke);background:var(--glass2);color:var(--ink)"></textarea></label></p>
+        <p><button class="btn primary" type="submit">Open in your email app</button></p>
+        <p>This form does not send anything itself — it opens your own email app with the message ready to send to info@safwan.digital. Nothing you type here is stored on this site.</p>
+      </form>
+      <script>document.getElementById('contactForm').addEventListener('submit',function(e){e.preventDefault();var f=e.target;var body=(f.name.value?('Name: '+f.name.value+'
+
+'):'')+f.message.value;location.href='mailto:info@safwan.digital?subject='+encodeURIComponent(f.subject.value)+'&body='+encodeURIComponent(body)});</script>
     </section>
   </div>
 </main>
-      <p id="preFileHint" class="pm-hint" style="margin-top:10px">Choose a file above to begin — it stays on this device.</p>
-      <div class="result" id="resultBox" style="margin-top:18px"></div>
-    </div>
-  </section>
-</main>
 <footer>
+  <p><strong>Privacy first:</strong> PDFStow runs entirely in your browser. Your files are never uploaded, never stored, and never leave your device.</p>
+  <nav class="footnav" aria-label="Footer"><a href="/#tools">Tools</a><a href="/about/">About</a><a href="/about/#how">How it works</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="/contact/">Contact</a><a href="/sitemap.xml">Sitemap</a><a href="https://www.instagram.com/safwan.digital" target="_blank" rel="noopener">Instagram</a><a href="https://github.com/safwan-digital/pdfstow" target="_blank" rel="noopener">Source on GitHub</a></nav>
+  <p class="credit">Built by <a href="https://safwan.digital" target="_blank" rel="noopener">Safwan.Digital</a></p>
+  <p>PDFStow by Safwan Digital · Free forever · Some Office conversions are text-based Beta — see each tool's note for honest limits.</p>
+</footer>
 <script>
 (function(){var b=document.getElementById('themeBtn');if(!b)return;function sync(){var d=document.documentElement.dataset.theme==='dark';b.innerHTML='<svg class="ic" width="16" height="16" aria-hidden="true"><use href="#i-'+(d?'sun':'moon')+'"/></svg> '+(d?'Light':'Dark')}sync();b.addEventListener('click',function(){var h=document.documentElement;var d=h.dataset.theme!=='dark';h.dataset.theme=d?'dark':'light';try{localStorage.setItem('aurelia-theme',d?'dark':'light')}catch(e){}sync()});try{var mq=matchMedia('(prefers-color-scheme: dark)');var fol=function(e){var sv=null;try{sv=localStorage.getItem('aurelia-theme')}catch(err){}if(sv)return;document.documentElement.dataset.theme=e.matches?'dark':'light';sync()};if(mq.addEventListener)mq.addEventListener('change',fol);else if(mq.addListener)mq.addListener(fol)}catch(e){}})();
 </script>

@@ -66,7 +66,7 @@ Key facts:
 - [About PDFStow](https://pdfstow.safwan.digital/about/): What PDFStow is and how it works. PDFStow is made by Safwan Digital (safwan.digital).
 - [Privacy](https://pdfstow.safwan.digital/privacy/): Why files are never uploaded, and what hosting, library and analytics services can see.
 - [Terms](https://pdfstow.safwan.digital/terms/): The simple terms of use.
-- [Contact](https://pdfstow.safwan.digital/contact/): Instagram @safwan.digital or the GitHub repo.
+- [Contact](https://pdfstow.safwan.digital/contact/): Email info@safwan.digital, Instagram @safwan.digital or the GitHub repo.
 - [Source code on GitHub](https://github.com/safwan-digital/pdfstow): The complete public source code — the no-upload claim can be verified here.
 
 ## Optional

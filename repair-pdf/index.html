@@ -2,7 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.clarity.ms https://*.clarity.ms https://browser.sentry-cdn.com http://127.0.0.1:* file: blob:; worker-src 'self' blob: file: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net http://127.0.0.1:*; child-src blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' file:; img-src 'self' data: blob: file: https://*.clarity.ms; font-src 'self' data: file:; connect-src 'self' data: blob: file: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.clarity.ms https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://*.ingest.us.sentry.io http://127.0.0.1:*; media-src blob: data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.clarity.ms https://*.clarity.ms https://browser.sentry-cdn.com http://127.0.0.1:* file: blob:; worker-src 'self' blob: file: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net http://127.0.0.1:*; child-src blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' file:; img-src 'self' data: blob: file: https://*.clarity.ms https://c.bing.com; font-src 'self' data: file:; connect-src 'self' data: blob: file: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.clarity.ms https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://*.ingest.us.sentry.io http://127.0.0.1:*; media-src blob: data:; object-src 'none'; base-uri 'self'; form-action 'self'">
 <title>Repair a Damaged PDF Online Free — No Upload | PDFStow</title>
 <meta name="description" content="Try to fix a PDF that will not open: PDFStow reloads it and saves a clean copy in your browser. Free, no sign-up, nothing is uploaded.">
 <meta name="theme-color" content="#1A365D">
@@ -33,12 +33,12 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<body data-tool="repair">
+<!-- Performance (v4.7.2): NO library loads with the page. pdf-lib,
      PDF.js, JSZip, SheetJS, Mammoth and Tesseract.js are all injected
      by app.js on first use of a tool that needs them (see LAZY_LIBS in
      app.js) — first paint no longer waits on the tool stack. -->
 </head>
-<body>
+<body data-tool="repair">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
 <symbol id="i-combine" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1" /> <path d="M19 3a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1" /> <path d="m7 15 3 3" /> <path d="m7 21 3-3H5a2 2 0 0 1-2-2v-2" /> <rect x="14" y="14" width="7" height="7" rx="1" /> <rect x="3" y="3" width="7" height="7" rx="1" /></symbol>
 <symbol id="i-scissors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3" /> <path d="M8.12 8.12 12 12" /> <path d="M20 4 8.12 15.88" /> <circle cx="6" cy="18" r="3" /> <path d="M14.8 14.8 20 20" /></symbol>
@@ -95,17 +95,17 @@
 <symbol id="i-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /> <path d="m15 5 4 4" /></symbol>
 <symbol id="i-arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /></symbol>
 </defs></svg>
+<header class="glass">
+  <a class="logo" href="/" onclick="showHome();return false"><img class="logo-icon" src="/logo-icon-sm.webp" alt="PDFStow — free PDF tools online" width="38" height="49">PDF<span>Stow</span></a>
+  <nav><a href="/#tools">Tools</a><a href="/privacy/">Privacy</a><a href="/about/">About</a></nav>
+  <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode"><svg class="ic" width="16" height="16" aria-hidden="true"><use href="#i-moon"/></svg> Dark</button>
+</header>
 <main class="wrap">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> <span class="sep" aria-hidden="true">/</span> <span>Repair PDF</span></nav>
   <div class="toolpage-head">
     <h1><span class="title-ic"><svg class="ic" width="22" height="22" aria-hidden="true"><use href="#i-wrench"/></svg></span>Repair PDF</h1>
     <p class="answer">Repair PDF tries to rescue a damaged or corrupted PDF by loading it carefully and saving a clean, rebuilt copy. If the file is too damaged to read at all, the tool tells you plainly instead of guessing. Everything runs in your browser — your file is never uploaded.</p>
   </div>
-      <p style="font-size:var(--fs-2);margin-top:14px">31 fully working tools · Works on phone, tablet & desktop · English</p>
-    </div>
-    <div id="tools"></div>
-  </section>
-
   <section id="toolView" class="pagetool">
     <button class="btn secondary" onclick="showHome()"><svg class="ic" width="16" height="16" aria-hidden="true"><use href="#i-arrow-left"/></svg> All tools</button>
     <div class="panel glass">
@@ -163,6 +163,11 @@
       </div>
       <div class="progrow hidden" id="progWrap"><div class="progress"><div class="bar" id="progBar"></div></div><span id="progText" class="progtext"></span></div>
       <p id="status" style="color:var(--muted)" aria-live="polite"></p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary" id="processBtn">Process</button><button class="btn secondary hidden" id="cancelBtn" type="button">Cancel</button><button class="btn secondary" onclick="resetTool()">Reset</button></div>
+      <p id="preFileHint" class="pm-hint" style="margin-top:10px">Choose a file above to begin — it stays on this device.</p>
+      <div class="result" id="resultBox" style="margin-top:18px"></div>
+    </div>
+  </section>
   <section id="homeView" class="hidden" aria-hidden="true">
     <input id="searchInput" type="search" class="hidden" tabindex="-1">
     <p id="searchMeta" class="hidden"></p>
@@ -196,12 +201,12 @@
     <div class="relrow"><a href="/compress-pdf/">Compress PDF</a><a href="/ocr-pdf/">OCR PDF</a><a href="/merge-pdf/">Merge PDF</a><a href="/pdf-to-text/">PDF to Text</a></div>
   </section>
 </main>
-      <p id="preFileHint" class="pm-hint" style="margin-top:10px">Choose a file above to begin — it stays on this device.</p>
-      <div class="result" id="resultBox" style="margin-top:18px"></div>
-    </div>
-  </section>
-</main>
 <footer>
   <p><strong>Privacy first:</strong> PDFStow runs entirely in your browser. Your files are never uploaded, never stored, and never leave your device.</p>
+  <nav class="footnav" aria-label="Footer"><a href="/#tools">Tools</a><a href="/about/">About</a><a href="/about/#how">How it works</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="/contact/">Contact</a><a href="/sitemap.xml">Sitemap</a><a href="https://www.instagram.com/safwan.digital" target="_blank" rel="noopener">Instagram</a><a href="https://github.com/safwan-digital/pdfstow" target="_blank" rel="noopener">Source on GitHub</a></nav>
+  <p class="credit">Built by <a href="https://safwan.digital" target="_blank" rel="noopener">Safwan.Digital</a></p>
+  <p>PDFStow by Safwan Digital · Free forever · Some Office conversions are text-based Beta — see each tool's note for honest limits.</p>
+</footer>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 <script src="/app.js?v=59" defer></script>
 </body></html>
