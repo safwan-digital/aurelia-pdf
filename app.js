@@ -72,10 +72,46 @@ function startAnalytics(){
     add('https://www.clarity.ms/tag/zf09zdj8dk');
   }catch(e){}
 }
+/* Error tracking (v4.7.6): Sentry, errors only — no session replay,
+   no performance tracing, no PII (sendDefaultPii off) and a beforeSend
+   scrub that strips URLs' query strings, headers and user data. It
+   receives exception stack traces only — never files or their contents,
+   same promise as analytics. Loaded on the same idle schedule as
+   analytics so it never competes with first paint. The SDK comes from
+   jsDelivr (already in the CSP); events go to *.ingest.sentry.io
+   (added to connect-src in v4.7.6). A one-time self-test fires when
+   the URL carries ?sentrytest=1. */
+function startErrorTracking(){
+  try{
+    if(!/^https?:$/.test(location.protocol))return;
+    const s=document.createElement('script');s.async=true;
+    s.src='https://cdn.jsdelivr.net/npm/@sentry/browser@8.42.0/build/bundle.min.js';
+    s.onload=()=>{
+      try{
+        if(!window.Sentry)return;
+        Sentry.init({
+          dsn:'https://383305095000e8bf3b265d0181b099f0@o4512462711357440.ingest.us.sentry.io/4512462714503168',
+          sendDefaultPii:false,
+          tracesSampleRate:0,
+          beforeSend(event){
+            try{
+              if(event.request){delete event.request.headers;if(event.request.url)event.request.url=event.request.url.split('?')[0];}
+              delete event.user;
+              if(event.breadcrumbs)event.breadcrumbs=event.breadcrumbs.map(b=>({timestamp:b.timestamp,type:b.type,level:b.level,category:b.category}));
+            }catch(e){}
+            return event;
+          }
+        });
+        if(/[?&]sentrytest=1/.test(location.search))Sentry.captureException(new Error('PDFStow Sentry self-test (v4.7.6)'));
+      }catch(e){}
+    };
+    document.head.appendChild(s);
+  }catch(e){}
+}
 (function scheduleAnalytics(){
   try{
     if(!/^https?:$/.test(location.protocol))return;
-    const kick=()=>{if('requestIdleCallback' in window)requestIdleCallback(()=>startAnalytics(),{timeout:2000});else setTimeout(startAnalytics,1200)};
+    const kick=()=>{if('requestIdleCallback' in window)requestIdleCallback(()=>{startAnalytics();startErrorTracking()},{timeout:2000});else setTimeout(()=>{startAnalytics();startErrorTracking()},1200)};
     if(document.readyState==='complete')kick();
     else addEventListener('load',kick);
   }catch(e){}
