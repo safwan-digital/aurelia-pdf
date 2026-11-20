@@ -78,14 +78,17 @@ function startAnalytics(){
    receives exception stack traces only — never files or their contents,
    same promise as analytics. Loaded on the same idle schedule as
    analytics so it never competes with first paint. The SDK comes from
-   jsDelivr (already in the CSP); events go to *.ingest.sentry.io
+   Sentry's own CDN, browser.sentry-cdn.com (added to the CSP
+   script-src in v4.7.7 — the jsDelivr path first tried in v4.7.6 does
+   not exist for v8 bundles, which is why the first self-test never
+   arrived); events go to *.ingest.sentry.io
    (added to connect-src in v4.7.6). A one-time self-test fires when
    the URL carries ?sentrytest=1. */
 function startErrorTracking(){
   try{
     if(!/^https?:$/.test(location.protocol))return;
     const s=document.createElement('script');s.async=true;
-    s.src='https://cdn.jsdelivr.net/npm/@sentry/browser@8.42.0/build/bundle.min.js';
+    s.src='https://browser.sentry-cdn.com/8.42.0/bundle.min.js';
     s.onload=()=>{
       try{
         if(!window.Sentry)return;
@@ -102,7 +105,7 @@ function startErrorTracking(){
             return event;
           }
         });
-        if(/[?&]sentrytest=1/.test(location.search))Sentry.captureException(new Error('PDFStow Sentry self-test (v4.7.6)'));
+        if(/[?&]sentrytest=1/.test(location.search))Sentry.captureException(new Error('PDFStow Sentry self-test (v4.7.7)'));
       }catch(e){}
     };
     document.head.appendChild(s);
