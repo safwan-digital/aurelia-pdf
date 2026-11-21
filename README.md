@@ -1,6 +1,6 @@
 # PDFStow — Free PDF Tools, Private by Design
 
-**Live:** https://pdfstow.safwan.digital/
+**Live:** https://pdfstow.com/
 
 *(Formerly AURELIA.)*
 
