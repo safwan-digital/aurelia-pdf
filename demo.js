@@ -68,18 +68,25 @@
 
   /* ---------- Watch-demo button ---------- */
   function ensureButton() {
-    var title = document.getElementById('toolTitle');
-    if (!title || !title.parentNode) return;
     var id = currentToolId();
     var existing = document.getElementById('demoWatchBtn');
     if (!id || !DEMOS[id]) { if (existing) existing.remove(); return; }
     if (existing) return;
-    var row = title.parentNode;
+    /* Standalone tool pages have a page H1 above the tool — the button
+       belongs beside that heading. In the homepage app there is no tool
+       H1, so it sits beside the panel title instead. */
+    var anchor = null;
+    if (document.body && document.body.dataset && document.body.dataset.tool) {
+      anchor = document.querySelector('h1');
+    }
+    if (!anchor) anchor = document.getElementById('toolTitle');
+    if (!anchor || !anchor.parentNode) return;
+    var row = anchor.parentNode;
     if (!row.classList || !row.classList.contains('demo-title-row')) {
       row = document.createElement('div');
       row.className = 'demo-title-row';
-      title.parentNode.insertBefore(row, title);
-      row.appendChild(title);
+      anchor.parentNode.insertBefore(row, anchor);
+      row.appendChild(anchor);
     }
     var b = document.createElement('button');
     b.type = 'button';
