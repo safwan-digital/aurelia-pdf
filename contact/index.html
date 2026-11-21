@@ -17,7 +17,7 @@
 {"@context":"https://schema.org","@type":"WebPage","name":"Contact — PDFStow","description":"Questions, feedback or a bug to report? Email PDFStow at info@safwan.digital, reach out on Instagram at @safwan.digital, or open an issue on GitHub — the full source code is public.","url":"https://pdfstow.com/contact/","isPartOf":{"@type":"WebSite","name":"PDFStow","url":"https://pdfstow.com/"},"publisher":{"@type":"Organization","name":"Safwan.Digital","url":"https://safwan.digital","logo":"https://pdfstow.com/icon-512.png"}}
 </script>
 <script>try{if(/^https?:$/.test(location.protocol)&&/\/index\.html$/.test(location.pathname)){history.replaceState(null,'',location.pathname.replace(/\/index\.html$/,'/')+location.search+location.hash)}}catch(e){}try{localStorage.removeItem('aurelia-palette');var _t=localStorage.getItem('aurelia-theme');if(_t==='dark'||(_t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.dataset.theme='dark'}catch(e){}</script>
-<link rel="stylesheet" href="/styles.css?v=63">
+<link rel="stylesheet" href="/styles.css?v=64">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -108,14 +108,19 @@
       <p><a href="https://www.instagram.com/safwan.digital" target="_blank" rel="noopener">@safwan.digital on Instagram</a></p>
       <p><a href="https://github.com/safwan-digital/pdfstow" target="_blank" rel="noopener">PDFStow on GitHub</a></p>
       <h2>Send a message</h2>
-      <form id="contactForm">
+      <form id="contactForm" action="https://formsubmit.co/info@safwan.digital" method="POST">
+        <input type="hidden" name="_subject" value="New message from the pdfstow.com contact form">
+        <input type="hidden" name="_next" value="https://pdfstow.com/contact/?sent=1">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="text" name="_honey" style="display:none">
         <p><label>Your name<br><input name="name" type="text" autocomplete="name" style="width:100%;margin-top:6px;padding:10px 12px;border-radius:10px;border:1px solid var(--stroke);background:var(--glass2);color:var(--ink)"></label></p>
+        <p><label>Your email<br><input name="email" type="email" required autocomplete="email" style="width:100%;margin-top:6px;padding:10px 12px;border-radius:10px;border:1px solid var(--stroke);background:var(--glass2);color:var(--ink)"></label></p>
         <p><label>Subject<br><input name="subject" type="text" required style="width:100%;margin-top:6px;padding:10px 12px;border-radius:10px;border:1px solid var(--stroke);background:var(--glass2);color:var(--ink)"></label></p>
         <p><label>Message<br><textarea name="message" rows="5" required style="width:100%;margin-top:6px;padding:10px 12px;border-radius:10px;border:1px solid var(--stroke);background:var(--glass2);color:var(--ink)"></textarea></label></p>
-        <p><button class="btn primary" type="submit">Open in your email app</button> <button class="btn" type="button" id="copyEmailBtn">Copy our email address</button></p>
-        <p id="contactNote">This form does not send anything itself — it opens your own email app with the message ready to send to info@safwan.digital. Nothing you type here is stored on this site.</p>
+        <p><button class="btn primary" type="submit">Send message</button> <button class="btn" type="button" id="copyEmailBtn">Copy our email address</button></p>
+        <p id="contactNote">Your message is delivered straight to our inbox by a form service (FormSubmit) — it is not stored on this site. Prefer your own email app? Write to info@safwan.digital.</p>
       </form>
-      <script>(function(){var form=document.getElementById('contactForm');var note=document.getElementById('contactNote');var copyBtn=document.getElementById('copyEmailBtn');copyBtn.addEventListener('click',function(){var done=function(){copyBtn.textContent='Copied — info@safwan.digital';};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText('info@safwan.digital').then(done,done);}else{done();}});form.addEventListener('submit',function(e){e.preventDefault();var el=form.elements;var nm=el.namedItem('name').value.trim();var body=(nm?('Name: '+nm+'\n\n'):'')+el.namedItem('message').value;note.textContent='Your email app should now open with your message ready to send to info@safwan.digital. If nothing opened, write to us at info@safwan.digital or use the copy button above.';location.href='mailto:info@safwan.digital?subject='+encodeURIComponent(el.namedItem('subject').value)+'&body='+encodeURIComponent(body);});})();</script>
+      <script>(function(){var note=document.getElementById('contactNote');var copyBtn=document.getElementById('copyEmailBtn');copyBtn.addEventListener('click',function(){var done=function(){copyBtn.textContent='Copied — info@safwan.digital';};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText('info@safwan.digital').then(done,done);}else{done();}});if(/[?&]sent=1/.test(location.search)){note.textContent='Thank you — your message has been sent. We read everything and usually reply within a couple of days.';}})();</script>
     </section>
   </div>
 </main>
