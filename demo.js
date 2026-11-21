@@ -111,7 +111,7 @@
     'ocr': { name: 'OCR PDF', files: [['scan.pdf', '5 pages']], mid: 'scan', action: 'OCR PDF', verb: 'Reading text…',
       out: [['scan-searchable.pdf', 'searchable text']],
       caps: ['Add a scanned PDF', 'The text is read page by page — English only', 'One click — reading happens on your device', 'A searchable PDF, plus the plain text'] },
-    'images-to-pdf': { name: 'Images to PDF', files: [['photo1.jpg', 'JPG image'], ['photo2.png', 'PNG image']], mid: 'images', action: 'Images to PDF', verb: 'Building…',
+    'images-to-pdf': { name: 'Images to PDF', title: 'JPG to PDF', files: [['photo1.jpg', 'JPG image'], ['photo2.png', 'PNG image']], mid: 'images', action: 'Images to PDF', verb: 'Building…',
       out: [['images.pdf', '2 pages']],
       caps: ['Add your JPG or PNG images', 'Put them in the order you want', 'One click — they become one polished PDF', 'Your PDF, ready to download'] },
     'html-to-pdf': { name: 'HTML to PDF', files: [['page.html', 'HTML file']], mid: 'code', action: 'HTML to PDF', verb: 'Converting…',
@@ -350,7 +350,7 @@
     var d = T[id];
     if (!d) return null;
     return {
-      title: d.name + ' — watch how it works',
+      title: (d.title || d.name) + ' — watch how it works',
       dur: [2600, 2800, 3200, 3000],
       captions: d.caps,
       scenes: [s1(d), MID[d.mid](d), s3(d), s4(d)]
