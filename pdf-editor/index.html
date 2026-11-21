@@ -28,7 +28,7 @@
 <!-- The manifest link is injected by the init script below, only on http(s):
      Chromium refuses manifest fetches over file:// and logs a console error. -->
 <script>try{if(/^https?:$/.test(location.protocol)&&/\/index\.html$/.test(location.pathname)){history.replaceState(null,'',location.pathname.replace(/\/index\.html$/,'/')+location.search+location.hash)}}catch(e){}try{if(/^https?:$/.test(location.protocol)){var ml=document.createElement('link');ml.rel='manifest';ml.href='/manifest.json';document.head.appendChild(ml)}}catch(e){}try{localStorage.removeItem('aurelia-palette');var _t=localStorage.getItem('aurelia-theme');if(_t==='dark'||(_t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.dataset.theme='dark'}catch(e){}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('js-anim')}catch(e){}</script>
-<link rel="stylesheet" href="/styles.css?v=60">
+<link rel="stylesheet" href="/styles.css?v=61">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -185,6 +185,8 @@
     <h2>Good to know</h2>
     <ul>
       <li>Text is edited field by field: on a form or receipt, each value is its own field, and the field you change is covered and re-typed in the closest standard font — the rest of the row is never redrawn. Everything else — headings, logos, letterhead, layout — is untouched.</li>
+      <li>Each field’s text colour is detected from the page and shown as a colour code (like #1A365D) in the editing bar — keep it, pick a new one, or type any code.</li>
+      <li>The page’s pictures appear as dashed boxes: tap one to cover it, or replace it with a new picture in exactly the same place.</li>
       <li>Scanned PDFs are pictures of pages, so their words cannot be edited; adding text, images, highlights and signatures still works on them.</li>
       <li>Page numbers, when switched on, are stamped on every page as you save.</li>
     </ul>
@@ -213,5 +215,5 @@
   <p>PDFStow by Safwan Digital · Free forever · Some Office conversions are text-based Beta — see each tool's note for honest limits.</p>
 </footer>
 <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-<script src="/app.js?v=60" defer></script>
+<script src="/app.js?v=61" defer></script>
 </body></html>
