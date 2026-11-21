@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://pdfstow.safwan.digital/sitemap.xml
+Sitemap: https://pdfstow.com/sitemap.xml
