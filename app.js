@@ -768,15 +768,15 @@ function peRenderModeBar(){
       const rm=$('peEditRemove');if(rm)rm.addEventListener('click',()=>{const ix=pe.ops.findIndex(o=>o.type==='edit'&&o.page===pe.page&&o.lineIdx===pe.editLine);if(ix>=0){pe.ops.splice(ix,1);pe.redo=[]}pe.editLine=-1;peRenderModeBar();peDrawOverlay();peSyncCount()});
       $('peEditCancel').addEventListener('click',()=>{pe.editLine=-1;peRenderModeBar();peDrawOverlay()});
       const inp=$('peEditInput');if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();peUseEdit()}});
-      $('peSizeDown').addEventListener('click',()=>{f.size=Math.max(6,f.size-1);$('peSizeVal').textContent=f.size+' pt'});
-      $('peSizeUp').addEventListener('click',()=>{f.size=Math.min(72,f.size+1);$('peSizeVal').textContent=f.size+' pt'});
+      $('peSizeDown').addEventListener('click',()=>{f.size=Math.max(6,f.size-1);f.sizeTouched=true;$('peSizeVal').textContent=f.size+' pt'});
+      $('peSizeUp').addEventListener('click',()=>{f.size=Math.min(72,f.size+1);f.sizeTouched=true;$('peSizeVal').textContent=f.size+' pt'});
       $('peFmtBold').addEventListener('click',e=>{f.bold=!f.bold;e.currentTarget.classList.toggle('sel',f.bold);e.currentTarget.setAttribute('aria-pressed',f.bold?'true':'false')});
       $('peFmtItalic').addEventListener('click',e=>{f.italic=!f.italic;e.currentTarget.classList.toggle('sel',f.italic);e.currentTarget.setAttribute('aria-pressed',f.italic?'true':'false')});
       peWireDots(bar,'pefmtcolor',i=>{f.css=PE_TXT_COLORS[i].css;f.rgb=PE_TXT_COLORS[i].rgb;const pk=$('peFmtPick'),hx=$('peFmtHex');if(pk)pk.value=f.css;if(hx)hx.value=f.css});
       const pkF=$('peFmtPick');if(pkF)pkF.addEventListener('input',()=>{f.css=pkF.value.toUpperCase();f.rgb=peHexRgb(pkF.value)||f.rgb;const hx=$('peFmtHex');if(hx)hx.value=f.css;bar.querySelectorAll('[data-pefmtcolor]').forEach(x=>x.classList.remove('sel'))});
       const hxF=$('peFmtHex');if(hxF)hxF.addEventListener('change',()=>{const rgb=peHexRgb(hxF.value);if(rgb){f.rgb=rgb;f.css=peRgbHex(rgb);hxF.value=f.css;if(pkF)pkF.value=f.css;bar.querySelectorAll('[data-pefmtcolor]').forEach(x=>x.classList.toggle('sel',(PE_TXT_COLORS[parseInt(x.dataset.pefmtcolor)]||{}).css===f.css))}else hxF.value=f.css});
       return}
-    bar.innerHTML=pe.hasText?'<p class="pm-hint">Tap a field to change its words — its colour is detected automatically and shown as a code in the editing bar. Editing is field by field: everything else on the page stays exactly as it is. Dashed boxes are the page\u2019s pictures — tap one to cover or replace it. Edits cover the old words: hidden, not erased. To remove sensitive text for good, use the Redact PDF tool.</p>':'<p class="pm-hint">This page is a scanned picture, so its words can\'t be edited as text.'+(pe.images&&pe.images.length?' The dashed box is the page\u2019s picture — tap it to cover or replace it.':'')+' Add text, images, highlights and signatures still work on it.</p>';return}
+    bar.innerHTML=pe.hasText?'<p class="pm-hint">Tap a field to change its words — its colour is detected automatically and shown as a code in the editing bar. Drag a field to move it somewhere else; its words stay the same unless you change them. Editing is field by field: everything else on the page stays exactly as it is. Dashed boxes are the page\u2019s pictures — tap one to move, cover or replace it. Edits cover the old words: hidden, not erased. To remove sensitive text for good, use the Redact PDF tool.</p>':'<p class="pm-hint">This page is a scanned picture, so its words can\'t be edited as text.'+(pe.images&&pe.images.length?' The dashed box is the page\u2019s picture — tap it to cover or replace it.':'')+' Add text, images, highlights and signatures still work on it.</p>';return}
   if(m==='text'){
     if(!pe.txt.sizeTouched)pe.txt.size=pe.mostSize||12;
     bar.innerHTML=`<div class="pe-row"><div class="field grow"><label for="peTxtInput">Text to add</label><input id="peTxtInput" type="text" placeholder="Type the text, then tap the page" value="${esc(pe.txt.text).replace(/"/g,'&quot;')}"></div><div class="field"><label for="peTxtSize">Size</label><select id="peTxtSize">${[10, 12, 14, 18, 24, 30, 36].map(s=>`<option value="${s}" ${s===pe.txt.size?'selected':''}>${s} pt</option>`).join('')}</select></div><div class="field"><label>Color</label><div class="sigrow" style="margin-top:2px">${peColorDots(PE_TXT_COLORS,pe.txt.custCss?-1:pe.txt.color,'pecolor')}<span class="pe-colorbox"><input type="color" id="peTxtPick" value="${(pe.txt.custCss||PE_TXT_COLORS[pe.txt.color].css).toLowerCase()}" aria-label="Pick a colour"><input type="text" id="peTxtHex" value="${pe.txt.custCss||PE_TXT_COLORS[pe.txt.color].css}" maxlength="7" aria-label="Colour code, for example #1A365D"></span></div></div><div class="field"><label class="checkline"><input type="checkbox" id="peTxtBold" ${pe.txt.bold?'checked':''}> Bold</label></div></div><p class="pm-hint">Type the text, then tap the page where it should start — one tap places it. The starting size matches this page's own text. Tap placed text to move it, or use Duplicate / Delete above it.</p>`;
@@ -923,7 +923,7 @@ async function peLinesForPage(i){
 }
 function peMakeEditOp(pageIdx,l,lineIdx,newText,fmt){
   const fam=peFontFam(l.fontName);const bold=fmt?fmt.bold:/bold/i.test(l.fontName||'');const ital=fmt?fmt.italic:/italic|oblique/i.test(l.fontName||'');const col=fmt?{css:fmt.css,rgb:fmt.rgb}:(l.ink?{css:l.inkCss,rgb:l.ink}:PE_TXT_COLORS[0]);
-  return {type:'edit',page:pageIdx,lineIdx,fx:l.fx,fTop:l.fTop,fw:l.fw,fh:l.fh,fBase:l.fBase,size:fmt?fmt.size:Math.round(l.size*10)/10,fontName:l.fontName,fontStd:peFontStd(fam,bold,ital),bold,italic:ital,cover:l.cover||[1,1,1],css:col.css,color:col.rgb,oldText:l.text,newText};
+  return {type:'edit',page:pageIdx,lineIdx,fx:l.fx,fTop:l.fTop,fw:l.fw,fh:l.fh,fBase:l.fBase,cfx:l.fx,cTop:l.fTop,size:fmt?fmt.size:Math.round(l.size*10)/10,fontName:l.fontName,fontStd:peFontStd(fam,bold,ital),bold,italic:ital,cover:l.cover||[1,1,1],css:col.css,color:col.rgb,oldText:l.text,newText};
 }
 function peSelectLine(li){if(!pe)return;const l=pe.lines[li];if(!l)return;pe.editLine=li;pe.imgSel=-1;const oi=pe.ops.findIndex(o=>o.type==='edit'&&o.page===pe.page&&o.lineIdx===li);const ex=oi>=0?pe.ops[oi]:null;
   pe.editFmt={size:ex?ex.size:Math.max(6,Math.round(l.size)),bold:ex?ex.bold:/bold/i.test(l.fontName||''),italic:ex?ex.italic:/italic|oblique/i.test(l.fontName||''),css:ex?ex.css:(l.inkCss||PE_TXT_COLORS[0].css),rgb:ex?ex.color:(l.ink||PE_TXT_COLORS[0].rgb)};
@@ -932,8 +932,43 @@ function peUseEdit(){if(!pe||pe.editLine<0||!pe.editFmt)return;const l=pe.lines[
   if(!peEncodable(nt)){toast('That wording uses characters the editor\u2019s standard fonts can\u2019t print — scripts like Arabic or Chinese can\u2019t be re-typed here. Latin-letter wording works.');return}
   const oi=pe.ops.findIndex(o=>o.type==='edit'&&o.page===pe.page&&o.lineIdx===pe.editLine);
   const op=peMakeEditOp(pe.page,l,pe.editLine,nt,pe.editFmt);
+  if(oi>=0){op.fx=pe.ops[oi].fx;op.fBase=pe.ops[oi].fBase}
+  /* Blend-in fit (v4.7.13): unless the user set the size themselves,
+     scale the size so the new wording spans the SAME width as the
+     field it replaces — an edit then sits in the line instead of
+     running noticeably longer or shorter than its neighbours. */
+  if(!pe.editFmt.sizeTouched){try{const mc=peMeasureCtx();mc.font=(op.italic?'italic ':'')+(op.bold?'700 ':'')+op.size+'px '+peFontCss(op.fontName);const wNew=mc.measureText(nt).width;const wTarget=l.fw*pe.pageW;if(wNew>4&&wTarget>4){const r=Math.min(1.35,Math.max(.65,wTarget/wNew));op.size=Math.max(6,Math.round(op.size*r*10)/10)}}catch(e){}}
   if(oi>=0){pe.ops[oi]=op;pe.redo=[]}else pe.ops.push(op);
   pe.editLine=-1;peRenderModeBar();peDrawOverlay();peSyncCount()}
+let _peMeasCtx=null;
+function peMeasureCtx(){if(!_peMeasCtx)_peMeasCtx=document.createElement('canvas').getContext('2d');return _peMeasCtx}
+/* Drag a field to a new place (v4.7.13): the cover stays on the
+   field's original rectangle; only the re-typed words move. A pure
+   move keeps the original wording — the op is an edit whose new text
+   equals the old. */
+function peMoveLine(li,dx,dy){if(!pe)return;const l=pe.lines[li];if(!l)return;const oi=pe.ops.findIndex(o=>o.type==='edit'&&o.page===pe.page&&o.lineIdx===li);const ex=oi>=0?pe.ops[oi]:null;
+  const nfx=Math.min(.98,Math.max(0,(ex?ex.fx:l.fx)+dx)),nfb=Math.min(1,Math.max(.02,(ex?ex.fBase:l.fBase)+dy));
+  if(ex){ex.fx=nfx;ex.fBase=nfb;if(ex.cfx===undefined){ex.cfx=l.fx;ex.cTop=l.fTop}}
+  else{const op=peMakeEditOp(pe.page,l,li,PE_RTL_RE.test(l.text)?peLogical(l.text):l.text,null);op.fx=nfx;op.fBase=nfb;pe.ops.push(op)}
+  pe.redo=[];peDrawOverlay();peSyncCount();toast('Field moved — tap it any time to change its words too.')}
+function peDragEditText(e,op,el){if(!pe)return;e.stopPropagation();e.preventDefault();const start=peFrac(e);const ofx=op.fx,ofb=op.fBase;let moved=false;try{el.setPointerCapture(e.pointerId)}catch(_){}
+  const cvs=$('peCanvas');const stageH=cvs?cvs.clientHeight:0;const sx=pe.pageW&&cvs?cvs.clientWidth/pe.pageW:1;
+  const move=ev=>{const p=peFrac(ev);const dx=p.fx-start.fx,dy=p.fy-start.fy;if(!moved&&Math.hypot(dx,dy)>.004)moved=true;if(!moved)return;op.fx=Math.min(.98,Math.max(0,ofx+dx));op.fBase=Math.min(1,Math.max(.02,ofb+dy));el.style.left=(op.fx*100)+'%';el.style.top=(op.fBase*stageH-op.size*sx*.84)+'px'};
+  const up=()=>{el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up);if(moved){pe.redo=[];peDrawOverlay()}else if(pe.lines[op.lineIdx])peSelectLine(op.lineIdx)};
+  el.addEventListener('pointermove',move);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up)}
+/* Lift a picture off the page (v4.7.13): copy its pixels from the
+   rendered preview, cover the original spot, and drop the copy back
+   as a free image element the user can drag anywhere and resize.
+   The copy is a picture of the picture at preview resolution —
+   plenty for logos and photos placed back at a similar size. */
+async function peMoveImage(){if(!pe||pe.imgSel<0||!pe.images[pe.imgSel])return;const im=pe.images[pe.imgSel];const cv=$('peCanvas');if(!cv){toast('The preview is not ready yet — try again in a moment.');return}
+  try{const sx=cv.width/pe.pageW,sy=cv.height/pe.pageH;const x0=Math.max(0,Math.round(im.fx*pe.pageW*sx)),y0=Math.max(0,Math.round(im.fTop*pe.pageH*sy)),w=Math.min(cv.width-x0,Math.round(im.fw*pe.pageW*sx)),h=Math.min(cv.height-y0,Math.round(im.fh*pe.pageH*sy));if(w<4||h<4){toast('That picture is too small to lift.');return}
+    const c2=document.createElement('canvas');c2.width=w;c2.height=h;c2.getContext('2d').drawImage(cv,x0,y0,w,h,0,0,w,h);
+    const blob=await new Promise(r=>c2.toBlob(r,'image/png'));if(!blob){toast('That picture could not be lifted — Cover or Replace still work.');return}
+    const buf=new Uint8Array(await blob.arrayBuffer());const url=URL.createObjectURL(blob);const cov=peSampleFrom(cv,im.fx,im.fTop,im.fw,im.fh,pe.pageW,pe.pageH);
+    pePushOp({type:'cover',page:pe.page,fx:im.fx,fy:im.fTop,fw:im.fw,fh:im.fh,cover:cov},false);
+    pePushOp({type:'image',page:pe.page,fx:im.fx,fy:im.fTop,fw:im.fw,fh:im.fh,bytes:buf,format:'png',url,aspect:(im.fw*pe.pageW)/Math.max(1,im.fh*pe.pageH),sign:false},true);
+    pe.imgSel=-1;peDrawOverlay();toast('Picture lifted — drag it anywhere on the page, resize from the corner dot.')}catch(e){toast('That picture could not be lifted — Cover or Replace still work.')}}
 async function peFindReplace(){
   if(!pe)return;const fEl=$('peFindText'),rEl=$('peReplaceText'),res=$('peFindResult');const find=fEl?fEl.value:'';const repl=rEl?rEl.value:'';
   if(!find){toast('Type the words to find first.');return}
@@ -977,7 +1012,8 @@ function peDrawOverlay(){
   });
   ov.appendChild(svg);
   pe.ops.forEach((op,i)=>{if(op.page!==pe.page)return;const d=document.createElement('div');d.dataset.op=i;
-    if(op.type==='edit'){d.className='pe-opedit';d.style.left=(op.fx*100)+'%';d.style.top=(op.fTop*100)+'%';d.style.width=(op.fw*100)+'%';d.style.height=(op.fh*100)+'%';d.style.background='rgb('+op.cover.map(v=>Math.round(v*255)).join(',')+')';const s=document.createElement('span');s.textContent=op.newText;s.style.fontSize=(op.size*sx)+'px';s.style.fontFamily=peFontCss(op.fontName);if(op.bold)s.style.fontWeight='700';if(op.italic)s.style.fontStyle='italic';s.style.color=op.css;s.style.top=((op.fBase-op.fTop)*stageH-op.size*sx*.84)+'px';d.appendChild(s)}
+    if(op.type==='edit'){const ecx=op.cfx!==undefined?op.cfx:op.fx,ect=op.cTop!==undefined?op.cTop:op.fTop;d.className='pe-opedit';d.style.left=(ecx*100)+'%';d.style.top=(ect*100)+'%';d.style.width=(op.fw*100)+'%';d.style.height=(op.fh*100)+'%';d.style.background='rgb('+op.cover.map(v=>Math.round(v*255)).join(',')+')';
+      const s=document.createElement('div');s.className='pe-opmovtext';s.textContent=op.newText;s.style.left=(op.fx*100)+'%';s.style.top=(op.fBase*stageH-op.size*sx*.84)+'px';s.style.fontSize=(op.size*sx)+'px';s.style.fontFamily=peFontCss(op.fontName);if(op.bold)s.style.fontWeight='700';if(op.italic)s.style.fontStyle='italic';s.style.color=op.css;s.title='Drag to move this text — tap to edit it';s.addEventListener('pointerdown',e=>peDragEditText(e,op,s));d._movtext=s}
     else if(op.type==='text'){d.className='pe-optext';d.style.left=(op.fx*100)+'%';d.style.top=(op.fBase*100)+'%';d.style.fontSize=(op.size*sx)+'px';d.style.color=op.css;if(op.bold)d.style.fontWeight='700';d.textContent=op.text;peWireObject(d,i,null)}
     else if(op.type==='image'){d.className='pe-opimg';const img=document.createElement('img');img.src=op.url;img.alt=op.sign?'Your signature':'Added image';d.appendChild(img);d.style.left=(op.fx*100)+'%';d.style.top=(op.fy*100)+'%';d.style.width=(op.fw*100)+'%';d.style.height=(op.fh*100)+'%';const h=document.createElement('div');h.className='pe-handle';h.title='Drag to resize';d.appendChild(h);peWireObject(d,i,null);peWireHandle(h,d,i)}
     else if(op.type==='mark'){d.className='pe-opmark';const col=op.style==='highlight'?PE_HL_COLORS[op.color]:[PE_TXT_COLORS[0],PE_TXT_COLORS[3],PE_TXT_COLORS[1]][op.color];if(op.style==='highlight'){d.style.background=col.css}else{const ln=document.createElement('div');ln.className='pe-markline '+(op.style==='strike'?'strike':'under');ln.style.background=col.css;d.appendChild(ln)}d.style.left=(op.fx*100)+'%';d.style.top=(op.fy*100)+'%';d.style.width=(op.fw*100)+'%';d.style.height=(op.fh*100)+'%';peWireObject(d,i,null)}
@@ -986,7 +1022,7 @@ function peDrawOverlay(){
     else if(op.type==='shape'||op.type==='draw'){const bb=peOpBBox(op);d.className='pe-hit';d.style.left=(bb.fx*100)+'%';d.style.top=(bb.fy*100)+'%';d.style.width=(bb.fw*100)+'%';d.style.height=(bb.fh*100)+'%';const node=svg.querySelector('[data-op="'+i+'"]');peWireObject(d,i,node)}
     else return;
     if(op.type!=='edit'&&pe.sel===i)d.classList.add('sel');
-    ov.appendChild(d)});
+    ov.appendChild(d);if(d._movtext)ov.appendChild(d._movtext)});
   /* Floating actions for the selected object (Sejda/Smallpdf pattern). */
   if(pe.sel>=0&&pe.ops[pe.sel]&&pe.ops[pe.sel].page===pe.page&&pe.ops[pe.sel].type!=='edit'){
     const op=pe.ops[pe.sel];const bb=peOpBBox(op);const bar=document.createElement('div');bar.className='pe-actions';
@@ -997,10 +1033,15 @@ function peDrawOverlay(){
   if(pe.mode==='edit'&&!pe.rot&&pe.images&&pe.images.length){pe.images.forEach((im,ii)=>{const d=document.createElement('div');d.className='pe-imgel'+(pe.imgSel===ii?' sel':'');d.style.left=(im.fx*100)+'%';d.style.top=(im.fTop*100)+'%';d.style.width=(im.fw*100)+'%';d.style.height=(im.fh*100)+'%';d.title='Picture — tap to cover or replace it';d.addEventListener('pointerdown',e=>{e.stopPropagation();pe.imgSel=ii;pe.editLine=-1;peRenderModeBar();peDrawOverlay()});ov.appendChild(d)});
     if(pe.imgSel>=0&&pe.images[pe.imgSel]){const im=pe.images[pe.imgSel];const bar=document.createElement('div');bar.className='pe-actions';const above=im.fTop>.09;bar.style.left=Math.min(92,Math.max(0,im.fx*100))+'%';bar.style.top=(above?(im.fTop*100-6.5):(im.fTop+im.fh)*100+1.2)+'%';if(above)bar.style.transform='translateY(-100%)';
       const cov=document.createElement('button');cov.type='button';cov.innerHTML=icon('eye-off',14)+' Cover (hide)';cov.addEventListener('pointerdown',e=>e.stopPropagation());cov.addEventListener('click',e=>{e.stopPropagation();if(!pe)return;const cv2=$('peCanvas');const covr=cv2?peSampleFrom(cv2,im.fx,im.fTop,im.fw,im.fh,pe.pageW,pe.pageH):[1,1,1];pePushOp({type:'cover',page:pe.page,fx:im.fx,fy:im.fTop,fw:im.fw,fh:im.fh,cover:covr},false);pe.imgSel=-1;toast('Picture covered — Undo can bring it back.')});
+      const mv=document.createElement('button');mv.type='button';mv.innerHTML=icon('move',14)+' Move';mv.addEventListener('pointerdown',e=>e.stopPropagation());mv.addEventListener('click',e=>{e.stopPropagation();peMoveImage()});
       const rep=document.createElement('button');rep.type='button';rep.innerHTML=icon('image-plus',14)+' Replace…';rep.addEventListener('pointerdown',e=>e.stopPropagation());rep.addEventListener('click',e=>{e.stopPropagation();const inp=$('peImgRepFile');if(inp)inp.click()});
       const dn=document.createElement('button');dn.type='button';dn.innerHTML=icon('x',14)+' Done';dn.addEventListener('pointerdown',e=>e.stopPropagation());dn.addEventListener('click',e=>{e.stopPropagation();pe.imgSel=-1;peDrawOverlay()});
-      bar.appendChild(cov);bar.appendChild(rep);bar.appendChild(dn);ov.appendChild(bar)}}
-  if(pe.mode==='edit'&&pe.hasText){pe.lines.forEach((l,li)=>{const h=document.createElement('div');h.className='pe-line'+(pe.editLine===li?' sel':'');h.style.left=(l.fx*100)+'%';h.style.top=(l.fTop*100)+'%';h.style.width=(l.fw*100)+'%';h.style.height=(l.fh*100)+'%';h.title='Tap to edit this line';h.addEventListener('pointerdown',e=>{e.stopPropagation();peSelectLine(li)});ov.appendChild(h)})}
+      bar.appendChild(cov);bar.appendChild(mv);bar.appendChild(rep);bar.appendChild(dn);ov.appendChild(bar)}}
+  if(pe.mode==='edit'&&pe.hasText){pe.lines.forEach((l,li)=>{const h=document.createElement('div');h.className='pe-line'+(pe.editLine===li?' sel':'');h.style.left=(l.fx*100)+'%';h.style.top=(l.fTop*100)+'%';h.style.width=(l.fw*100)+'%';h.style.height=(l.fh*100)+'%';h.title='Tap to edit this field — or drag it to a new place';
+    h.addEventListener('pointerdown',e=>{e.stopPropagation();const start=peFrac(e);let moved=false;try{h.setPointerCapture(e.pointerId)}catch(_){}
+      const move=ev=>{const p=peFrac(ev);if(!moved&&Math.hypot(p.fx-start.fx,p.fy-start.fy)>.006)moved=true;if(moved){h.style.left=((l.fx+(p.fx-start.fx))*100)+'%';h.style.top=((l.fTop+(p.fy-start.fy))*100)+'%'}};
+      const up=ev=>{h.removeEventListener('pointermove',move);h.removeEventListener('pointerup',up);h.removeEventListener('pointercancel',up);if(!moved){peSelectLine(li);return}const p=peFrac(ev);peMoveLine(li,p.fx-start.fx,p.fy-start.fy)};
+      h.addEventListener('pointermove',move);h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up)});ov.appendChild(h)})}
 }
 /* Deep-copy an op (image bytes/URL ride along by reference, as they
    always have here) + the shared slight-offset placement used by
@@ -1204,7 +1245,7 @@ async function processTool(){
     if(!pe.ops.length&&!pe.pn.on)throw new Error('Make at least one change first — edit a line, add text, an image, a signature or a highlight — or turn on page numbers.');
     const fontCache={};const getFont=async key=>{if(!fontCache[key])fontCache[key]=await doc.embedFont(StandardFonts[key]);return fontCache[key]};
     for(const op of pe.ops){const p=doc.getPage(op.page);const {width:W,height:H}=p.getSize();
-      if(op.type==='edit'){const font=await getFont(op.fontStd);const pad=op.size*.14;p.drawRectangle({x:op.fx*W,y:H-(op.fTop+op.fh)*H-pad,width:op.fw*W,height:op.fh*H+pad*2,color:rgb(op.cover[0],op.cover[1],op.cover[2])});p.drawText(op.newText,{x:op.fx*W,y:H-op.fBase*H,size:op.size,font,color:rgb(op.color[0],op.color[1],op.color[2])})}
+      if(op.type==='edit'){const font=await getFont(op.fontStd);const pad=op.size*.14;const ecx=op.cfx!==undefined?op.cfx:op.fx,ect=op.cTop!==undefined?op.cTop:op.fTop;p.drawRectangle({x:ecx*W,y:H-(ect+op.fh)*H-pad,width:op.fw*W,height:op.fh*H+pad*2,color:rgb(op.cover[0],op.cover[1],op.cover[2])});p.drawText(op.newText,{x:op.fx*W,y:H-op.fBase*H,size:op.size,font,color:rgb(op.color[0],op.color[1],op.color[2])})}
       else if(op.type==='text'){const font=await getFont(op.bold?'HelveticaBold':'Helvetica');p.drawText(op.text,{x:op.fx*W,y:H-op.fBase*H,size:op.size,font,color:rgb(op.color[0],op.color[1],op.color[2])})}
       else if(op.type==='image'){const img=op.format==='png'?await doc.embedPng(op.bytes):await doc.embedJpg(op.bytes);p.drawImage(img,{x:op.fx*W,y:H-(op.fy+op.fh)*H,width:op.fw*W,height:op.fh*H})}
       else if(op.type==='mark'){if(op.style==='highlight'){const c=PE_HL_COLORS[op.color].rgb;p.drawRectangle({x:op.fx*W,y:H-(op.fy+op.fh)*H,width:op.fw*W,height:op.fh*H,color:rgb(c[0],c[1],c[2]),opacity:.35})}
