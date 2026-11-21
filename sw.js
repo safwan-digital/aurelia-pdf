@@ -15,7 +15,7 @@
      are bypassed entirely: the fetch handler returns without respondWith,
      so analytics traffic is never cached and never stale-served.
    Only GET requests are handled; range requests are left to the network. */
-const CACHE = 'pdfstow-v4.7.19';
+const CACHE = 'pdfstow-v4.7.20';
 const SHELL = [
   './', 'index.html',
   'app.js?v=55', 'app.js',
@@ -23,7 +23,7 @@ const SHELL = [
   'trust.html', 'about/', 'privacy/', 'terms/', 'contact/', 'manifest.json',
   'favicon.ico', 'favicon-32.png', 'apple-touch-icon.png',
   'icon-192.png', 'icon-512.png', 'logo-icon-sm.webp',
-  'og-image.png', '404.html', 'demo.js?v=3', 'demo.js'
+  'og-image.png', '404.html', 'demo.js?v=4', 'demo.js'
 ];
 
 self.addEventListener('install', e => {
