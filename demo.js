@@ -68,19 +68,26 @@
 
   /* ---------- Watch-demo button ---------- */
   function ensureButton() {
-    var note = document.getElementById('toolNote');
-    if (!note || !note.parentNode) return;
+    var title = document.getElementById('toolTitle');
+    if (!title || !title.parentNode) return;
     var id = currentToolId();
     var existing = document.getElementById('demoWatchBtn');
     if (!id || !DEMOS[id]) { if (existing) existing.remove(); return; }
     if (existing) return;
+    var row = title.parentNode;
+    if (!row.classList || !row.classList.contains('demo-title-row')) {
+      row = document.createElement('div');
+      row.className = 'demo-title-row';
+      title.parentNode.insertBefore(row, title);
+      row.appendChild(title);
+    }
     var b = document.createElement('button');
     b.type = 'button';
-    b.className = 'btn demo-watch-btn';
+    b.className = 'demo-watch-btn';
     b.id = 'demoWatchBtn';
-    b.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/></svg> Watch demo · 11 sec';
+    b.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/></svg> See how it works';
     b.addEventListener('click', function () { openDemo(id); });
-    note.parentNode.insertBefore(b, note.nextSibling);
+    row.appendChild(b);
   }
 
   /* ---------- Player ---------- */
